@@ -37,7 +37,7 @@ void AdbDebugPipe::onGuestClose() {
     // Nothing to do here
 }
 
-unsigned AdbDebugPipe::onGuestPoll() const {
+unsigned AdbDebugPipe::onGuestPoll() {
     // Guest can always write and never read.
     return PIPE_POLL_OUT;
 }

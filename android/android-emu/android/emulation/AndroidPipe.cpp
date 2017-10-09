@@ -118,7 +118,7 @@ public:
            mHwPipe);
     }
 
-    virtual unsigned onGuestPoll() const override {
+    virtual unsigned onGuestPoll() override {
         // A connector always want to receive data.
         DD("%s: polling hwpipe=%p", __FUNCTION__, mHwPipe);
         return PIPE_POLL_OUT;

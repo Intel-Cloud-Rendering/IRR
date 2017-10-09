@@ -131,7 +131,7 @@ public:
 
     // Called from the device thread to poll the pipe state. Must return a
     // combination of PIPE_POLL_IN, PIPE_POLL_OUT and PIPE_POLL_HUP.
-    virtual unsigned onGuestPoll() const = 0;
+    virtual unsigned onGuestPoll() = 0;
 
     // Called from the device thread when the guest wants to receive data
     // from the pipe. |buffers| points to an array of |numBuffers| descriptors

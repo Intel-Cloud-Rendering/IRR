@@ -393,6 +393,7 @@ LOCAL_SRC_FILES := \
     android/utils/socket_drainer.cpp \
     android/utils/sockets.c \
     android/utils/looper.cpp \
+    android/utils/gl_cmd_net_format.cpp \
     android/wear-agent/android_wear_agent.cpp \
     android/wear-agent/WearAgent.cpp \
     android/wear-agent/PairUpWearPhone.cpp \

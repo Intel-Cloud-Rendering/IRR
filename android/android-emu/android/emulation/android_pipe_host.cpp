@@ -44,7 +44,7 @@ public:
         delete this;
     }
 
-    virtual unsigned onGuestPoll() const { return getFuncs()->poll(mInstance); }
+    virtual unsigned onGuestPoll() { return getFuncs()->poll(mInstance); }
 
     virtual int onGuestRecv(AndroidPipeBuffer* buffers,
                             int numBuffers) override {

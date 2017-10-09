@@ -14,6 +14,7 @@
 #include "android/opengles.h"
 #include "android/opengles-pipe.h"
 #include "android/opengl/GLProcessPipe.h"
+#include "android/utils/gl_cmd_net_format.h"
 
 #include <atomic>
 
@@ -128,26 +129,52 @@ public:
     // Overriden AndroidPipe methods
 
     virtual void onGuestClose() override {
-    /*
         D("%s", __func__);
         mIsWorking = false;
-        mChannel->stop();
+
         // Make sure there's no operation scheduled for this pipe instance to
         // run on the main thread.
+        uint8_t sndBuf[10] = {0};
+        int ret = format_gl_ctrl_command(GLCtrlType::CLOSE_CTRL, sizeof(sndBuf), sndBuf);
+        assert(ret > 0);
+        asio::error_code ec;
+        mTcpSocket.send(asio::buffer(sndBuf, ret), 0, ec);
+        if (ec) {
+            fprintf(stderr, "Cannot send [close] to server.(%d:%s)\n", ec.value(), ec.message().c_str());
+        }
+
+        mTcpSocket.close();
+
         abortPendingOperation();
         delete this;
-        */
     }
 
-    virtual unsigned onGuestPoll() const override {
-        /*
+    virtual unsigned onGuestPoll() override {
         DD("%s", __func__);
 
         unsigned ret = 0;
         if (mDataForReadingLeft > 0) {
             ret |= PIPE_POLL_IN;
         }
-        ChannelState state = mChannel->state();
+
+        uint8_t sndBuf[10] = {0};
+        int format_cmd_size = format_gl_ctrl_command(GLCtrlType::POLL_CTRL, sizeof(sndBuf), sndBuf);
+        assert(format_cmd_size > 0);
+        asio::error_code ec;
+        mTcpSocket.send(asio::buffer(sndBuf, format_cmd_size), 0, ec);
+        if (ec) {
+            fprintf(stderr, "Cannot request channel state to server.(%d:%s)\n", ec.value(), ec.message().c_str());
+            assert(false);
+        }
+
+        int _state = (int)(ChannelState::Empty);
+        mTcpSocket.receive(asio::buffer(&_state, sizeof(int)), 0, ec);
+        if (ec) {
+            fprintf(stderr, "Cannot get channel state to server.(%d:%s)\n", ec.value(), ec.message().c_str());
+            assert(false);
+        }
+
+        ChannelState state = (ChannelState)_state;
         if ((state & ChannelState::CanRead) != 0) {
             ret |= PIPE_POLL_IN;
         }
@@ -159,8 +186,6 @@ public:
         }
         DD("%s: returning %d", __func__, ret);
         return ret;
-        */
-        return 0;
     }
 
     virtual int onGuestRecv(AndroidPipeBuffer* buffers, int numBuffers)

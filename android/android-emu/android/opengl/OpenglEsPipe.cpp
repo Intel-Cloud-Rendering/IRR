@@ -109,7 +109,7 @@ public:
         delete this;
     }
 
-    virtual unsigned onGuestPoll() const override {
+    virtual unsigned onGuestPoll() override {
         DD("%s", __func__);
 
         unsigned ret = 0;

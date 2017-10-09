@@ -44,7 +44,7 @@ void ClipboardPipe::onGuestClose() {
     ClipboardPipe::Service::closePipe();
 }
 
-unsigned ClipboardPipe::onGuestPoll() const {
+unsigned ClipboardPipe::onGuestPoll() {
     unsigned result = PIPE_POLL_OUT;
     if (sEnabled && mGuestWriteState.hasData()) {
         result |= PIPE_POLL_IN;

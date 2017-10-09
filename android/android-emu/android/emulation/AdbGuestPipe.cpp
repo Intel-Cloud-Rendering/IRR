@@ -159,7 +159,7 @@ void AdbGuestPipe::onGuestClose() {
     service()->onPipeClose(this);  // This deletes the instance.
 }
 
-unsigned AdbGuestPipe::onGuestPoll() const {
+unsigned AdbGuestPipe::onGuestPoll() {
     DD("%s: [%p]", __func__, this);
     unsigned result = 0;
     switch (mState) {

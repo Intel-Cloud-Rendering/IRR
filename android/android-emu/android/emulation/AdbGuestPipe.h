@@ -115,7 +115,7 @@ public:
 
     // Overridden AndroidPipe methods. Called from the device context.
     virtual void onGuestClose() override;
-    virtual unsigned onGuestPoll() const override;
+    virtual unsigned onGuestPoll() override;
     virtual int onGuestRecv(AndroidPipeBuffer* buffers, int count) override;
     virtual int onGuestSend(const AndroidPipeBuffer* buffers,
                             int count) override;

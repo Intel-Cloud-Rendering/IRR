@@ -52,7 +52,7 @@ public:
         // process died on the guest, cleanup gralloc memory on the host
         android_cleanupProcGLObjects(m_uniqueId);
     }
-    unsigned onGuestPoll() const override {
+    unsigned onGuestPoll() override {
         return PIPE_POLL_IN | PIPE_POLL_OUT;
     }
     int onGuestRecv(AndroidPipeBuffer* buffers, int numBuffers) override {
