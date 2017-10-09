@@ -305,7 +305,14 @@ bool android_emulation_setup(const AndroidConsoleAgents* agents) {
     android_pipe_add_type_throttle();
 
     android_unix_pipes_init();
-    android_init_opengles_pipe();
+
+    const char* render_client = getenv("render_client");
+    if (render_client) {
+        android_init_opengles_client_pipe();
+    } else {
+        android_init_opengles_pipe();
+    }
+
     android_init_clipboard_pipe();
 
     if (android_op_port && android_op_ports) {

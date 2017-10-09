@@ -209,6 +209,7 @@ LOCAL_CFLAGS := \
     $(LIBXML2_CFLAGS) \
 
 LOCAL_C_INCLUDES := \
+    $(_ANDROID_EMU_ROOT)/android/asio/ \
     $(EMULATOR_COMMON_INCLUDES) \
     $(ANDROID_EMU_INCLUDES) \
     $(EMUGL_INCLUDES) \
@@ -219,6 +220,8 @@ LOCAL_C_INCLUDES := \
     $(LIBEXT4_UTILS_INCLUDES) \
     $(LIBPNG_INCLUDES) \
     $(ZLIB_INCLUDES) \
+    /usr/include \
+
 
 LOCAL_SRC_FILES := \
     android/adb-server.cpp \
@@ -351,6 +354,7 @@ LOCAL_SRC_FILES := \
     android/opengl/gpuinfo.cpp \
     android/opengl/logger.cpp \
     android/opengl/OpenglEsPipe.cpp \
+    android/opengl/OpenglEsPipeClient.cpp \
     android/opengles.cpp \
     android/openssl-support.cpp \
     android/process_setup.cpp \
