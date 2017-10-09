@@ -79,21 +79,18 @@ public:
     /////////////////////////////////////////////////////////////////////////
     // Constructor, check that |mIsWorking| is true after this call to verify
     // that everything went well.
-    EmuglPipeClient(void* hwPipe, Service* service) : AndroidPipe(hwPipe, service) {
-        mIsWorking = false;
+    EmuglPipeClient(void* hwPipe, Service* service) :
+        AndroidPipe(hwPipe, service),
+        mAsioIoService(),
+        mTcpSocket(mAsioIoService) {
 
-        mAsioIoService = new AsioIoService();
-        assert(mAsioIoService != nullptr);
-        mTcpSocket = new AsioTCP::socket(*mAsioIoService);
-        assert(mTcpSocket != nullptr);
+        mIsWorking = false;
 
         const char* render_svr_hostname = getenv("render_svr_hostname");
         if (render_svr_hostname) {
             printf("Render server hostname: %s\n", render_svr_hostname);
         } else {
-            printf("Cannot find render server hostname\n");
-            delete mTcpSocket;
-            delete mAsioIoService;
+            fprintf(stderr, "Cannot find render server hostname\n");
             return;
         }
 
@@ -101,28 +98,30 @@ public:
         if (render_svr_port) {
             printf("Render server port: %s\n", render_svr_port);
         } else {
-            printf("Cannot find render server port\n");
-            delete mTcpSocket;
-            delete mAsioIoService;
+            fprintf(stderr, "Cannot find render server port\n");
             return;
         }
 
-        AsioTCP::resolver resolver(*mAsioIoService);
+        AsioTCP::resolver resolver(mAsioIoService);
         AsioTCP::resolver::query query(
             render_svr_hostname,
             render_svr_port);
 
         AsioTCP::resolver::iterator endpoint_iterator = resolver.resolve(query);
         asio::error_code ec;
-        asio::connect(*mTcpSocket, endpoint_iterator, ec);
+        asio::connect(mTcpSocket, endpoint_iterator, ec);
         if (ec) {
             fprintf(stderr, "Cannot connect to server.(%d:%s)\n", ec.value(), ec.message().c_str());
-            delete mTcpSocket;
-            delete mAsioIoService;
             return;
         }
 
         mIsWorking = true;
+    }
+
+    ~EmuglPipeClient() {
+        if (!(mAsioIoService.stopped())) {
+            mAsioIoService.stop();
+        }
     }
 
     //////////////////////////////////////////////////////////////////////////
@@ -344,8 +343,8 @@ private:
     ChannelBuffer mDataForReading;
     size_t mDataForReadingLeft = 0;
 
-    AsioIoService   *mAsioIoService;
-    AsioTCP::socket *mTcpSocket;
+    AsioIoService   mAsioIoService;
+    AsioTCP::socket mTcpSocket;
 
     DISALLOW_COPY_ASSIGN_AND_MOVE(EmuglPipeClient);
 };
