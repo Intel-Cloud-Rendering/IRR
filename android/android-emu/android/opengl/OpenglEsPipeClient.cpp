@@ -157,24 +157,7 @@ public:
             ret |= PIPE_POLL_IN;
         }
 
-        uint8_t sndBuf[10] = {0};
-        int format_cmd_size = format_gl_ctrl_command(GLCtrlType::POLL_CTRL, sizeof(sndBuf), sndBuf);
-        assert(format_cmd_size > 0);
-        asio::error_code ec;
-        mTcpSocket.send(asio::buffer(sndBuf, format_cmd_size), 0, ec);
-        if (ec) {
-            fprintf(stderr, "Cannot request channel state to server.(%d:%s)\n", ec.value(), ec.message().c_str());
-            assert(false);
-        }
-
-        int _state = (int)(ChannelState::Empty);
-        mTcpSocket.receive(asio::buffer(&_state, sizeof(int)), 0, ec);
-        if (ec) {
-            fprintf(stderr, "Cannot get channel state to server.(%d:%s)\n", ec.value(), ec.message().c_str());
-            assert(false);
-        }
-
-        ChannelState state = (ChannelState)_state;
+        ChannelState state = getChannelState();
         if ((state & ChannelState::CanRead) != 0) {
             ret |= PIPE_POLL_IN;
         }
@@ -188,8 +171,7 @@ public:
         return ret;
     }
 
-    virtual int onGuestRecv(AndroidPipeBuffer* buffers, int numBuffers)
-            override {
+    virtual int onGuestRecv(AndroidPipeBuffer* buffers, int numBuffers) override {
             /*
         DD("%s", __func__);
 
@@ -255,9 +237,7 @@ public:
         return 0;
     }
 
-    virtual int onGuestSend(const AndroidPipeBuffer* buffers,
-                            int numBuffers) override {
-                            /*
+    virtual int onGuestSend(const AndroidPipeBuffer* buffers, int numBuffers) override {
         DD("%s", __func__);
 
         if (!mIsWorking) {
@@ -272,29 +252,32 @@ public:
         }
 
         // Copy everything into a single ChannelBuffer.
-        ChannelBuffer outBuffer;
-        outBuffer.resize_noinit(count);
-        auto ptr = outBuffer.data();
+        uint8_t *sndBuf = new uint8_t[PACKET_HEAD_LEN + count];
+        sndBuf += PACKET_HEAD_LEN;
         for (int n = 0; n < numBuffers; ++n) {
-            memcpy(ptr, buffers[n].data, buffers[n].size);
-            ptr += buffers[n].size;
+            memcpy(sndBuf, buffers[n].data, buffers[n].size);
+            sndBuf += buffers[n].size;
         }
 
-        D("%s: sending %d bytes to host", __func__, count);
-        // Send it through the channel.
-        auto result = mChannel->tryWrite(std::move(outBuffer));
-        if (result != IoResult::Ok) {
-            D("%s: tryWrite() failed with %d", __func__, (int)result);
-            return result == IoResult::Error ? PIPE_ERROR_IO : PIPE_ERROR_AGAIN;
+        int offset = 0;
+        *sndBuf = (uint8_t)GLPacketType::DATA_PACKET;
+
+        offset += PACKET_MAJOR_TYPE_LEN;
+        *(sndBuf + offset) = 0;
+
+        offset += PACKET_MINOR_TYPE_LEN;
+        *((uint64_t *)(sndBuf + offset)) = count;
+
+        asio::error_code ec;
+        mTcpSocket.send(asio::buffer(sndBuf, PACKET_HEAD_LEN + count), 0, ec);
+        if (ec) {
+            fprintf(stderr, "Cannot send data to server.(%d:%s)\n", ec.value(), ec.message().c_str());
         }
 
         return count;
-        */
-        return 0;
     }
 
     virtual void onGuestWantWakeOn(int flags) override {
-        /*
         DD("%s: flags=%d", __func__, flags);
 
         // Translate |flags| into ChannelState flags.
@@ -307,7 +290,7 @@ public:
         }
 
         // Signal events that are already available now.
-        ChannelState state = mChannel->state();
+        ChannelState state = getChannelState();
         ChannelState available = state & wanted;
         DD("%s: state=%d wanted=%d available=%d", __func__, (int)state,
            (int)wanted, (int)available);
@@ -320,12 +303,52 @@ public:
         // Ask the channel to be notified of remaining events.
         if (wanted != ChannelState::Empty) {
             DD("%s: waiting for events %d", __func__, (int)wanted);
-            mChannel->setWantedEvents(wanted);
+            setChannelWantedEvents((int)wanted);
         }
-        */
     }
 
 private:
+    ChannelState getChannelState() {
+        uint8_t sndBuf[10] = {0};
+        int format_cmd_size = format_gl_ctrl_command(GLCtrlType::POLL_CTRL, sizeof(sndBuf), sndBuf);
+        assert(format_cmd_size > 0);
+        asio::error_code ec;
+        mTcpSocket.send(asio::buffer(sndBuf, format_cmd_size), 0, ec);
+        if (ec) {
+            fprintf(stderr, "Cannot request channel state to server.(%d:%s)\n", ec.value(), ec.message().c_str());
+            assert(false);
+        }
+
+        int _state = (int)(ChannelState::Empty);
+        mTcpSocket.receive(asio::buffer(&_state, sizeof(int)), 0, ec);
+        if (ec) {
+            fprintf(stderr, "Cannot get channel state to server.(%d:%s)\n", ec.value(), ec.message().c_str());
+            assert(false);
+        }
+
+        return (ChannelState)_state;
+    }
+
+    void setChannelWantedEvents(int channelWantedEvts) {
+        uint8_t sndBuf[14] = {0};
+        uint8_t major_type = (uint8_t)GLPacketType::CTRL_PACKET;
+        uint8_t minor_type = (uint8_t)GLCtrlType::SET_STATE_CTRL;
+        int format_cmd_size = format_gl_generic_command(
+            major_type,
+            minor_type,
+            sizeof(int),
+            (uint8_t *)(&channelWantedEvts),
+            sizeof(sndBuf),
+            sndBuf);
+        assert(format_cmd_size > 0);
+        asio::error_code ec;
+        mTcpSocket.send(asio::buffer(sndBuf, format_cmd_size), 0, ec);
+        if (ec) {
+            fprintf(stderr, "Cannot set channel state to server.(%d:%s)\n", ec.value(), ec.message().c_str());
+            assert(false);
+        }
+    }
+
     // Called to signal the guest that read/write wake events occured.
     // Note: this can be called from either the guest or host render
     // thread.

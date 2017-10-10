@@ -24,13 +24,39 @@ typedef enum {
 
 typedef enum {
     CLOSE_CTRL = 0,
-    POLL_CTRL
+    POLL_CTRL,
+    SET_STATE_CTRL
 } GLCtrlType;
 
-#define PACKET_TYPE_LEN (1)
-#define PACKET_SIZE_LEN (8)
+typedef struct _GLCmdPacketHead {
+    uint8_t major_type;
+    uint8_t minor_type;
+    uint64_t packet_size;
+} GLCmdPacketHead; 
 
-int format_gl_data_command(GLPacketType gl_packet_type, uint64_t packet_size, uint8_t *packet_data, uint64_t output_buf_size, uint8_t *output_buf);
-int format_gl_ctrl_command(GLCtrlType gl_ctrl_type, uint64_t output_buf_size, uint8_t *output_buf);
+#define PACKET_MAJOR_TYPE_LEN (1)
+#define PACKET_MINOR_TYPE_LEN (1)
+#define PACKET_SIZE_LEN       (8)
+
+#define PACKET_HEAD_LEN (PACKET_MAJOR_TYPE_LEN + PACKET_MINOR_TYPE_LEN + PACKET_SIZE_LEN)
+
+int format_gl_data_command(
+    uint64_t packet_size,
+    uint8_t *packet_data,
+    uint64_t output_buf_size,
+    uint8_t *output_buf);
+
+int format_gl_ctrl_command(
+    GLCtrlType gl_ctrl_type,
+    uint64_t output_buf_size,
+    uint8_t *output_buf);
+
+int format_gl_generic_command(
+    uint8_t major,
+    uint8_t minor,
+    uint64_t packet_size,
+    uint8_t *packet_data,
+    uint64_t output_buf_size,
+    uint8_t *output_buf);
 
 ANDROID_END_HEADER

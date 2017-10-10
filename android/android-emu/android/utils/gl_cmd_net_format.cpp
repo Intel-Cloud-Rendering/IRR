@@ -11,47 +11,72 @@
 
 #include "android/utils/gl_cmd_net_format.h"
 
+#include <assert.h>
+#include <stdio.h>
 #include <string.h>
 
-int format_gl_data_command(GLPacketType gl_packet_type, uint64_t packet_size, uint8_t *packet_data, uint64_t output_buf_size, uint8_t *output_buf)
+int format_gl_data_command(uint64_t packet_size, uint8_t *packet_data, uint64_t output_buf_size, uint8_t *output_buf)
 {
-    if (packet_size > output_buf_size) {
+    uint64_t packet_total_size = PACKET_HEAD_LEN + packet_size;
+    if (packet_total_size > output_buf_size) {
+        fprintf(stderr, "Out of send buffer\n");
         return 0;
     }
-    
+
+    uint8_t packet_major_type = GLPacketType::DATA_PACKET;
+    return format_gl_generic_command(packet_major_type, 0, packet_size, packet_data, output_buf_size, output_buf);
+}
+
+int format_gl_ctrl_command(GLCtrlType gl_ctrl_type, uint64_t output_buf_size, uint8_t *output_buf)
+{
+    uint64_t packet_size = PACKET_HEAD_LEN;
+    if (packet_size > output_buf_size) {
+        fprintf(stderr, "Out of send buffer\n");
+        return 0;
+    }
+
     int offset = 0;
-    uint8_t packet_type = gl_packet_type;
-    *output_buf = packet_type;
+    uint8_t packet_major_type = GLPacketType::CTRL_PACKET;
+    *output_buf = packet_major_type;
     offset += sizeof(uint8_t);
-    
+
+    *((uint8_t *)(output_buf + offset)) = (uint8_t)gl_ctrl_type;
+    offset += sizeof(uint8_t);
+
+    *((uint64_t *)(output_buf + offset)) = 0;
+    offset += sizeof(uint64_t);
+
+    return offset;
+}
+
+int format_gl_generic_command(
+    uint8_t major,
+    uint8_t minor,
+    uint64_t packet_size,
+    uint8_t *packet_data,
+    uint64_t output_buf_size,
+    uint8_t *output_buf)
+{
+    uint64_t packet_total_size = PACKET_HEAD_LEN + packet_size;
+    if (packet_total_size > output_buf_size) {
+        fprintf(stderr, "Out of send buffer\n");
+        return 0;
+    }
+
+    int offset = 0;
+    *output_buf = major;
+    offset += sizeof(uint8_t);
+
+    *(output_buf + offset) = minor;
+    offset += sizeof(uint8_t);
+
     *((uint64_t *)(output_buf + offset)) = packet_size;
     offset += sizeof(uint64_t);
 
+    assert(offset == PACKET_HEAD_LEN);
     memcpy(output_buf + offset, packet_data, packet_size);
     offset += packet_size;
 
     return offset;
 }
 
-
-int format_gl_ctrl_command(GLCtrlType gl_ctrl_type, uint64_t output_buf_size, uint8_t *output_buf)
-{
-    uint64_t packet_size = sizeof(uint8_t) + sizeof(uint64_t) + sizeof(uint8_t);
-    if (packet_size > output_buf_size) {
-        return 0;
-    }
-    
-    int offset = 0;
-    uint8_t packet_type = CTRL_PACKET;
-    *output_buf = packet_type;
-    offset += sizeof(uint8_t);
-   
-    *((uint64_t *)(output_buf + offset)) = sizeof(uint8_t);
-    offset += sizeof(uint64_t);
-
-    uint8_t ctrl_type = gl_ctrl_type;
-    *((uint8_t *)(output_buf + offset)) = ctrl_type;
-    offset += sizeof(uint8_t);
-
-    return offset;
-}
