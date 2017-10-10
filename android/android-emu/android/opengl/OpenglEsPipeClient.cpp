@@ -15,6 +15,7 @@
 #include "android/opengles-pipe.h"
 #include "android/opengl/GLProcessPipe.h"
 #include "android/utils/gl_cmd_net_format.h"
+#include "android/base/synchronization/Lock.h"
 
 #include <atomic>
 
@@ -49,6 +50,10 @@ using ChannelState = emugl::RenderChannel::State;
 using IoResult = emugl::RenderChannel::IoResult;
 using AsioIoService = asio::io_service;
 using AsioTCP = asio::ip::tcp;
+using AutoLock = android::base::AutoLock;
+
+
+#define CHANNEL_BUF_CAP (512)
 
 namespace android {
 namespace opengl {
@@ -83,7 +88,8 @@ public:
     EmuglPipeClient(void* hwPipe, Service* service) :
         AndroidPipe(hwPipe, service),
         mAsioIoService(),
-        mTcpSocket(mAsioIoService) {
+        mTcpSocket(mAsioIoService),
+        mLock() {
 
         mIsWorking = false;
 
@@ -116,6 +122,14 @@ public:
             return;
         }
 
+        asio::async_read(
+            mTcpSocket,
+            asio::buffer(mRcvPacketHead, PACKET_HEAD_LEN),
+            [this](const asio::error_code& error, size_t bytes_rcvd)
+            {
+                handleHeadReceiveFrom(error, bytes_rcvd);
+            });
+
         mIsWorking = true;
     }
 
@@ -145,6 +159,9 @@ public:
 
         mTcpSocket.close();
 
+        // Update state
+        mState |= ChannelState::Stopped;
+
         abortPendingOperation();
         delete this;
     }
@@ -157,22 +174,21 @@ public:
             ret |= PIPE_POLL_IN;
         }
 
-        ChannelState state = getChannelState();
-        if ((state & ChannelState::CanRead) != 0) {
+        if ((mState & ChannelState::CanRead) != 0) {
             ret |= PIPE_POLL_IN;
         }
-        if ((state & ChannelState::CanWrite) != 0) {
+        if ((mState & ChannelState::CanWrite) != 0) {
             ret |= PIPE_POLL_OUT;
         }
-        if ((state & ChannelState::Stopped) != 0) {
+        if ((mState & ChannelState::Stopped) != 0) {
             ret |= PIPE_POLL_HUP;
         }
+
         DD("%s: returning %d", __func__, ret);
         return ret;
     }
 
     virtual int onGuestRecv(AndroidPipeBuffer* buffers, int numBuffers) override {
-            /*
         DD("%s", __func__);
 
         // Consume the pipe's dataForReading, then put the next received data
@@ -184,46 +200,27 @@ public:
         auto buff = buffers;
         const auto buffEnd = buff + numBuffers;
         while (buff != buffEnd) {
-            if (mDataForReadingLeft == 0) {
-                // No data left, read a new chunk from the channel.
-                int spinCount = 20;
-                for (;;) {
-                    auto result = mChannel->tryRead(&mDataForReading);
-                    if (result == IoResult::Ok) {
-                        mDataForReadingLeft = mDataForReading.size();
-                        break;
-                    }
-                    DD("%s: tryRead() failed with %d", __func__, (int)result);
-                    // This failed either because the channel was stopped
-                    // from the host, or if there was no data yet in the
-                    // channel.
-                    if (len > 0) {
-                        DD("%s: returning %d bytes", __func__, (int)len);
-                        return len;
-                    }
-                    if (result == IoResult::Error) {
-                        return PIPE_ERROR_IO;
-                    }
-                    // Spin a little before declaring there is nothing
-                    // to read. Many GL calls are much faster than the
-                    // whole host-to-guest-to-host transition.
-                    if (--spinCount > 0) {
-                        continue;
-                    }
-                    DD("%s: returning PIPE_ERROR_AGAIN", __func__);
-                    return PIPE_ERROR_AGAIN;
+            int spinCount = 100;
+            for (;;) {
+                AutoLock lock(mLock);
+                if (mRcvPacketDataSize > 0) {
+                    break;
                 }
+
+                if (--spinCount > 0) {
+                    continue;
+                }
+                DD("%s: returning PIPE_ERROR_AGAIN", __func__);
+                return PIPE_ERROR_AGAIN;
             }
 
-            const size_t curSize =
-                    std::min(buff->size - buffOffset, mDataForReadingLeft);
-            memcpy(buff->data + buffOffset,
-                mDataForReading.data() +
-                        (mDataForReading.size() - mDataForReadingLeft),
-                curSize);
+            AutoLock lock(mLock);
+            const size_t curSize = std::min(buff->size - buffOffset, mRcvPacketDataSize);
+            memcpy(buff->data + buffOffset, mRcvPacketData + mRcvPacketDataOffset, curSize);
 
             len += curSize;
-            mDataForReadingLeft -= curSize;
+            mRcvPacketDataOffset += curSize;
+            mRcvPacketDataSize -= curSize;
             buffOffset += curSize;
             if (buffOffset == buff->size) {
                 ++buff;
@@ -231,10 +228,15 @@ public:
             }
         }
 
+        AutoLock lock(mLock);
+        if (mRcvPacketDataSize > 0) {
+            memmove(mRcvPacketData, mRcvPacketData + mRcvPacketDataOffset, mRcvPacketDataSize);
+            mRcvPacketDataOffset = 0;
+        } else {
+            mState |= ~RenderChannel::State::CanRead;
+        }
         DD("%s: received %d bytes", __func__, (int)len);
         return len;
-        */
-        return 0;
     }
 
     virtual int onGuestSend(const AndroidPipeBuffer* buffers, int numBuffers) override {
@@ -253,19 +255,19 @@ public:
 
         // Copy everything into a single ChannelBuffer.
         uint8_t *sndBuf = new uint8_t[PACKET_HEAD_LEN + count];
-        sndBuf += PACKET_HEAD_LEN;
+        uint8_t *sndBufData = sndBuf + PACKET_HEAD_LEN;
         for (int n = 0; n < numBuffers; ++n) {
-            memcpy(sndBuf, buffers[n].data, buffers[n].size);
-            sndBuf += buffers[n].size;
+            memcpy(sndBufData, buffers[n].data, buffers[n].size);
+            sndBufData += buffers[n].size;
         }
 
         int offset = 0;
         *sndBuf = (uint8_t)GLPacketType::DATA_PACKET;
-
         offset += PACKET_MAJOR_TYPE_LEN;
+        
         *(sndBuf + offset) = 0;
-
         offset += PACKET_MINOR_TYPE_LEN;
+
         *((uint64_t *)(sndBuf + offset)) = count;
 
         asio::error_code ec;
@@ -290,9 +292,8 @@ public:
         }
 
         // Signal events that are already available now.
-        ChannelState state = getChannelState();
-        ChannelState available = state & wanted;
-        DD("%s: state=%d wanted=%d available=%d", __func__, (int)state,
+        ChannelState available = mState & wanted;
+        DD("%s: state=%d wanted=%d available=%d", __func__, (int)mState,
            (int)wanted, (int)available);
         if (available != ChannelState::Empty) {
             DD("%s: signaling events %d", __func__, (int)available);
@@ -308,25 +309,56 @@ public:
     }
 
 private:
-    ChannelState getChannelState() {
-        uint8_t sndBuf[10] = {0};
-        int format_cmd_size = format_gl_ctrl_command(GLCtrlType::POLL_CTRL, sizeof(sndBuf), sndBuf);
-        assert(format_cmd_size > 0);
-        asio::error_code ec;
-        mTcpSocket.send(asio::buffer(sndBuf, format_cmd_size), 0, ec);
-        if (ec) {
-            fprintf(stderr, "Cannot request channel state to server.(%d:%s)\n", ec.value(), ec.message().c_str());
-            assert(false);
+    void handleBodyReceiveFrom(const asio::error_code& error, size_t bytes_rcved) {
+        if (!mIsWorking)
+            return;
+
+        assert(bytes_rcved == mRcvPacketBodyLen);
+
+        // Update state
+        AutoLock lock(mLock);
+        mRcvPacketDataSize += bytes_rcved;
+        mState |= RenderChannel::State::CanRead;
+
+        asio::async_read(
+            mTcpSocket,
+            asio::buffer(mRcvPacketHead, PACKET_HEAD_LEN),
+            [this](const asio::error_code& error, size_t bytes_rcved)
+            {
+                handleHeadReceiveFrom(error, bytes_rcved);
+            });
+    }
+
+    void handleHeadReceiveFrom(const asio::error_code& error, size_t bytes_rcved) {
+        if (!mIsWorking)
+            return;
+
+        assert(bytes_rcved == PACKET_HEAD_LEN);
+
+        uint8_t major_type = *mRcvPacketHead;
+        uint8_t minor_type = *(mRcvPacketHead + PACKET_MAJOR_TYPE_LEN);
+        assert((GLPacketType)major_type == GLPacketType::DATA_PACKET);
+        assert(minor_type = 0);
+
+        AutoLock lock(mLock);
+        mRcvPacketBodyLen = *((uint64_t *)(mRcvPacketHead + PACKET_MAJOR_TYPE_LEN + PACKET_MINOR_TYPE_LEN));
+        if (mRcvPacketData== nullptr) {
+            mRcvPacketDataCap= mRcvPacketBodyLen > CHANNEL_BUF_CAP ? mRcvPacketBodyLen : CHANNEL_BUF_CAP;
+            mRcvPacketData = (uint8_t *)malloc(mRcvPacketDataCap);
+        } else {
+            if (mRcvPacketBodyLen > (mRcvPacketDataCap - mRcvPacketDataOffset)) {
+                mRcvPacketDataCap = mRcvPacketDataCap + 2 * mRcvPacketBodyLen;
+                mRcvPacketData = (uint8_t *)realloc(mRcvPacketData, mRcvPacketDataCap);
+            }
         }
 
-        int _state = (int)(ChannelState::Empty);
-        mTcpSocket.receive(asio::buffer(&_state, sizeof(int)), 0, ec);
-        if (ec) {
-            fprintf(stderr, "Cannot get channel state to server.(%d:%s)\n", ec.value(), ec.message().c_str());
-            assert(false);
-        }
-
-        return (ChannelState)_state;
+        asio::async_read(
+            mTcpSocket,
+            asio::buffer(mRcvPacketData + mRcvPacketDataSize, mRcvPacketBodyLen),
+            [this](const asio::error_code& error, size_t bytes_rcved)
+            {
+                handleBodyReceiveFrom(error, bytes_rcved);
+            });
     }
 
     void setChannelWantedEvents(int channelWantedEvts) {
@@ -380,19 +412,23 @@ private:
 
     // Set to |true| if the pipe is in working state, |false| means we're not
     // initialized or the pipe is closed.
-    bool mIsWorking = false;
+    bool     mIsWorking = false;
 
-    // These two variables serve as a reading buffer for the guest.
-    // Each time we get a read request, first we extract a single chunk from
-    // the |mChannel| into here, and then copy its content into the
-    // guest-supplied memory.
-    // If guest didn't have enough room for the whole buffer, we track the
-    // number of remaining bytes in |mDataForReadingLeft| for the next read().
-    ChannelBuffer mDataForReading;
-    size_t mDataForReadingLeft = 0;
+    bool     mRcvHead = true;
+    uint8_t  mRcvPacketHead[PACKET_HEAD_LEN] = {0};
 
-    AsioIoService   mAsioIoService;
-    AsioTCP::socket mTcpSocket;
+    uint64_t mRcvPacketBodyLen    = 0;
+
+    uint64_t mRcvPacketDataSize   = 0;
+    uint8_t  mRcvPacketDataCap    = 0;
+    uint8_t *mRcvPacketData       = nullptr;
+    uint64_t mRcvPacketDataOffset = 0;
+    size_t   mDataForReadingLeft  = 0;
+
+    AsioIoService               mAsioIoService;
+    AsioTCP::socket             mTcpSocket;
+    RenderChannel::State        mState = RenderChannel::State::CanWrite;
+    mutable android::base::Lock mLock;
 
     DISALLOW_COPY_ASSIGN_AND_MOVE(EmuglPipeClient);
 };
