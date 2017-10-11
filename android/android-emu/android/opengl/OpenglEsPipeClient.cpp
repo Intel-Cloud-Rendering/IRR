@@ -122,6 +122,8 @@ public:
             return;
         }
 
+        mIsWorking = true;
+
         asio::async_read(
             mTcpSocket,
             asio::buffer(mRcvPacketHead, PACKET_HEAD_LEN),
@@ -129,13 +131,16 @@ public:
             {
                 handleHeadReceiveFrom(error, bytes_rcvd);
             });
-
-        mIsWorking = true;
     }
 
     ~EmuglPipeClient() {
         if (!(mAsioIoService.stopped())) {
             mAsioIoService.stop();
+        }
+
+        if (mRcvPacketData != nullptr) {
+            free(mRcvPacketData);
+            mRcvPacketData = nullptr;
         }
     }
 
@@ -337,11 +342,15 @@ private:
 
         uint8_t major_type = *mRcvPacketHead;
         uint8_t minor_type = *(mRcvPacketHead + PACKET_MAJOR_TYPE_LEN);
-        assert((GLPacketType)major_type == GLPacketType::DATA_PACKET);
-        assert(minor_type = 0);
+        if ((major_type != GLPacketType::DATA_PACKET) || (minor_type != 0)) {
+            fprintf(stderr, "Invalid packet type\n");
+            assert(false);
+            return;
+        }
 
         AutoLock lock(mLock);
-        mRcvPacketBodyLen = *((uint64_t *)(mRcvPacketHead + PACKET_MAJOR_TYPE_LEN + PACKET_MINOR_TYPE_LEN));
+        uint8_t *packetSizePtr = mRcvPacketHead + PACKET_MAJOR_TYPE_LEN + PACKET_MINOR_TYPE_LEN;
+        mRcvPacketBodyLen = *((uint64_t *)packetSizePtr);
         if (mRcvPacketData== nullptr) {
             mRcvPacketDataCap= mRcvPacketBodyLen > CHANNEL_BUF_CAP ? mRcvPacketBodyLen : CHANNEL_BUF_CAP;
             mRcvPacketData = (uint8_t *)malloc(mRcvPacketDataCap);
