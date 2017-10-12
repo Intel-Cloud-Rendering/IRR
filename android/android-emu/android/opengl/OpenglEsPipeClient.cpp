@@ -24,6 +24,7 @@
 #include <string.h>
 #include <string>
 #include <memory>
+#include <thread>
 
 #include "asio.hpp"
 
@@ -128,6 +129,7 @@ public:
             return;
         }
 
+        mRcvThread = std::thread([this](){ mAsioIoService.run(); });
         mIsWorking = true;
 
         asio::async_read(
@@ -148,6 +150,8 @@ public:
             free(mRcvPacketData);
             mRcvPacketData = nullptr;
         }
+
+        mRcvThread.join();
     }
 
     //////////////////////////////////////////////////////////////////////////
@@ -481,8 +485,9 @@ private:
     uint64_t mRcvPacketDataOffset = 0;
     size_t   mDataForReadingLeft  = 0;
 
-    AsioIoService               mAsioIoService;
-    AsioTCP::socket             mTcpSocket;
+    AsioIoService   mAsioIoService;
+    AsioTCP::socket mTcpSocket;
+    std::thread     mRcvThread;
 
     mutable android::base::Lock mLock;
 
