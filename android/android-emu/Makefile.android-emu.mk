@@ -355,6 +355,7 @@ LOCAL_SRC_FILES := \
     android/opengl/logger.cpp \
     android/opengl/OpenglEsPipe.cpp \
     android/opengl/OpenglEsPipeClient.cpp \
+    android/opengl/OpenglEsPipeServer.cpp \
     android/opengles.cpp \
     android/openssl-support.cpp \
     android/process_setup.cpp \

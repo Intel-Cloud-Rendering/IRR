@@ -332,7 +332,7 @@ private:
     void handleBodyReceiveFrom(const asio::error_code& error, size_t bytes_rcved) {
         DDD("%s: error:%d, bytes received:%d, working:%d\n",
             __func__,
-            ec.value(),
+            error.value(),
             (int)bytes_rcved,
             (int)mIsWorking);
         if (!mIsWorking)
@@ -360,7 +360,7 @@ private:
     void handleHeadReceiveFrom(const asio::error_code& error, size_t bytes_rcved) {
         DDD("%s: error:%d, bytes received:%d, working:%d\n",
             __func__,
-            ec.value(),
+            error.value(),
             (int)bytes_rcved,
             (int)mIsWorking);
         if (!mIsWorking)
@@ -444,7 +444,7 @@ private:
 
     // Called when an i/o event occurs on the render channel
     void onChannelHostEvent() {
-        D("%s: events %d", __func__, (int)state);
+        D("%s: events %d", __func__, (int)mState);
         // NOTE: This is called from the host-side render thread.
         // but closeFromHost() and signalWake() can be called from
         // any thread.
