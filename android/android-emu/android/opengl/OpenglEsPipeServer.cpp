@@ -74,11 +74,10 @@ public:
     /////////////////////////////////////////////////////////////////////////
     // Constructor, check that |mIsWorking| is true after this call to verify
     // that everything went well.
-    EmuglPipeServer(
-        void* hwPipe,
-        Service* service,
-        const emugl::RendererPtr& renderer,
-        AsioTCP::socket &sock) : AndroidPipe(hwPipe, service), android::base::Thread(), mLock(), mSock(sock) {
+    EmuglPipeServer(void* hwPipe, Service* service,
+                    const emugl::RendererPtr& renderer,
+                    AsioTCP::socket &sock)
+        : AndroidPipe(hwPipe, service), android::base::Thread(), mLock(), mSock(sock) {
         mChannel = renderer->createRenderChannel();
         if (!mChannel) {
             fprintf(stderr, "Failed to create an OpenGLES pipe channel!");
@@ -91,7 +90,7 @@ public:
                 this->onChannelHostEvent(events);
             });
     }
-    
+
     bool isWorking() {
         return mIsWorking;
     }
@@ -157,7 +156,7 @@ public:
                 fprintf(stderr, "Cannot read channel data\n");
                 assert(false);
             }
-            
+
             if (mSndBufLen == 0) {
                 mSndBufLen = 2 * (PACKET_HEAD_LEN + mDataForReading.size());
                 mSndBuf = (uint8_t *)malloc(mSndBufLen);
@@ -270,7 +269,6 @@ private:
         // NOTE: This is called from the host-side render thread.
         // but closeFromHost() and signalWake() can be called from
         // any thread.
-
         if ((state & ChannelState::Stopped) != 0) {
             this->closeFromHost();
             return;
@@ -321,7 +319,6 @@ public:
     }
 
 private:
-    // Create a new EmuglPipeServer instance.
     EmuglPipeServer* createEmuglPipeServer(void* mHwPipe, AsioTCP::socket &sock) {
         auto renderer = android_getOpenglesRenderer();
         if (!renderer) {
@@ -395,21 +392,19 @@ private:
             asio::async_read(
                 mSock,
                 asio::buffer(mRcvPacketData, mRcvPacketBodyLen),
-                [this](const asio::error_code& error, size_t bytes_rcvd)
-                {
+                [this](const asio::error_code& error, size_t bytes_rcvd) {
                     handleSetWantEventReceiveFrom(error, bytes_rcvd);
                 });
         } else {
             asio::async_read(
                 mSock,
                 asio::buffer(mRcvPacketData, mRcvPacketBodyLen),
-                [this](const asio::error_code& error, size_t bytes_rcvd)
-                {
+                [this](const asio::error_code& error, size_t bytes_rcvd) {
                     handleBodyReceiveFrom(error, bytes_rcvd);
                 });
         }
     }
-    
+
     void handleBodyReceiveFrom(const asio::error_code& error, size_t bytes_rcved) {
         printf("handleBodyReceiveFrom body:%d,%d\n", (int)bytes_rcved, (int)mRcvPacketBodyLen);
         assert(bytes_rcved == mRcvPacketBodyLen);
@@ -420,8 +415,7 @@ private:
         asio::async_read(
             mSock,
             asio::buffer(mRcvPacketHead, PACKET_HEAD_LEN),
-            [this](const asio::error_code& error, size_t bytes_rcved)
-            {
+            [this](const asio::error_code& error, size_t bytes_rcved) {
                 handleHeadReceiveFrom(error, bytes_rcved);
             });
     }
@@ -448,23 +442,20 @@ public:
         }
         mAcceptor = new AsioTCP::acceptor(mIoService, mEndPoint);
     }
-    
+
     ~EmuglPipeServerServer() {
         if (mAcceptor != nullptr) {
             delete mAcceptor;
         }
     }
 
-    void start_accept()
-    {
+    void start_accept() {
         mAcceptor->async_accept(
             mSocket,
             [this](std::error_code ec) {
-                if (!ec)
-                {
+                if (!ec) {
                     new EmuglSockPipe(std::move(mSocket));
                 }
-        
                 start_accept();
             });
     }
@@ -487,7 +478,7 @@ private:
 void registerPipeServerService() {
     globalPipeServer = new EmuglPipeServerServer();
     globalPipeServer->start();
-    
+
     printf("Start registerPipeServerService\n");
 
     registerGLProcessPipeService();

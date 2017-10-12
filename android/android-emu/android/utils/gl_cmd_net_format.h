@@ -32,7 +32,7 @@ typedef struct _GLCmdPacketHead {
     uint8_t major_type;
     uint8_t minor_type;
     uint64_t packet_size;
-} GLCmdPacketHead; 
+} GLCmdPacketHead;
 
 #define PACKET_MAJOR_TYPE_LEN (1)
 #define PACKET_MINOR_TYPE_LEN (1)
