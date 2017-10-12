@@ -12,6 +12,8 @@
 
 #include "android/base/Log.h"
 #include "android/base/threads/Thread.h"
+#include "android/base/synchronization/Lock.h"
+#include "android/base/synchronization/ConditionVariable.h"
 #include "android/opengles.h"
 #include "android/opengles-pipe.h"
 #include "android/opengl/GLProcessPipe.h"
@@ -50,6 +52,8 @@ using ChannelState = emugl::RenderChannel::State;
 using IoResult = emugl::RenderChannel::IoResult;
 using AsioIoService = asio::io_service;
 using AsioTCP = asio::ip::tcp;
+using ConditionVariable = android::base::ConditionVariable;
+using Lock = android::base::Lock;
 
 #define DEFAULT_PORT    (23432)
 #define CHANNEL_BUF_CAP (1024)
@@ -65,7 +69,7 @@ class EmuglPipeServer;
 
 EmuglPipeServerServer *globalPipeServer = nullptr;
 
-class EmuglPipeServer : public AndroidPipe {
+class EmuglPipeServer : public AndroidPipe, public android::base::Thread {
 public:
     /////////////////////////////////////////////////////////////////////////
     // Constructor, check that |mIsWorking| is true after this call to verify
@@ -74,7 +78,7 @@ public:
         void* hwPipe,
         Service* service,
         const emugl::RendererPtr& renderer,
-        AsioTCP::socket &sock) : AndroidPipe(hwPipe, service), mSock(sock) {
+        AsioTCP::socket &sock) : AndroidPipe(hwPipe, service), android::base::Thread(), mLock(), mSock(sock) {
         mChannel = renderer->createRenderChannel();
         if (!mChannel) {
             fprintf(stderr, "Failed to create an OpenGLES pipe channel!");
@@ -92,6 +96,14 @@ public:
         return mIsWorking;
     }
 
+    virtual intptr_t main() override {
+        while (mIsWorking) {
+            mReplyClient.wait(&mLock);
+            onGuestRecv(nullptr, 0);
+        }
+        return 0;
+    }
+
     //////////////////////////////////////////////////////////////////////////
     // Overriden AndroidPipe methods
 
@@ -99,6 +111,10 @@ public:
         D("%s", __func__);
         mIsWorking = false;
         mChannel->stop();
+
+        // Wait for this thread to exit
+        wait();
+
         // Make sure there's no operation scheduled for this pipe instance to
         // run on the main thread.
         abortPendingOperation();
@@ -129,8 +145,6 @@ public:
     virtual int onGuestRecv(AndroidPipeBuffer* buffers, int numBuffers) override {
         DD("%s", __func__);
 
-        mIsReading = true;
-
         mSndBytes = 0;
 
         while ((mChannel->state() & ChannelState::CanRead) != 0) {
@@ -158,7 +172,6 @@ public:
         }
 
         DD("%s: send %d bytes", __func__, mSndBytes);
-        mIsReading = false;
         return mSndBytes;
     }
 
@@ -231,15 +244,8 @@ private:
     // Note: this can be called from either the guest or host render
     // thread.
     void signalState(ChannelState state) {
-        int wakeFlags = 0;
         if ((state & ChannelState::CanRead) != 0) {
-            wakeFlags |= PIPE_WAKE_READ;
-        }
-        if ((state & ChannelState::CanWrite) != 0) {
-            wakeFlags |= PIPE_WAKE_WRITE;
-        }
-        if (wakeFlags != 0) {
-            //this->signalWake(wakeFlags);
+            mReplyClient.signal();
         }
     }
 
@@ -249,13 +255,6 @@ private:
         // NOTE: This is called from the host-side render thread.
         // but closeFromHost() and signalWake() can be called from
         // any thread.
-
-        D("%s: mIsReading %d", __func__, (int)mIsReading);
-        if (!mIsReading) {
-            AndroidPipeBuffer pipeBufferDummy;
-            int numBuffers = 1;
-            onGuestRecv(&pipeBufferDummy, numBuffers);
-        }
 
         if ((state & ChannelState::Stopped) != 0) {
             this->closeFromHost();
@@ -279,6 +278,9 @@ private:
     // number of remaining bytes in |mDataForReadingLeft| for the next read().
     ChannelBuffer mDataForReading;
     size_t mDataForReadingLeft = 0;
+
+    Lock mLock;
+    ConditionVariable mReplyClient;
     
     bool mIsReading = false;
     AsioTCP::socket &mSock;
@@ -292,6 +294,7 @@ public:
     EmuglSockPipe(AsioTCP::socket sock) : mSock(std::move(sock)) {
         mEmuglPipeServer = createEmuglPipeServer(nullptr, mSock);
         assert(mEmuglPipeServer != nullptr);
+        mEmuglPipeServer->start();
 
         asio::async_read(
             mSock,
