@@ -98,7 +98,9 @@ public:
 
     virtual intptr_t main() override {
         while (mIsWorking) {
+            DD("%s: Start wating to send data to client", __func__);
             mReplyClient.wait(&mLock);
+            DD("%s: Done wating to send data to client", __func__);
             onGuestRecv(nullptr, 0);
         }
         return 0;
@@ -145,11 +147,9 @@ public:
     virtual int onGuestRecv(AndroidPipeBuffer* buffers, int numBuffers) override {
         DD("%s", __func__);
 
-        mSndBytes = 0;
-
         while ((mChannel->state() & ChannelState::CanRead) != 0) {
             auto result = mChannel->tryRead(&mDataForReading);
-            DD("%s: Send data to server (%d). result:%d", __func__, (int)(mDataForReading.size()), (int)result);
+            DD("%s: Trying send data to client (%d). result:%d", __func__, (int)(mDataForReading.size()), (int)result);
             if (result != IoResult::Ok) {
                 if (result == IoResult::TryAgain) {
                     continue;
@@ -158,21 +158,35 @@ public:
                 assert(false);
             }
             
+            if (mSndBufLen == 0) {
+                mSndBufLen = 2 * (PACKET_HEAD_LEN + mDataForReading.size());
+                mSndBuf = (uint8_t *)malloc(mSndBufLen);
+            } else {
+                if (mSndBufLen < (PACKET_HEAD_LEN + mDataForReading.size())) {
+                    mSndBufLen = 2 * (PACKET_HEAD_LEN + mDataForReading.size());
+                    mSndBuf = (uint8_t *)realloc(mSndBuf, mSndBufLen);
+                }
+            }
+
+            int paketSize = format_gl_data_command(
+                mDataForReading.size(),
+                (uint8_t *)(mDataForReading.data()),
+                mSndBufLen,
+                mSndBuf);
+
             asio::async_write(
                 mSock,
-                asio::buffer(mDataForReading.data(), mDataForReading.size()),
+                asio::buffer(mSndBuf, paketSize),
                 [this](const asio::error_code& ec, std::size_t bytes_transferred) {
                     if (ec) {
-                        fprintf(stderr, "Cannot send data to server.(%d:%s)\n", ec.value(), ec.message().c_str());
+                        fprintf(stderr, "Cannot send data to client.(%d:%s)\n", ec.value(), ec.message().c_str());
                     } else {
-                        DD("%s: Send data to server.(%ds)", __func__, (int)bytes_transferred);
-                        mSndBytes += bytes_transferred;
+                        DD("%s: Send data to client.(%d bytes)", __func__, (int)bytes_transferred);
                     }
                 });
         }
 
-        DD("%s: send %d bytes", __func__, mSndBytes);
-        return mSndBytes;
+        return 0;
     }
 
     virtual int onGuestSend(const AndroidPipeBuffer* buffers,
@@ -244,6 +258,7 @@ private:
     // Note: this can be called from either the guest or host render
     // thread.
     void signalState(ChannelState state) {
+        DD("%s: Try to signal state:%d", __func__, state);
         if ((state & ChannelState::CanRead) != 0) {
             mReplyClient.signal();
         }
@@ -281,10 +296,10 @@ private:
 
     Lock mLock;
     ConditionVariable mReplyClient;
-    
-    bool mIsReading = false;
+
     AsioTCP::socket &mSock;
-    int mSndBytes = 0;
+    uint8_t         *mSndBuf    = nullptr;
+    uint8_t          mSndBufLen = 0;
 
     DISALLOW_COPY_ASSIGN_AND_MOVE(EmuglPipeServer);
 };
