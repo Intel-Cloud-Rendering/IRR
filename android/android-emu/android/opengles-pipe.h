@@ -26,5 +26,6 @@ ANDROID_BEGIN_HEADER
 // |dummyLooper| is now unused, this will be removed in a future patch.
 void android_init_opengles_pipe(void);
 void android_init_opengles_client_pipe(void);
+void android_init_opengles_server_pipe(void);
 
 ANDROID_END_HEADER

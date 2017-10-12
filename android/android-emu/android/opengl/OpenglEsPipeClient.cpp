@@ -29,7 +29,7 @@
 
 
 // Set to 1 or 2 for debug traces
-#define DEBUG 0
+#define DEBUG 3
 
 #if DEBUG >= 1
 #define D(...) printf(__VA_ARGS__), printf("\n"), fflush(stdout)
@@ -243,9 +243,9 @@ public:
         if (mRcvPacketDataSize > 0) {
             memmove(mRcvPacketData, mRcvPacketData + mRcvPacketDataOffset, mRcvPacketDataSize);
             mRcvPacketDataOffset = 0;
-            mState |= (RenderChannel::State::CanRead);
+            mState |= (ChannelState::CanRead);
         } else {
-            mState &= ~(RenderChannel::State::CanRead);
+            mState &= ~(ChannelState::CanRead);
         }
 
         // Update state
@@ -299,6 +299,9 @@ public:
     virtual void onGuestWantWakeOn(int flags) override {
         DD("%s: flags=%d", __func__, flags);
 
+        // Notify server wanted flags
+        notifyRenderServerWantedEvents(flags);
+
         // Translate |flags| into ChannelState flags.
         ChannelState wanted = ChannelState::Empty;
         if (flags & PIPE_WAKE_READ) {
@@ -310,11 +313,7 @@ public:
 
         // Signal events that are already available now.
         ChannelState available = mState & wanted;
-        DDD("%s: state=%d wanted=%d available=%d",
-            __func__,
-            (int)mState,
-            (int)wanted,
-            (int)available);
+        DD("%s: flags, wanted, state, available:%d, %d, %d, %d\n", __func__, flags, (int)wanted, (int)mState, (int)available);
         if (available != ChannelState::Empty) {
             DDD("%s: signaling events %d", __func__, (int)available);
             signalState(available);
@@ -324,7 +323,7 @@ public:
         // Ask the channel to be notified of remaining events.
         if (wanted != ChannelState::Empty) {
             DDD("%s: waiting for events %d", __func__, (int)wanted);
-            setChannelWantedEvents(wanted);
+            setChannelWantedState(wanted);
         }
     }
 
@@ -343,9 +342,9 @@ private:
         // Update state
         AutoLock lock(mLock);
         mRcvPacketDataSize += bytes_rcved;
-        mState |= RenderChannel::State::CanRead;
+        mState |= ChannelState::CanRead;
 
-        // Update state
+        // Try to notify guest
         this->onChannelHostEvent();
 
         asio::async_read(
@@ -397,20 +396,19 @@ private:
                 handleBodyReceiveFrom(error, bytes_rcved);
             });
     }
-
-    void setChannelWantedEvents(ChannelState channelWantedEvts) {
-        DDD("%s: set wanted events: %d\n", __func__, (int)channelWantedEvts);
+    
+    void notifyRenderServerWantedEvents(int flags) {
+        DDD("%s: set wanted events: %d\n", __func__, flags);
 
         // Notify rendering server
         uint8_t sndBuf[14] = {0};
         uint8_t majorType = (uint8_t)GLPacketType::CTRL_PACKET;
         uint8_t minorType = (uint8_t)GLCtrlType::SET_STATE_CTRL;
-        int channelWantedEvtsTmp = (int)channelWantedEvts;
         int format_cmd_size = format_gl_generic_command(
             majorType,
             minorType,
             sizeof(int),
-            (uint8_t *)(&channelWantedEvtsTmp),
+            (uint8_t *)(&flags),
             sizeof(sndBuf),
             sndBuf);
         assert(format_cmd_size > 0);
@@ -420,9 +418,12 @@ private:
             fprintf(stderr, "Cannot set channel state to server.(%d:%s)\n", ec.value(), ec.message().c_str());
             assert(false);
         }
+    }
 
+    void setChannelWantedState(ChannelState channelWantedState) {
+        DDD("%s: set wanted state: %d\n", __func__, (int)channelWantedState);
         // Update local wanted events
-        mWantedEvents |= channelWantedEvts;
+        mWantedState |= channelWantedState;
         onChannelHostEvent();
     }
 
@@ -438,6 +439,7 @@ private:
             wakeFlags |= PIPE_WAKE_WRITE;
         }
         if (wakeFlags != 0) {
+            DD("%s: wakeFlags:%d\n", __func__, wakeFlags);
             this->signalWake(wakeFlags);
         }
     }
@@ -454,21 +456,21 @@ private:
         }
 
         // The logic of notifyStateChangeLocked
-        ChannelState available = mState & mWantedEvents;
-        DDD("%s: (mState, mWantedEvents, available): (%d, %d, %d)\n", __func__, mState, mWantedEvents, (int)available);
+        ChannelState available = mState & mWantedState;
+        DDD("%s: (mState, mWantedEvents, available): (%d, %d, %d)\n", __func__, mState, mWantedState, (int)available);
         if (available != ChannelState::Empty) {
             D("%s: callback with %d", __func__, (int)available);
             // Update wanted events
-            mWantedEvents &= ~mState;
+            mWantedState &= ~mState;
             signalState(mState);
         }
     }
 
     // Set to |true| if the pipe is in working state, |false| means we're not
     // initialized or the pipe is closed.
-    bool         mIsWorking    = false;
-    ChannelState mState        = ChannelState::CanWrite;
-    ChannelState mWantedEvents = ChannelState::Empty;
+    bool         mIsWorking   = false;
+    ChannelState mState       = ChannelState::CanWrite;
+    ChannelState mWantedState = ChannelState::Empty;
 
     bool     mRcvHead = true;
     uint8_t  mRcvPacketHead[PACKET_HEAD_LEN] = {0};

@@ -29,7 +29,7 @@
 
 
 // Set to 1 or 2 for debug traces
-#define DEBUG 0
+#define DEBUG 2
 
 #if DEBUG >= 1
 #define D(...) printf(__VA_ARGS__), printf("\n"), fflush(stdout)
@@ -133,10 +133,11 @@ public:
 
         mSndBytes = 0;
 
-        while ((mChannel->state() & RenderChannel::State::CanRead) != 0) {
+        while ((mChannel->state() & ChannelState::CanRead) != 0) {
             auto result = mChannel->tryRead(&mDataForReading);
-            if (result != RenderChannel::IoResult::Ok) {
-                if (result == RenderChannel::IoResult::TryAgain) {
+            DD("%s: Send data to server (%d). result:%d", __func__, (int)(mDataForReading.size()), (int)result);
+            if (result != IoResult::Ok) {
+                if (result == IoResult::TryAgain) {
                     continue;
                 }
                 fprintf(stderr, "Cannot read channel data\n");
@@ -150,13 +151,13 @@ public:
                     if (ec) {
                         fprintf(stderr, "Cannot send data to server.(%d:%s)\n", ec.value(), ec.message().c_str());
                     } else {
-                        printf("Send data to server.(%ds)\n", (int)bytes_transferred);
+                        DD("%s: Send data to server.(%ds)", __func__, (int)bytes_transferred);
                         mSndBytes += bytes_transferred;
                     }
                 });
         }
 
-        DD("%s: received %d bytes", __func__, (int)len);
+        DD("%s: send %d bytes", __func__, mSndBytes);
         mIsReading = false;
         return mSndBytes;
     }
@@ -211,9 +212,7 @@ public:
         // Signal events that are already available now.
         ChannelState state = mChannel->state();
         ChannelState available = state & wanted;
-        printf("flags, wanted, state, available:%d, %d, %d, %d\n", flags, (int)wanted, (int)state, (int)available);
-        DD("%s: state=%d wanted=%d available=%d", __func__, (int)state,
-           (int)wanted, (int)available);
+        DD("flags, wanted, state, available:%d, %d, %d, %d", flags, (int)wanted, (int)state, (int)available);
         if (available != ChannelState::Empty) {
             DD("%s: signaling events %d", __func__, (int)available);
             signalState(available);
@@ -240,25 +239,24 @@ private:
             wakeFlags |= PIPE_WAKE_WRITE;
         }
         if (wakeFlags != 0) {
-            this->signalWake(wakeFlags);
+            //this->signalWake(wakeFlags);
         }
     }
 
     // Called when an i/o event occurs on the render channel
     void onChannelHostEvent(ChannelState state) {
         D("%s: events %d", __func__, (int)state);
-        printf("onChannelHostEvent:%d\n", (int)state);
         // NOTE: This is called from the host-side render thread.
         // but closeFromHost() and signalWake() can be called from
         // any thread.
-        
+
+        D("%s: mIsReading %d", __func__, (int)mIsReading);
         if (!mIsReading) {
             AndroidPipeBuffer pipeBufferDummy;
             int numBuffers = 1;
-            printf("!mIsReading\n");
             onGuestRecv(&pipeBufferDummy, numBuffers);
         }
-        
+
         if ((state & ChannelState::Stopped) != 0) {
             this->closeFromHost();
             return;
