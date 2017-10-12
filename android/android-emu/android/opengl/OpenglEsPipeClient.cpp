@@ -43,6 +43,12 @@
 #define DD(...) ((void)0)
 #endif
 
+#if DEBUG >= 3
+#define DDD(...) printf(__VA_ARGS__), printf("\n"), fflush(stdout)
+#else
+#define DDD(...) ((void)0)
+#endif
+
 using ChannelBuffer = emugl::RenderChannel::Buffer;
 using emugl::RenderChannel;
 using emugl::RenderChannelPtr;
@@ -95,7 +101,7 @@ public:
 
         const char* render_svr_hostname = getenv("render_svr_hostname");
         if (render_svr_hostname) {
-            printf("Render server hostname: %s\n", render_svr_hostname);
+            DDD("Render server hostname: %s\n", render_svr_hostname);
         } else {
             fprintf(stderr, "Cannot find render server hostname\n");
             return;
@@ -103,7 +109,7 @@ public:
 
         const char* render_svr_port = getenv("render_svr_port");
         if (render_svr_port) {
-            printf("Render server port: %s\n", render_svr_port);
+            DDD("Render server port: %s\n", render_svr_port);
         } else {
             fprintf(stderr, "Cannot find render server port\n");
             return;
@@ -237,9 +243,13 @@ public:
         if (mRcvPacketDataSize > 0) {
             memmove(mRcvPacketData, mRcvPacketData + mRcvPacketDataOffset, mRcvPacketDataSize);
             mRcvPacketDataOffset = 0;
+            mState |= (RenderChannel::State::CanRead);
         } else {
-            mState |= ~RenderChannel::State::CanRead;
+            mState &= ~(RenderChannel::State::CanRead);
         }
+
+        // Update state
+        this->onChannelHostEvent();
         DD("%s: received %d bytes", __func__, (int)len);
         return len;
     }
@@ -276,11 +286,13 @@ public:
         *((uint64_t *)(sndBuf + offset)) = count;
 
         asio::error_code ec;
+        DDD("%s: send bytes(head, body):(%d,%d)\n", __func__, PACKET_HEAD_LEN, count);
         mTcpSocket.send(asio::buffer(sndBuf, PACKET_HEAD_LEN + count), 0, ec);
         if (ec) {
             fprintf(stderr, "Cannot send data to server.(%d:%s)\n", ec.value(), ec.message().c_str());
         }
 
+        delete sndBuf;
         return count;
     }
 
@@ -298,23 +310,31 @@ public:
 
         // Signal events that are already available now.
         ChannelState available = mState & wanted;
-        DD("%s: state=%d wanted=%d available=%d", __func__, (int)mState,
-           (int)wanted, (int)available);
+        DDD("%s: state=%d wanted=%d available=%d",
+            __func__,
+            (int)mState,
+            (int)wanted,
+            (int)available);
         if (available != ChannelState::Empty) {
-            DD("%s: signaling events %d", __func__, (int)available);
+            DDD("%s: signaling events %d", __func__, (int)available);
             signalState(available);
             wanted &= ~available;
         }
 
         // Ask the channel to be notified of remaining events.
         if (wanted != ChannelState::Empty) {
-            DD("%s: waiting for events %d", __func__, (int)wanted);
-            setChannelWantedEvents((int)wanted);
+            DDD("%s: waiting for events %d", __func__, (int)wanted);
+            setChannelWantedEvents(wanted);
         }
     }
 
 private:
     void handleBodyReceiveFrom(const asio::error_code& error, size_t bytes_rcved) {
+        DDD("%s: error:%d, bytes received:%d, working:%d\n",
+            __func__,
+            ec.value(),
+            (int)bytes_rcved,
+            (int)mIsWorking);
         if (!mIsWorking)
             return;
 
@@ -324,6 +344,9 @@ private:
         AutoLock lock(mLock);
         mRcvPacketDataSize += bytes_rcved;
         mState |= RenderChannel::State::CanRead;
+
+        // Update state
+        this->onChannelHostEvent();
 
         asio::async_read(
             mTcpSocket,
@@ -335,6 +358,11 @@ private:
     }
 
     void handleHeadReceiveFrom(const asio::error_code& error, size_t bytes_rcved) {
+        DDD("%s: error:%d, bytes received:%d, working:%d\n",
+            __func__,
+            ec.value(),
+            (int)bytes_rcved,
+            (int)mIsWorking);
         if (!mIsWorking)
             return;
 
@@ -370,15 +398,19 @@ private:
             });
     }
 
-    void setChannelWantedEvents(int channelWantedEvts) {
+    void setChannelWantedEvents(ChannelState channelWantedEvts) {
+        DDD("%s: set wanted events: %d\n", __func__, (int)channelWantedEvts);
+
+        // Notify rendering server
         uint8_t sndBuf[14] = {0};
-        uint8_t major_type = (uint8_t)GLPacketType::CTRL_PACKET;
-        uint8_t minor_type = (uint8_t)GLCtrlType::SET_STATE_CTRL;
+        uint8_t majorType = (uint8_t)GLPacketType::CTRL_PACKET;
+        uint8_t minorType = (uint8_t)GLCtrlType::SET_STATE_CTRL;
+        int channelWantedEvtsTmp = (int)channelWantedEvts;
         int format_cmd_size = format_gl_generic_command(
-            major_type,
-            minor_type,
+            majorType,
+            minorType,
             sizeof(int),
-            (uint8_t *)(&channelWantedEvts),
+            (uint8_t *)(&channelWantedEvtsTmp),
             sizeof(sndBuf),
             sndBuf);
         assert(format_cmd_size > 0);
@@ -388,6 +420,10 @@ private:
             fprintf(stderr, "Cannot set channel state to server.(%d:%s)\n", ec.value(), ec.message().c_str());
             assert(false);
         }
+
+        // Update local wanted events
+        mWantedEvents |= channelWantedEvts;
+        onChannelHostEvent();
     }
 
     // Called to signal the guest that read/write wake events occured.
@@ -407,27 +443,36 @@ private:
     }
 
     // Called when an i/o event occurs on the render channel
-    void onChannelHostEvent(ChannelState state) {
+    void onChannelHostEvent() {
         D("%s: events %d", __func__, (int)state);
         // NOTE: This is called from the host-side render thread.
         // but closeFromHost() and signalWake() can be called from
         // any thread.
-        if ((state & ChannelState::Stopped) != 0) {
+        if ((mState & ChannelState::Stopped) != 0) {
             this->closeFromHost();
             return;
         }
-        signalState(state);
+
+        // The logic of notifyStateChangeLocked
+        ChannelState available = mState & mWantedEvents;
+        DDD("%s: (mState, mWantedEvents, available): (%d, %d, %d)\n", __func__, mState, mWantedEvents, (int)available);
+        if (available != ChannelState::Empty) {
+            D("%s: callback with %d", __func__, (int)available);
+            // Update wanted events
+            mWantedEvents &= ~mState;
+            signalState(mState);
+        }
     }
 
     // Set to |true| if the pipe is in working state, |false| means we're not
     // initialized or the pipe is closed.
-    bool     mIsWorking = false;
+    bool         mIsWorking    = false;
+    ChannelState mState        = ChannelState::CanWrite;
+    ChannelState mWantedEvents = ChannelState::Empty;
 
     bool     mRcvHead = true;
     uint8_t  mRcvPacketHead[PACKET_HEAD_LEN] = {0};
-
     uint64_t mRcvPacketBodyLen    = 0;
-
     uint64_t mRcvPacketDataSize   = 0;
     uint8_t  mRcvPacketDataCap    = 0;
     uint8_t *mRcvPacketData       = nullptr;
@@ -436,7 +481,7 @@ private:
 
     AsioIoService               mAsioIoService;
     AsioTCP::socket             mTcpSocket;
-    RenderChannel::State        mState = RenderChannel::State::CanWrite;
+
     mutable android::base::Lock mLock;
 
     DISALLOW_COPY_ASSIGN_AND_MOVE(EmuglPipeClient);
