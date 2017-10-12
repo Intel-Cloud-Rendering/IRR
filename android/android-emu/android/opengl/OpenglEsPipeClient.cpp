@@ -11,6 +11,7 @@
 #include "android/opengl/OpenglEsPipeClient.h"
 
 #include "android/base/async/Looper.h"
+#include "android/base/threads/Thread.h"
 #include "android/opengles.h"
 #include "android/opengles-pipe.h"
 #include "android/opengl/GLProcessPipe.h"
@@ -24,7 +25,6 @@
 #include <string.h>
 #include <string>
 #include <memory>
-#include <thread>
 
 #include "asio.hpp"
 
@@ -67,7 +67,7 @@ namespace opengl {
 
 namespace {
 
-class EmuglPipeClient : public AndroidPipe {
+class EmuglPipeClient : public AndroidPipe, public android::base::Thread {
 public:
     //////////////////////////////////////////////////////////////////////////
     // The pipe service class for this implementation.
@@ -127,13 +127,6 @@ public:
             return;
         }
 
-        mRcvThread = std::thread([this](){
-                DDD("%s: Start mRcvThread running", __func__);
-                mAsioIoService.run();
-                DDD("%s: Done mRcvThread running", __func__);
-            });
-        mIsWorking = true;
-
         asio::async_read(
             mTcpSocket,
             asio::buffer(mRcvPacketHead, PACKET_HEAD_LEN),
@@ -141,10 +134,14 @@ public:
                 DDD("%s: receied packed heads", __func__);
                 handleHeadReceiveFrom(error, bytes_rcvd);
             });
+
+        start();
+        mIsWorking = true;
     }
 
     ~EmuglPipeClient() {
         D("%s mAsioIoService", __func__);
+
         if (!(mAsioIoService.stopped())) {
             mAsioIoService.stop();
         }
@@ -156,8 +153,17 @@ public:
             //mRcvPacketData = nullptr;
         }
 
-        D("%s mRcvThread", __func__);
-        mRcvThread.join();
+        // wait thread exit
+        wait();
+        D("%s: thread exit", __func__);
+    }
+    
+    
+    virtual intptr_t main() override {
+        DD("%s: io service thread start working", __func__);
+        mAsioIoService.run();
+        DD("%s: io service thread stop working", __func__);
+        return 0;
     }
 
     //////////////////////////////////////////////////////////////////////////
@@ -430,7 +436,7 @@ private:
     }
 
     void setChannelWantedState(ChannelState channelWantedState) {
-        DDD("%s: set wanted state: %d\n", __func__, (int)channelWantedState);
+        DDD("%s: set wanted state: %d", __func__, (int)channelWantedState);
         // Update local wanted events
         mWantedState |= channelWantedState;
         onChannelHostEvent();
@@ -492,7 +498,6 @@ private:
 
     AsioIoService   mAsioIoService;
     AsioTCP::socket mTcpSocket;
-    std::thread     mRcvThread;
 
     mutable android::base::Lock mLock;
 

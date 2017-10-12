@@ -31,7 +31,7 @@
 
 
 // Set to 1 or 2 for debug traces
-#define DEBUG 2
+#define DEBUG 3
 
 #if DEBUG >= 1
 #define D(...) printf(__VA_ARGS__), printf("\n"), fflush(stdout)
@@ -43,6 +43,12 @@
 #define DD(...) printf(__VA_ARGS__), printf("\n"), fflush(stdout)
 #else
 #define DD(...) ((void)0)
+#endif
+
+#if DEBUG >= 3
+#define DDD(...) printf(__VA_ARGS__), printf("\n"), fflush(stdout)
+#else
+#define DDD(...) ((void)0)
 #endif
 
 using ChannelBuffer = emugl::RenderChannel::Buffer;
@@ -78,6 +84,7 @@ public:
                     const emugl::RendererPtr& renderer,
                     AsioTCP::socket &sock)
         : AndroidPipe(hwPipe, service), android::base::Thread(), mLock(), mSock(sock) {
+        DDD("%s: create", __func__);
         mChannel = renderer->createRenderChannel();
         if (!mChannel) {
             fprintf(stderr, "Failed to create an OpenGLES pipe channel!");
@@ -85,10 +92,17 @@ public:
         }
 
         mIsWorking = true;
+        // Start send thread
+        start();
+        // Inject callback to channel
         mChannel->setEventCallback(
             [this](RenderChannel::State events) {
                 this->onChannelHostEvent(events);
             });
+    }
+    
+    ~EmuglPipeServer() {
+        DDD("%s:", __func__);
     }
 
     bool isWorking() {
@@ -96,11 +110,15 @@ public:
     }
 
     virtual intptr_t main() override {
+        DD("%s: Send to guest thread start working", __func__);
         while (mIsWorking) {
             DD("%s: Start wating to send data to client", __func__);
             mReplyClient.wait(&mLock);
             DD("%s: Done wating to send data to client", __func__);
-            onGuestRecv(nullptr, 0);
+            
+            if (mIsWorking) {
+                onGuestRecv(nullptr, 0);
+            }
         }
         return 0;
     }
@@ -114,11 +132,10 @@ public:
         mChannel->stop();
 
         // Wait for this thread to exit
+        mReplyClient.signal(); // In case of wait
         wait();
 
-        // Make sure there's no operation scheduled for this pipe instance to
-        // run on the main thread.
-        abortPendingOperation();
+        DD("%s: End receive thread", __func__);
         delete this;
     }
 
@@ -224,7 +241,7 @@ public:
     }
 
     virtual void onGuestWantWakeOn(int flags) override {
-        DD("%s: flags=%d", __func__, flags);
+        DD("%s:", __func__);
 
         // Translate |flags| into ChannelState flags.
         ChannelState wanted = ChannelState::Empty;
@@ -257,7 +274,7 @@ private:
     // Note: this can be called from either the guest or host render
     // thread.
     void signalState(ChannelState state) {
-        DD("%s: Try to signal state:%d", __func__, state);
+        DD("%s: Try to signal state:%d", __func__, (int)state);
         if ((state & ChannelState::CanRead) != 0) {
             mReplyClient.signal();
         }
@@ -305,9 +322,9 @@ private:
 class EmuglSockPipe {
 public:
     EmuglSockPipe(AsioTCP::socket sock) : mSock(std::move(sock)) {
+        DD("%s: create", __func__);
         mEmuglPipeServer = createEmuglPipeServer(nullptr, mSock);
         assert(mEmuglPipeServer != nullptr);
-        mEmuglPipeServer->start();
 
         asio::async_read(
             mSock,
@@ -318,8 +335,13 @@ public:
             });
     }
 
+    ~EmuglSockPipe() {
+        DD("%s:", __func__);
+    }
+
 private:
     EmuglPipeServer* createEmuglPipeServer(void* mHwPipe, AsioTCP::socket &sock) {
+        DD("%s: create", __func__);
         auto renderer = android_getOpenglesRenderer();
         if (!renderer) {
             // This should never happen, unless there is a bug in the
@@ -337,10 +359,11 @@ private:
     }
 
     void handleSetWantEventReceiveFrom(const asio::error_code& error, size_t bytes_rcved) {
+        DD("%s: error:%d, bytes_rcved:%d", __func__, error.value(), (int)bytes_rcved);
         if (!error) {
             assert(bytes_rcved == sizeof(int));
             int wantEvents = *((int *)mRcvPacketData);
-            printf("Wanted events:%d\n", wantEvents);
+            DDD("Wanted events:%d", wantEvents);
             mEmuglPipeServer->onGuestWantWakeOn(wantEvents);
             asio::async_read(
                 mSock,
@@ -360,7 +383,7 @@ private:
 
         uint8_t major_type = *mRcvPacketHead;
         uint8_t minor_type = *(mRcvPacketHead + PACKET_MAJOR_TYPE_LEN);
-        printf("handleHeadReceiveFrom rcved:%d, major_type, minor_type:(%d, %d)\n", (int)bytes_rcved, major_type, minor_type);
+        DDD("%s: handleHeadReceiveFrom rcved:%d, major_type, minor_type:(%d, %d)", __func__, (int)bytes_rcved, major_type, minor_type);
 
         uint8_t *packetSizePtr = mRcvPacketHead + PACKET_MAJOR_TYPE_LEN + PACKET_MINOR_TYPE_LEN;
         mRcvPacketBodyLen = *((uint64_t *)packetSizePtr);
@@ -368,10 +391,12 @@ private:
         bool isWantedEvents = false;
         if ((GLPacketType)major_type == GLPacketType::CTRL_PACKET) {
             if ((GLCtrlType)minor_type == GLCtrlType::CLOSE_CTRL) {
+                DDD("%s: try to close pipe server", __func__);
                 mEmuglPipeServer->onGuestClose();
                 delete this;
                 return;
             } else if ((GLCtrlType)minor_type == GLCtrlType::SET_STATE_CTRL) {
+                DDD("%s: try to set wanted events", __func__);
                 isWantedEvents = true;
             } else {
                 assert(false);
@@ -406,7 +431,7 @@ private:
     }
 
     void handleBodyReceiveFrom(const asio::error_code& error, size_t bytes_rcved) {
-        printf("handleBodyReceiveFrom body:%d,%d\n", (int)bytes_rcved, (int)mRcvPacketBodyLen);
+        DDD("handleBodyReceiveFrom body:%d,%d", (int)bytes_rcved, (int)mRcvPacketBodyLen);
         assert(bytes_rcved == mRcvPacketBodyLen);
 
         AndroidPipeBuffer pipeBuffer = {mRcvPacketData, mRcvPacketBodyLen};
@@ -433,6 +458,7 @@ private:
 class EmuglPipeServerServer : public android::base::Thread {
 public:
     EmuglPipeServerServer() : android::base::Thread(), mIoService(), mSocket(mIoService) {
+        DDD("%s", __func__);
         char *render_svr_port = getenv("render_svr_port");
         if (render_svr_port) {
             printf("Render server port: %s\n", render_svr_port);
@@ -441,29 +467,37 @@ public:
             mEndPoint = AsioTCP::endpoint(AsioTCP::v4(), DEFAULT_PORT);
         }
         mAcceptor = new AsioTCP::acceptor(mIoService, mEndPoint);
+        startAccept();
     }
 
     ~EmuglPipeServerServer() {
+        DDD("%s", __func__);
         if (mAcceptor != nullptr) {
             delete mAcceptor;
         }
     }
 
-    void start_accept() {
+    void startAccept() {
+        DDD("%s: start accepting", __func__);
         mAcceptor->async_accept(
             mSocket,
             [this](std::error_code ec) {
                 if (!ec) {
+                    DDD("\n\n%s, new  EmuglSockPipe", __func__);
                     new EmuglSockPipe(std::move(mSocket));
+                } else {
+                    fprintf(stderr, "Cannot accept client.(%d:%s)\n", ec.value(), ec.message().c_str());
                 }
-                start_accept();
+                startAccept();
             });
+        DDD("%s: done accepting", __func__);
     }
 
     virtual intptr_t main() override {
-        start_accept();
+        DDD("%s: io sevice start working", __func__);
         mIoService.run();
-        return -1;
+        DDD("%s: io sevice stop working", __func__);
+        return 0;
     }
 
 private:
