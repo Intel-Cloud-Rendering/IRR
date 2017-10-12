@@ -116,9 +116,7 @@ public:
         }
 
         AsioTCP::resolver resolver(mAsioIoService);
-        AsioTCP::resolver::query query(
-            render_svr_hostname,
-            render_svr_port);
+        AsioTCP::resolver::query query(render_svr_hostname, render_svr_port);
 
         AsioTCP::resolver::iterator endpoint_iterator = resolver.resolve(query);
         asio::error_code ec;
@@ -133,8 +131,7 @@ public:
         asio::async_read(
             mTcpSocket,
             asio::buffer(mRcvPacketHead, PACKET_HEAD_LEN),
-            [this](const asio::error_code& error, size_t bytes_rcvd)
-            {
+            [this](const asio::error_code& error, size_t bytes_rcvd) {
                 handleHeadReceiveFrom(error, bytes_rcvd);
             });
     }
@@ -211,18 +208,16 @@ public:
         auto buff = buffers;
         const auto buffEnd = buff + numBuffers;
         while (buff != buffEnd) {
-            int spinCount = 100;
-            for (;;) {
+            const int spinCount = 20;
+            for (int i = 0; i <= spinCount; i++, usleep(1)) {
                 AutoLock lock(mLock);
                 if (mRcvPacketDataSize > 0) {
                     break;
                 }
-
-                if (--spinCount > 0) {
-                    continue;
+                if (i == spinCount) {
+                    DD("%s: returning PIPE_ERROR_AGAIN", __func__);
+                    return PIPE_ERROR_AGAIN;
                 }
-                DD("%s: returning PIPE_ERROR_AGAIN", __func__);
-                return PIPE_ERROR_AGAIN;
             }
 
             AutoLock lock(mLock);
@@ -254,7 +249,8 @@ public:
         return len;
     }
 
-    virtual int onGuestSend(const AndroidPipeBuffer* buffers, int numBuffers) override {
+    virtual int onGuestSend(const AndroidPipeBuffer* buffers,
+                            int numBuffers) override {
         DD("%s", __func__);
 
         if (!mIsWorking) {
@@ -279,7 +275,7 @@ public:
         int offset = 0;
         *sndBuf = (uint8_t)GLPacketType::DATA_PACKET;
         offset += PACKET_MAJOR_TYPE_LEN;
-        
+
         *(sndBuf + offset) = 0;
         offset += PACKET_MINOR_TYPE_LEN;
 
@@ -350,8 +346,7 @@ private:
         asio::async_read(
             mTcpSocket,
             asio::buffer(mRcvPacketHead, PACKET_HEAD_LEN),
-            [this](const asio::error_code& error, size_t bytes_rcved)
-            {
+            [this](const asio::error_code& error, size_t bytes_rcved) {
                 handleHeadReceiveFrom(error, bytes_rcved);
             });
     }
@@ -378,12 +373,12 @@ private:
         AutoLock lock(mLock);
         uint8_t *packetSizePtr = mRcvPacketHead + PACKET_MAJOR_TYPE_LEN + PACKET_MINOR_TYPE_LEN;
         mRcvPacketBodyLen = *((uint64_t *)packetSizePtr);
-        if (mRcvPacketData== nullptr) {
-            mRcvPacketDataCap= mRcvPacketBodyLen > CHANNEL_BUF_CAP ? mRcvPacketBodyLen : CHANNEL_BUF_CAP;
+        if (mRcvPacketData == nullptr) {
+            mRcvPacketDataCap = mRcvPacketBodyLen > CHANNEL_BUF_CAP ? mRcvPacketBodyLen : CHANNEL_BUF_CAP;
             mRcvPacketData = (uint8_t *)malloc(mRcvPacketDataCap);
         } else {
             if (mRcvPacketBodyLen > (mRcvPacketDataCap - mRcvPacketDataOffset)) {
-                mRcvPacketDataCap = mRcvPacketDataCap + 2 * mRcvPacketBodyLen;
+                mRcvPacketDataCap += 2 * mRcvPacketBodyLen;
                 mRcvPacketData = (uint8_t *)realloc(mRcvPacketData, mRcvPacketDataCap);
             }
         }
@@ -391,12 +386,11 @@ private:
         asio::async_read(
             mTcpSocket,
             asio::buffer(mRcvPacketData + mRcvPacketDataSize, mRcvPacketBodyLen),
-            [this](const asio::error_code& error, size_t bytes_rcved)
-            {
+            [this](const asio::error_code& error, size_t bytes_rcved) {
                 handleBodyReceiveFrom(error, bytes_rcved);
             });
     }
-    
+
     void notifyRenderServerWantedEvents(int flags) {
         DDD("%s: set wanted events: %d\n", __func__, flags);
 
