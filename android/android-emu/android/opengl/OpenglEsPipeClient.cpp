@@ -102,7 +102,7 @@ public:
 
         const char* render_svr_hostname = getenv("render_svr_hostname");
         if (render_svr_hostname) {
-            DDD("Render server hostname: %s\n", render_svr_hostname);
+            DDD("\nRender server hostname: %s", render_svr_hostname);
         } else {
             fprintf(stderr, "Cannot find render server hostname\n");
             return;
@@ -127,27 +127,36 @@ public:
             return;
         }
 
-        mRcvThread = std::thread([this](){ mAsioIoService.run(); });
+        mRcvThread = std::thread([this](){
+                DDD("%s: Start mRcvThread running", __func__);
+                mAsioIoService.run();
+                DDD("%s: Done mRcvThread running", __func__);
+            });
         mIsWorking = true;
 
         asio::async_read(
             mTcpSocket,
             asio::buffer(mRcvPacketHead, PACKET_HEAD_LEN),
             [this](const asio::error_code& error, size_t bytes_rcvd) {
+                DDD("%s: receied packed heads", __func__);
                 handleHeadReceiveFrom(error, bytes_rcvd);
             });
     }
 
     ~EmuglPipeClient() {
+        D("%s mAsioIoService", __func__);
         if (!(mAsioIoService.stopped())) {
             mAsioIoService.stop();
         }
 
+        D("%s mRcvPacketData", __func__);
         if (mRcvPacketData != nullptr) {
-            free(mRcvPacketData);
-            mRcvPacketData = nullptr;
+            //TODO: We need to clarify the code
+            //free(mRcvPacketData);
+            //mRcvPacketData = nullptr;
         }
 
+        D("%s mRcvThread", __func__);
         mRcvThread.join();
     }
 
@@ -169,12 +178,14 @@ public:
             fprintf(stderr, "Cannot send [close] to server.(%d:%s)\n", ec.value(), ec.message().c_str());
         }
 
+        DDD("%s Start closing socket", __func__);
         mTcpSocket.close();
 
         // Update state
         mState |= ChannelState::Stopped;
 
         abortPendingOperation();
+        DDD("%s Start detroying resource", __func__);
         delete this;
     }
 
@@ -286,7 +297,7 @@ public:
         *((uint64_t *)(sndBuf + offset)) = count;
 
         asio::error_code ec;
-        DDD("%s: send bytes(head, body):(%d,%d)\n", __func__, PACKET_HEAD_LEN, count);
+        DDD("%s: send bytes(head, body):(%d,%d)", __func__, PACKET_HEAD_LEN, count);
         mTcpSocket.send(asio::buffer(sndBuf, PACKET_HEAD_LEN + count), 0, ec);
         if (ec) {
             fprintf(stderr, "Cannot send data to server.(%d:%s)\n", ec.value(), ec.message().c_str());
@@ -313,7 +324,7 @@ public:
 
         // Signal events that are already available now.
         ChannelState available = mState & wanted;
-        DD("%s: flags, wanted, state, available:%d, %d, %d, %d\n", __func__, flags, (int)wanted, (int)mState, (int)available);
+        DD("%s: flags, wanted, state, available:%d, %d, %d, %d", __func__, flags, (int)wanted, (int)mState, (int)available);
         if (available != ChannelState::Empty) {
             DDD("%s: signaling events %d", __func__, (int)available);
             signalState(available);
@@ -329,7 +340,7 @@ public:
 
 private:
     void handleBodyReceiveFrom(const asio::error_code& error, size_t bytes_rcved) {
-        DDD("%s: error:%d, bytes received:%d, working:%d\n",
+        DDD("%s: error:%d, bytes received:%d, working:%d",
             __func__,
             error.value(),
             (int)bytes_rcved,
@@ -356,7 +367,7 @@ private:
     }
 
     void handleHeadReceiveFrom(const asio::error_code& error, size_t bytes_rcved) {
-        DDD("%s: error:%d, bytes received:%d, working:%d\n",
+        DDD("%s: error:%d, bytes received:%d, working:%d",
             __func__,
             error.value(),
             (int)bytes_rcved,
@@ -396,7 +407,7 @@ private:
     }
 
     void notifyRenderServerWantedEvents(int flags) {
-        DDD("%s: set wanted events: %d\n", __func__, flags);
+        DDD("%s: set wanted events: %d", __func__, flags);
 
         // Notify rendering server
         uint8_t sndBuf[14] = {0};
@@ -455,7 +466,7 @@ private:
 
         // The logic of notifyStateChangeLocked
         ChannelState available = mState & mWantedState;
-        DDD("%s: (mState, mWantedEvents, available): (%d, %d, %d)\n", __func__, mState, mWantedState, (int)available);
+        DDD("%s: (mState, mWantedState, available): (%d, %d, %d)", __func__, mState, mWantedState, (int)available);
         if (available != ChannelState::Empty) {
             D("%s: callback with %d", __func__, (int)available);
             // Update wanted events
