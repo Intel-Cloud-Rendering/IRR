@@ -30,7 +30,7 @@
 
 
 // Set to 1 or 2 for debug traces
-#define DEBUG 3
+#define DEBUG 0
 
 #if DEBUG >= 1
 #define D(...) printf(__VA_ARGS__), printf("\n"), fflush(stdout)
