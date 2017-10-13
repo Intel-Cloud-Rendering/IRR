@@ -59,7 +59,6 @@ using AsioIoService = asio::io_service;
 using AsioTCP = asio::ip::tcp;
 using AutoLock = android::base::AutoLock;
 
-
 #define CHANNEL_BUF_CAP (512)
 
 namespace android {
@@ -155,6 +154,7 @@ public:
 
         // wait thread exit
         wait();
+
         D("%s: thread exit", __func__);
     }
     
@@ -248,6 +248,7 @@ public:
             len += curSize;
             mRcvPacketDataOffset += curSize;
             mRcvPacketDataSize -= curSize;
+            assert(mRcvPacketDataSize >= 0);
             buffOffset += curSize;
             if (buffOffset == buff->size) {
                 ++buff;
@@ -258,11 +259,11 @@ public:
         AutoLock lock(mLock);
         if (mRcvPacketDataSize > 0) {
             memmove(mRcvPacketData, mRcvPacketData + mRcvPacketDataOffset, mRcvPacketDataSize);
-            mRcvPacketDataOffset = 0;
             mState |= (ChannelState::CanRead);
         } else {
             mState &= ~(ChannelState::CanRead);
         }
+        mRcvPacketDataOffset = 0;
 
         // Update state
         this->onChannelHostEvent();
@@ -397,16 +398,18 @@ private:
         if (mRcvPacketData == nullptr) {
             mRcvPacketDataCap = mRcvPacketBodyLen > CHANNEL_BUF_CAP ? mRcvPacketBodyLen : CHANNEL_BUF_CAP;
             mRcvPacketData = (uint8_t *)malloc(mRcvPacketDataCap);
+            mRcvPacketDataOffset = 0;
+            mRcvPacketDataSize = 0;
         } else {
             if (mRcvPacketBodyLen > (mRcvPacketDataCap - mRcvPacketDataOffset)) {
-                mRcvPacketDataCap += 2 * mRcvPacketBodyLen;
+                mRcvPacketDataCap += (2 * mRcvPacketBodyLen);
                 mRcvPacketData = (uint8_t *)realloc(mRcvPacketData, mRcvPacketDataCap);
             }
         }
 
         asio::async_read(
             mTcpSocket,
-            asio::buffer(mRcvPacketData + mRcvPacketDataSize, mRcvPacketBodyLen),
+            asio::buffer(mRcvPacketData + mRcvPacketDataOffset, mRcvPacketBodyLen),
             [this](const asio::error_code& error, size_t bytes_rcved) {
                 handleBodyReceiveFrom(error, bytes_rcved);
             });
@@ -491,10 +494,10 @@ private:
     uint8_t  mRcvPacketHead[PACKET_HEAD_LEN] = {0};
     uint64_t mRcvPacketBodyLen    = 0;
     uint64_t mRcvPacketDataSize   = 0;
-    uint8_t  mRcvPacketDataCap    = 0;
+    uint64_t mRcvPacketDataCap    = 0;
     uint8_t *mRcvPacketData       = nullptr;
     uint64_t mRcvPacketDataOffset = 0;
-    size_t   mDataForReadingLeft  = 0;
+    uint64_t mDataForReadingLeft  = 0;
 
     AsioIoService   mAsioIoService;
     AsioTCP::socket mTcpSocket;

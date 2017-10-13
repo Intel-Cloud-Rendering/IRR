@@ -14,6 +14,7 @@
 #include "android/utils/compiler.h"
 
 #include <stdint.h>
+#include <stdio.h>
 
 ANDROID_BEGIN_HEADER
 
@@ -58,5 +59,9 @@ int format_gl_generic_command(
     uint8_t *packet_data,
     uint64_t output_buf_size,
     uint8_t *output_buf);
+
+FILE *openDumpFile(const char *name);
+void writeToDumpFile(FILE *file, uint8_t *data, uint32_t dataLen);
+void closeDumpFile(FILE *file);
 
 ANDROID_END_HEADER

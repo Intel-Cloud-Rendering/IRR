@@ -80,3 +80,25 @@ int format_gl_generic_command(
     return offset;
 }
 
+FILE *openDumpFile(const char *name)
+{
+    return fopen(name, "wb");
+}
+
+void writeToDumpFile(FILE *file, uint8_t *data, uint32_t dataLen)
+{
+    if (file == nullptr)
+        return;
+
+    int ret = fwrite(data, dataLen, 1, file);
+    assert(ret == 1);
+}
+
+void closeDumpFile(FILE *file)
+{
+    if (file != nullptr) {
+        fclose(file);
+    }
+}
+
+

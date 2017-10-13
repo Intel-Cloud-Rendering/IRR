@@ -314,7 +314,7 @@ private:
 
     AsioTCP::socket &mSock;
     uint8_t         *mSndBuf    = nullptr;
-    uint8_t          mSndBufLen = 0;
+    uint64_t         mSndBufLen = 0;
 
     DISALLOW_COPY_ASSIGN_AND_MOVE(EmuglPipeServer);
 };
@@ -404,11 +404,13 @@ private:
         }
 
         if (mRcvPacketData== nullptr) {
-            mRcvPacketDataCap= mRcvPacketBodyLen > CHANNEL_BUF_CAP ? mRcvPacketBodyLen : CHANNEL_BUF_CAP;
+            mRcvPacketDataCap = mRcvPacketBodyLen > CHANNEL_BUF_CAP ? mRcvPacketBodyLen : CHANNEL_BUF_CAP;
+            DDD("%s: malloc(%d, %d)", __func__, (int)mRcvPacketDataCap, (int)mRcvPacketBodyLen);
             mRcvPacketData = (uint8_t *)malloc(mRcvPacketDataCap);
         } else {
             if (mRcvPacketBodyLen > mRcvPacketDataCap) {
                 mRcvPacketDataCap = 2 * mRcvPacketBodyLen;
+                DDD("%s: realloc(%d, %d)", __func__, (int)mRcvPacketDataCap, (int)mRcvPacketBodyLen);
                 mRcvPacketData = (uint8_t *)realloc(mRcvPacketData, mRcvPacketDataCap);
             }
         }
@@ -449,10 +451,10 @@ private:
     AsioTCP::socket  mSock;
     EmuglPipeServer *mEmuglPipeServer;
 
-    uint8_t  mRcvPacketHead[PACKET_HEAD_LEN] = {0};
-    uint64_t mRcvPacketBodyLen    = 0;
-    uint8_t  mRcvPacketDataCap    = 0;
-    uint8_t *mRcvPacketData       = nullptr;
+    uint8_t   mRcvPacketHead[PACKET_HEAD_LEN] = {0};
+    uint64_t  mRcvPacketBodyLen    = 0;
+    uint64_t  mRcvPacketDataCap    = 0;
+    uint8_t  *mRcvPacketData       = nullptr;
 };
 
 class EmuglPipeServerServer : public android::base::Thread {
