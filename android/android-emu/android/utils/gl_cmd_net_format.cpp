@@ -92,6 +92,9 @@ void writeToDumpFile(FILE *file, uint8_t *data, uint32_t dataLen)
 
     int ret = fwrite(data, dataLen, 1, file);
     assert(ret == 1);
+    if (ret != 1) {
+        fprintf(stderr, "Cannot write data to file\n");
+    }
 }
 
 void closeDumpFile(FILE *file)
