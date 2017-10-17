@@ -275,8 +275,10 @@ public:
         }
         mRcvPacketDataOffset = 0;
 
+        /*
         // Update state
         this->onChannelHostEvent();
+        */
         DD("%s: received %d bytes", __func__, (int)len);
         return len;
     }
