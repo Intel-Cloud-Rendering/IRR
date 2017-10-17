@@ -12,9 +12,11 @@
 #pragma once
 
 #include "android/utils/compiler.h"
+#include "android/utils/system.h"
 
 #include <stdint.h>
 #include <stdio.h>
+#include <assert.h>
 
 ANDROID_BEGIN_HEADER
 
@@ -40,6 +42,22 @@ typedef struct _GLCmdPacketHead {
 #define PACKET_SIZE_LEN       (8)
 
 #define PACKET_HEAD_LEN (PACKET_MAJOR_TYPE_LEN + PACKET_MINOR_TYPE_LEN + PACKET_SIZE_LEN)
+
+class AutoLogger {
+public:
+    AutoLogger(const char *name) {
+        mTid = android_get_thread_id();
+        assert(strlen(name) < sizeof(mFuncName));
+        strcpy(mFuncName, name);
+        printf("[DEBUG][0x%" ANDROID_THREADID_FMT "][%s <<<<<]\n", mTid, mFuncName);
+    };
+    ~AutoLogger() {
+        printf("[DEBUG][0x%" ANDROID_THREADID_FMT "][%s >>>>>]\n", mTid, mFuncName);
+    };
+private:
+    char mFuncName[512] = {0};
+    android_thread_id_t mTid;
+};
 
 int format_gl_data_command(
     uint64_t packet_size,

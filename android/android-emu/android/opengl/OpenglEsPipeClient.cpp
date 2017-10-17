@@ -47,8 +47,10 @@
 
 #if DEBUG >= 3
 #define DDD(...) printf(__VA_ARGS__), printf("\n"), fflush(stdout)
+#define AutoLog() AutoLogger autoLogger(__func__)
 #else
 #define DDD(...) ((void)0)
+#define AutoLog() ((void)0)
 #endif
 
 using ChannelBuffer = emugl::RenderChannel::Buffer;
@@ -77,6 +79,8 @@ public:
 
         // Create a new EmuglPipe instance.
         virtual AndroidPipe* create(void* mHwPipe, const char* args) override {
+            AutoLog();
+
             EmuglPipeClient* pipe = new EmuglPipeClient(mHwPipe, this);
             if (!pipe->mIsWorking) {
                 delete pipe;
@@ -97,6 +101,7 @@ public:
         mAsioIoService(),
         mTcpSocket(mAsioIoService),
         mLock() {
+        AutoLog();
 
         mIsWorking = false;
 
@@ -131,22 +136,22 @@ public:
             mTcpSocket,
             asio::buffer(mRcvPacketHead, PACKET_HEAD_LEN),
             [this](const asio::error_code& error, size_t bytes_rcvd) {
-                DDD("%s: receied packed heads", __func__);
                 handleHeadReceiveFrom(error, bytes_rcvd);
             });
 
+        // Start handling received/sended OpenGL-ES commands
         start();
+
         mIsWorking = true;
     }
 
     ~EmuglPipeClient() {
-        D("%s mAsioIoService", __func__);
+        AutoLog();
 
         if (!(mAsioIoService.stopped())) {
             mAsioIoService.stop();
         }
 
-        D("%s mRcvPacketData", __func__);
         if (mRcvPacketData != nullptr) {
             //TODO: We need to clarify the code
             //free(mRcvPacketData);
@@ -155,15 +160,12 @@ public:
 
         // wait thread exit
         wait();
-
-        D("%s: thread exit", __func__);
     }
     
     
     virtual intptr_t main() override {
-        DD("%s: io service thread start working", __func__);
+        AutoLog();
         mAsioIoService.run();
-        DD("%s: io service thread stop working", __func__);
         return 0;
     }
 
@@ -171,7 +173,8 @@ public:
     // Overriden AndroidPipe methods
 
     virtual void onGuestClose() override {
-        D("%s", __func__);
+        AutoLog();
+
         mIsWorking = false;
 
         // Make sure there's no operation scheduled for this pipe instance to
@@ -185,19 +188,17 @@ public:
             fprintf(stderr, "Cannot send [close] to server.(%d:%s)\n", ec.value(), ec.message().c_str());
         }
 
-        DDD("%s Start closing socket", __func__);
         mTcpSocket.close();
 
         // Update state
         mState |= ChannelState::Stopped;
 
         abortPendingOperation();
-        DDD("%s Start detroying resource", __func__);
         delete this;
     }
 
     virtual unsigned onGuestPoll() override {
-        DD("%s", __func__);
+        AutoLog();
 
         unsigned ret = 0;
         if (mDataForReadingLeft > 0) {
@@ -219,7 +220,7 @@ public:
     }
 
     virtual int onGuestRecv(AndroidPipeBuffer* buffers, int numBuffers) override {
-        DD("%s", __func__);
+        AutoLog();
 
         // Consume the pipe's dataForReading, then put the next received data
         // piece there. Repeat until the buffers are full or we're out of data
@@ -242,10 +243,10 @@ public:
                 sleep_ms(1);
 
                 if (i == spinCount) {
-                    DD("%s: returning PIPE_ERROR_AGAIN", __func__);
                     if (len > 0) {
                         return len;
                     } else {
+                        DD("%s: returning PIPE_ERROR_AGAIN", __func__);
                         return PIPE_ERROR_AGAIN;
                     }
                 }
@@ -285,7 +286,7 @@ public:
 
     virtual int onGuestSend(const AndroidPipeBuffer* buffers,
                             int numBuffers) override {
-        DD("%s", __func__);
+        AutoLog();
 
         if (!mIsWorking) {
             DD("%s: pipe already closed!", __func__);
@@ -327,7 +328,8 @@ public:
     }
 
     virtual void onGuestWantWakeOn(int flags) override {
-        DD("%s: flags=%d", __func__, flags);
+        AutoLog();
+        DDD("%s: flags=%d", __func__, flags);
 
         // Notify server wanted flags
         notifyRenderServerWantedEvents(flags);
@@ -343,9 +345,8 @@ public:
 
         // Signal events that are already available now.
         ChannelState available = mState & wanted;
-        DD("%s: flags, wanted, state, available:%d, %d, %d, %d", __func__, flags, (int)wanted, (int)mState, (int)available);
+        DDD("%s: flags, wanted, state, available:%d, %d, %d, %d", __func__, flags, (int)wanted, (int)mState, (int)available);
         if (available != ChannelState::Empty) {
-            DDD("%s: signaling events %d", __func__, (int)available);
             signalState(available);
             wanted &= ~available;
         }
@@ -359,6 +360,8 @@ public:
 
 private:
     void handleBodyReceiveFrom(const asio::error_code& error, size_t bytes_rcved) {
+        AutoLog();
+
         DDD("%s: error:%d, bytes received:%d, working:%d",
             __func__,
             error.value(),
@@ -386,6 +389,8 @@ private:
     }
 
     void handleHeadReceiveFrom(const asio::error_code& error, size_t bytes_rcved) {
+        AutoLog();
+
         DDD("%s: error:%d, bytes received:%d, working:%d",
             __func__,
             error.value(),
@@ -428,6 +433,8 @@ private:
     }
 
     void notifyRenderServerWantedEvents(int flags) {
+        AutoLog();
+
         DDD("%s: set wanted events: %d", __func__, flags);
 
         // Notify rendering server
@@ -451,6 +458,8 @@ private:
     }
 
     void setChannelWantedState(ChannelState channelWantedState) {
+        AutoLog();
+
         DDD("%s: set wanted state: %d", __func__, (int)channelWantedState);
         // Update local wanted events
         mWantedState |= channelWantedState;
@@ -461,6 +470,8 @@ private:
     // Note: this can be called from either the guest or host render
     // thread.
     void signalState(ChannelState state) {
+        AutoLog();
+
         int wakeFlags = 0;
         if ((state & ChannelState::CanRead) != 0) {
             wakeFlags |= PIPE_WAKE_READ;
@@ -469,14 +480,15 @@ private:
             wakeFlags |= PIPE_WAKE_WRITE;
         }
         if (wakeFlags != 0) {
-            DD("%s: wakeFlags:%d\n", __func__, wakeFlags);
+            DD("%s: wakeFlags:%d", __func__, wakeFlags);
             this->signalWake(wakeFlags);
         }
     }
 
     // Called when an i/o event occurs on the render channel
     void onChannelHostEvent() {
-        D("%s: events %d", __func__, (int)mState);
+        AutoLog();
+
         // NOTE: This is called from the host-side render thread.
         // but closeFromHost() and signalWake() can be called from
         // any thread.
