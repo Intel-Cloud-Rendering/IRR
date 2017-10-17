@@ -190,16 +190,13 @@ public:
                 mSndBufLen,
                 mSndBuf);
 
-            asio::async_write(
-                mSock,
-                asio::buffer(mSndBuf, paketSize),
-                [this](const asio::error_code& ec, std::size_t bytes_transferred) {
-                    if (ec) {
-                        fprintf(stderr, "Cannot send data to client.(%d:%s)\n", ec.value(), ec.message().c_str());
-                    } else {
-                        DD("%s: Send data to client.(%d bytes)", __func__, (int)bytes_transferred);
-                    }
-                });
+            asio::error_code ec;
+            mSock.send(asio::buffer(mSndBuf, paketSize), 0, ec);
+            if (ec) {
+                fprintf(stderr, "Cannot send data to client.(%d:%s)\n", ec.value(), ec.message().c_str());
+            } else {
+                DD("%s: Send data to client.(%d bytes)", __func__, paketSize);
+            }
         }
 
         return 0;

@@ -16,6 +16,7 @@
 #include "android/opengles-pipe.h"
 #include "android/opengl/GLProcessPipe.h"
 #include "android/utils/gl_cmd_net_format.h"
+#include "android/utils/system.h"
 #include "android/base/synchronization/Lock.h"
 
 #include <atomic>
@@ -30,7 +31,7 @@
 
 
 // Set to 1 or 2 for debug traces
-#define DEBUG 0
+#define DEBUG 3
 
 #if DEBUG >= 1
 #define D(...) printf(__VA_ARGS__), printf("\n"), fflush(stdout)
@@ -229,15 +230,24 @@ public:
         auto buff = buffers;
         const auto buffEnd = buff + numBuffers;
         while (buff != buffEnd) {
-            const int spinCount = 20;
+            const int spinCount = 30;
             for (int i = 0; i <= spinCount; i++, usleep(1)) {
-                AutoLock lock(mLock);
-                if (mRcvPacketDataSize > 0) {
-                    break;
+                {
+                    AutoLock lock(mLock);
+                    if (mRcvPacketDataSize > 0) {
+                        break;
+                    }
                 }
+
+                sleep_ms(1);
+
                 if (i == spinCount) {
                     DD("%s: returning PIPE_ERROR_AGAIN", __func__);
-                    return PIPE_ERROR_AGAIN;
+                    if (len > 0) {
+                        return len;
+                    } else {
+                        return PIPE_ERROR_AGAIN;
+                    }
                 }
             }
 
