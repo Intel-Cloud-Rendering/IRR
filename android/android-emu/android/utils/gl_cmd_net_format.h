@@ -21,27 +21,25 @@
 ANDROID_BEGIN_HEADER
 
 typedef enum {
-    CTRL_PACKET = 0,
-    DATA_PACKET
-} GLPacketType;
+    DATA_PACKET = 0x0,
 
-typedef enum {
-    CLOSE_CTRL = 0,
-    POLL_CTRL,
-    SET_STATE_CTRL
-} GLCtrlType;
+    CTRL_PACKET_GUEST_CLOSE     = 0x1,
+    CTRL_PACKET_GUEST_POLL      = 0x2,
+
+    CTRL_PACKET_SET_STATE_BEGIN           = 0x80,
+    CTRL_STATE_WAKE_BY_CLOSE              = 0x81,
+    CTRL_STATE_WAKE_BY_READ               = 0x82,
+    CTRL_STATE_WAKE_BY_WRITE              = 0x84,
+    CTRL_STATE_WAKE_BY_DMA_UNLOCKED       = 0x88,
+    CTRL_STATE_WAKE_BY_DMA_UNLOCKED_SHARE = 0x90
+} GLNetworkPacketType;
 
 typedef struct _GLCmdPacketHead {
-    uint8_t major_type;
-    uint8_t minor_type;
-    uint64_t packet_size;
-} GLCmdPacketHead;
+    int packet_type : 8;
+    int packet_body_size : 24;
+} __attribute__ ((packed)) GLCmdPacketHead;
 
-#define PACKET_MAJOR_TYPE_LEN (1)
-#define PACKET_MINOR_TYPE_LEN (1)
-#define PACKET_SIZE_LEN       (8)
-
-#define PACKET_HEAD_LEN (PACKET_MAJOR_TYPE_LEN + PACKET_MINOR_TYPE_LEN + PACKET_SIZE_LEN)
+#define PACKET_HEAD_LEN       (sizeof(GLCmdPacketHead))
 
 class AutoLogger {
 public:
@@ -60,22 +58,21 @@ private:
 };
 
 int format_gl_data_command(
-    uint64_t packet_size,
+    int32_t  packet_size,
     uint8_t *packet_data,
-    uint64_t output_buf_size,
+    int32_t  output_buf_size,
     uint8_t *output_buf);
 
 int format_gl_ctrl_command(
-    GLCtrlType gl_ctrl_type,
-    uint64_t output_buf_size,
+    GLNetworkPacketType gl_packet_type,
+    int32_t  output_buf_size,
     uint8_t *output_buf);
 
 int format_gl_generic_command(
-    uint8_t major,
-    uint8_t minor,
-    uint64_t packet_size,
+    GLNetworkPacketType gl_packet_type,
+    int32_t  packet_size,
     uint8_t *packet_data,
-    uint64_t output_buf_size,
+    int32_t  output_buf_size,
     uint8_t *output_buf);
 
 FILE *openDumpFile(const char *name);

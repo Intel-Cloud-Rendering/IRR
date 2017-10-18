@@ -31,7 +31,7 @@
 
 
 // Set to 1 or 2 for debug traces
-#define DEBUG 3
+#define DEBUG 0
 
 #if DEBUG >= 1
 #define D(...) printf(__VA_ARGS__), printf("\n"), fflush(stdout)
@@ -106,20 +106,18 @@ public:
         mIsWorking = false;
 
         const char* render_svr_hostname = getenv("render_svr_hostname");
-        if (render_svr_hostname) {
-            DDD("\nRender server hostname: %s", render_svr_hostname);
-        } else {
+        if (!render_svr_hostname) {
             fprintf(stderr, "Cannot find render server hostname\n");
             return;
         }
+        DDD("Render server hostname: %s", render_svr_hostname);
 
         const char* render_svr_port = getenv("render_svr_port");
-        if (render_svr_port) {
-            DDD("Render server port: %s\n", render_svr_port);
-        } else {
+        if (!render_svr_port) {
             fprintf(stderr, "Cannot find render server port\n");
             return;
         }
+        DDD("Render server port: %s", render_svr_port);
 
         AsioTCP::resolver resolver(mAsioIoService);
         AsioTCP::resolver::query query(render_svr_hostname, render_svr_port);
@@ -136,6 +134,7 @@ public:
             mTcpSocket,
             asio::buffer(mRcvPacketHead, PACKET_HEAD_LEN),
             [this](const asio::error_code& error, size_t bytes_rcvd) {
+                DDD("%s: receied packed heads", __func__);
                 handleHeadReceiveFrom(error, bytes_rcvd);
             });
 
@@ -161,8 +160,7 @@ public:
         // wait thread exit
         wait();
     }
-    
-    
+
     virtual intptr_t main() override {
         AutoLog();
         mAsioIoService.run();
@@ -180,7 +178,7 @@ public:
         // Make sure there's no operation scheduled for this pipe instance to
         // run on the main thread.
         uint8_t sndBuf[10] = {0};
-        int ret = format_gl_ctrl_command(GLCtrlType::CLOSE_CTRL, sizeof(sndBuf), sndBuf);
+        int ret = format_gl_ctrl_command(GLNetworkPacketType::CTRL_PACKET_GUEST_CLOSE, sizeof(sndBuf), sndBuf);
         assert(ret > 0);
         asio::error_code ec;
         mTcpSocket.send(asio::buffer(sndBuf, ret), 0, ec);
@@ -253,7 +251,7 @@ public:
             }
 
             AutoLock lock(mLock);
-            const size_t curSize = std::min(buff->size - buffOffset, mRcvPacketDataSize);
+            const size_t curSize = std::min(buff->size - buffOffset, (size_t)mRcvPacketDataSize);
             memcpy(buff->data + buffOffset, mRcvPacketData + mRcvPacketDataOffset, curSize);
 
             len += curSize;
@@ -284,12 +282,11 @@ public:
         return len;
     }
 
-    virtual int onGuestSend(const AndroidPipeBuffer* buffers,
-                            int numBuffers) override {
+    virtual int onGuestSend(const AndroidPipeBuffer* buffers, int numBuffers) override {
         AutoLog();
 
         if (!mIsWorking) {
-            DD("%s: pipe already closed!", __func__);
+            DDD("%s: pipe already closed!", __func__);
             return PIPE_ERROR_IO;
         }
 
@@ -300,39 +297,49 @@ public:
         }
 
         // Copy everything into a single ChannelBuffer.
+        GLCmdPacketHead paketHead = {0};
+        paketHead.packet_body_size = count;
+
         uint8_t *sndBuf = new uint8_t[PACKET_HEAD_LEN + count];
+
+        // Copy Head
+        memcpy(sndBuf, &paketHead, PACKET_HEAD_LEN);
+
+        // Copy data
         uint8_t *sndBufData = sndBuf + PACKET_HEAD_LEN;
         for (int n = 0; n < numBuffers; ++n) {
             memcpy(sndBufData, buffers[n].data, buffers[n].size);
             sndBufData += buffers[n].size;
         }
 
-        int offset = 0;
-        *sndBuf = (uint8_t)GLPacketType::DATA_PACKET;
-        offset += PACKET_MAJOR_TYPE_LEN;
-
-        *(sndBuf + offset) = 0;
-        offset += PACKET_MINOR_TYPE_LEN;
-
-        *((uint64_t *)(sndBuf + offset)) = count;
-
+ 
+        
         asio::error_code ec;
-        DDD("%s: send bytes(head, body):(%d,%d)", __func__, PACKET_HEAD_LEN, count);
-        mTcpSocket.send(asio::buffer(sndBuf, PACKET_HEAD_LEN + count), 0, ec);
-        if (ec) {
-            fprintf(stderr, "Cannot send data to server.(%d:%s)\n", ec.value(), ec.message().c_str());
+        size_t sentLen = asio::write(mTcpSocket, asio::buffer(sndBuf, PACKET_HEAD_LEN + count), ec);
+        if (sentLen != PACKET_HEAD_LEN + count) {
+            assert(0);
         }
 
-        delete sndBuf;
+        delete[] sndBuf;
+
+        DD("%s: send %lu bytes to rendering server", __func__,PACKET_HEAD_LEN + count);
+        /*
+        asio::error_code ec;
+        asio::async_write(
+            mTcpSocket,
+            asio::buffer(sndBuf, PACKET_HEAD_LEN + count),
+            mStrand.wrap([this, sndBuf](const asio::error_code& ec, std::size_t bytes_transferred) {
+                if (ec) {
+                    fprintf(stderr, "cannot send data to rendering server.(%d:%s)\n", ec.value(), ec.message().c_str());
+                }
+                delete[] sndBuf;
+                DDD("%s: send %lu bytes to rendering server", __func__,bytes_transferred);
+            }));*/
         return count;
     }
 
     virtual void onGuestWantWakeOn(int flags) override {
         AutoLog();
-        DDD("%s: flags=%d", __func__, flags);
-
-        // Notify server wanted flags
-        notifyRenderServerWantedEvents(flags);
 
         // Translate |flags| into ChannelState flags.
         ChannelState wanted = ChannelState::Empty;
@@ -345,8 +352,9 @@ public:
 
         // Signal events that are already available now.
         ChannelState available = mState & wanted;
-        DDD("%s: flags, wanted, state, available:%d, %d, %d, %d", __func__, flags, (int)wanted, (int)mState, (int)available);
+        DD("%s: flags, wanted, state, available:%d, %d, %d, %d", __func__, flags, (int)wanted, (int)mState, (int)available);
         if (available != ChannelState::Empty) {
+            DDD("%s: signaling events %d", __func__, (int)available);
             signalState(available);
             wanted &= ~available;
         }
@@ -362,15 +370,21 @@ private:
     void handleBodyReceiveFrom(const asio::error_code& error, size_t bytes_rcved) {
         AutoLog();
 
-        DDD("%s: error:%d, bytes received:%d, working:%d",
+        DD("%s: error:%d, bytes received:%d",
             __func__,
             error.value(),
-            (int)bytes_rcved,
-            (int)mIsWorking);
+            (int)(bytes_rcved + PACKET_HEAD_LEN));
+
+        if (error){
+            fprintf(stderr, "cannot get body data from rendering server.(%d:%s)\n", error.value(), error.message().c_str());
+            //assert(false);
+            return;
+        }
+
         if (!mIsWorking)
             return;
 
-        assert(bytes_rcved == mRcvPacketBodyLen);
+        assert(bytes_rcved == (size_t)mRcvPacketBodyLen);
 
         // Update state
         AutoLock lock(mLock);
@@ -386,32 +400,34 @@ private:
             [this](const asio::error_code& error, size_t bytes_rcved) {
                 handleHeadReceiveFrom(error, bytes_rcved);
             });
+        
     }
 
     void handleHeadReceiveFrom(const asio::error_code& error, size_t bytes_rcved) {
         AutoLog();
 
-        DDD("%s: error:%d, bytes received:%d, working:%d",
+        DDD("%s: error:%d, bytes received:%d",
             __func__,
             error.value(),
-            (int)bytes_rcved,
-            (int)mIsWorking);
+            (int)bytes_rcved);
+
+        if (error){
+            fprintf(stderr, "cannot get head data from rendering server.(%d:%s)\n", error.value(), error.message().c_str());
+            //assert(false);
+            return;
+        }
+
         if (!mIsWorking)
             return;
 
         assert(bytes_rcved == PACKET_HEAD_LEN);
 
-        uint8_t major_type = *mRcvPacketHead;
-        uint8_t minor_type = *(mRcvPacketHead + PACKET_MAJOR_TYPE_LEN);
-        if ((major_type != GLPacketType::DATA_PACKET) || (minor_type != 0)) {
-            fprintf(stderr, "Invalid packet type\n");
-            assert(false);
-            return;
-        }
+        GLCmdPacketHead *packetHead = (GLCmdPacketHead *)mRcvPacketHead;
+        assert(packetHead->packet_type == GLNetworkPacketType::DATA_PACKET);
+        assert(packetHead->packet_body_size > 0);
 
         AutoLock lock(mLock);
-        uint8_t *packetSizePtr = mRcvPacketHead + PACKET_MAJOR_TYPE_LEN + PACKET_MINOR_TYPE_LEN;
-        mRcvPacketBodyLen = *((uint64_t *)packetSizePtr);
+        mRcvPacketBodyLen = packetHead->packet_body_size;
         if (mRcvPacketData == nullptr) {
             mRcvPacketDataCap = mRcvPacketBodyLen > CHANNEL_BUF_CAP ? mRcvPacketBodyLen : CHANNEL_BUF_CAP;
             mRcvPacketData = (uint8_t *)malloc(mRcvPacketDataCap);
@@ -430,31 +446,6 @@ private:
             [this](const asio::error_code& error, size_t bytes_rcved) {
                 handleBodyReceiveFrom(error, bytes_rcved);
             });
-    }
-
-    void notifyRenderServerWantedEvents(int flags) {
-        AutoLog();
-
-        DDD("%s: set wanted events: %d", __func__, flags);
-
-        // Notify rendering server
-        uint8_t sndBuf[14] = {0};
-        uint8_t majorType = (uint8_t)GLPacketType::CTRL_PACKET;
-        uint8_t minorType = (uint8_t)GLCtrlType::SET_STATE_CTRL;
-        int format_cmd_size = format_gl_generic_command(
-            majorType,
-            minorType,
-            sizeof(int),
-            (uint8_t *)(&flags),
-            sizeof(sndBuf),
-            sndBuf);
-        assert(format_cmd_size > 0);
-        asio::error_code ec;
-        mTcpSocket.send(asio::buffer(sndBuf, format_cmd_size), 0, ec);
-        if (ec) {
-            fprintf(stderr, "Cannot set channel state to server.(%d:%s)\n", ec.value(), ec.message().c_str());
-            assert(false);
-        }
     }
 
     void setChannelWantedState(ChannelState channelWantedState) {
@@ -516,12 +507,12 @@ private:
 
     bool     mRcvHead = true;
     uint8_t  mRcvPacketHead[PACKET_HEAD_LEN] = {0};
-    uint64_t mRcvPacketBodyLen    = 0;
-    uint64_t mRcvPacketDataSize   = 0;
-    uint64_t mRcvPacketDataCap    = 0;
+    int32_t  mRcvPacketBodyLen    = 0;
+    int32_t  mRcvPacketDataSize   = 0;
+    int32_t  mRcvPacketDataCap    = 0;
     uint8_t *mRcvPacketData       = nullptr;
-    uint64_t mRcvPacketDataOffset = 0;
-    uint64_t mDataForReadingLeft  = 0;
+    int32_t  mRcvPacketDataOffset = 0;
+    int32_t  mDataForReadingLeft  = 0;
 
     AsioIoService   mAsioIoService;
     AsioTCP::socket mTcpSocket;
