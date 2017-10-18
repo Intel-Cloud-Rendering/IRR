@@ -32,13 +32,11 @@
 #include "asio.hpp"
 
 using ChannelBuffer = emugl::RenderChannel::Buffer;
-using emugl::RenderChannel;
-using emugl::RenderChannelPtr;
-using ChannelState = emugl::RenderChannel::State;
-using IoResult = emugl::RenderChannel::IoResult;
+using ChannelState  = emugl::RenderChannel::State;
+using IoResult      = emugl::RenderChannel::IoResult;
 using AsioIoService = asio::io_service;
-using AsioTCP = asio::ip::tcp;
-using AutoLock = android::base::AutoLock;
+using AsioTCP       = asio::ip::tcp;
+using AutoLock      = android::base::AutoLock;
 
 #define CHANNEL_BUF_CAP (512)
 
@@ -163,10 +161,11 @@ public:
         // Make sure there's no operation scheduled for this pipe instance to
         // run on the main thread.
         uint8_t sndBuf[10] = {0};
-        int ret = format_gl_ctrl_command(GLCtrlType::CLOSE_CTRL, sizeof(sndBuf), sndBuf);
-        assert(ret > 0);
+        int format_cmd_size = format_gl_ctrl_command(GLCtrlType::CLOSE_CTRL, sizeof(sndBuf), sndBuf);
+        assert(format_cmd_size == sizeof(sndBuf));
         asio::error_code ec;
-        mTcpSocket.send(asio::buffer(sndBuf, ret), 0, ec);
+        DDD("%s: send %d bytes to rendering server", __func__, format_cmd_size);
+        asio::write(mTcpSocket, asio::buffer(sndBuf, format_cmd_size), ec);
         if (ec) {
             fprintf(stderr, "Cannot send [close] to server.(%d:%s)\n", ec.value(), ec.message().c_str());
         }
@@ -482,9 +481,12 @@ private:
             (uint8_t *)(&flags),
             sizeof(sndBuf),
             sndBuf);
-        assert(format_cmd_size > 0);
+        assert(format_cmd_size == sizeof(sndBuf));
+
         asio::error_code ec;
-        mTcpSocket.send(asio::buffer(sndBuf, format_cmd_size), 0, ec);
+        DDD("%s: send %d bytes to rendering server", __func__, format_cmd_size);
+        asio::write(mTcpSocket, asio::buffer(sndBuf, format_cmd_size), ec);
+
         if (ec) {
             fprintf(stderr, "Cannot set channel state to server.(%d:%s)\n", ec.value(), ec.message().c_str());
             assert(false);
