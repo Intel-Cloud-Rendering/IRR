@@ -17,6 +17,7 @@
 #include "android/opengl/GLProcessPipe.h"
 #include "android/utils/gl_cmd_net_format.h"
 #include "android/utils/system.h"
+#include "android/utils/debug.h"
 #include "android/base/synchronization/Lock.h"
 
 #include <atomic>
@@ -26,32 +27,9 @@
 #include <string.h>
 #include <string>
 #include <memory>
+#include <list>
 
 #include "asio.hpp"
-
-
-// Set to 1 or 2 for debug traces
-#define DEBUG 3
-
-#if DEBUG >= 1
-#define D(...) printf(__VA_ARGS__), printf("\n"), fflush(stdout)
-#else
-#define D(...) ((void)0)
-#endif
-
-#if DEBUG >= 2
-#define DD(...) printf(__VA_ARGS__), printf("\n"), fflush(stdout)
-#else
-#define DD(...) ((void)0)
-#endif
-
-#if DEBUG >= 3
-#define DDD(...) printf(__VA_ARGS__), printf("\n"), fflush(stdout)
-#define AutoLog() AutoLogger autoLogger(__func__)
-#else
-#define DDD(...) ((void)0)
-#define AutoLog() ((void)0)
-#endif
 
 using ChannelBuffer = emugl::RenderChannel::Buffer;
 using emugl::RenderChannel;
@@ -71,6 +49,11 @@ namespace {
 
 class EmuglPipeClient : public AndroidPipe, public android::base::Thread {
 public:
+    typedef struct _EmuglSendBuffer {
+        void *data;
+        int   dataLen;
+    } EmuglSendBuffer;
+
     //////////////////////////////////////////////////////////////////////////
     // The pipe service class for this implementation.
     class Service : public AndroidPipe::Service {
@@ -107,7 +90,7 @@ public:
 
         const char* render_svr_hostname = getenv("render_svr_hostname");
         if (render_svr_hostname) {
-            DDD("\nRender server hostname: %s", render_svr_hostname);
+            DDD("Render server hostname: %s", render_svr_hostname);
         } else {
             fprintf(stderr, "Cannot find render server hostname\n");
             return;
@@ -115,7 +98,7 @@ public:
 
         const char* render_svr_port = getenv("render_svr_port");
         if (render_svr_port) {
-            DDD("Render server port: %s\n", render_svr_port);
+            DDD("Render server port: %s", render_svr_port);
         } else {
             fprintf(stderr, "Cannot find render server port\n");
             return;
@@ -318,12 +301,14 @@ public:
 
         asio::error_code ec;
         DDD("%s: send bytes(head, body):(%d,%d)", __func__, PACKET_HEAD_LEN, count);
-        mTcpSocket.send(asio::buffer(sndBuf, PACKET_HEAD_LEN + count), 0, ec);
+        asio::write(mTcpSocket, asio::buffer(sndBuf, PACKET_HEAD_LEN + count), ec);
         if (ec) {
             fprintf(stderr, "Cannot send data to server.(%d:%s)\n", ec.value(), ec.message().c_str());
         }
 
         delete sndBuf;
+        //sendToRenderingServer(sndBuf, PACKET_HEAD_LEN + count);
+
         return count;
     }
 
@@ -359,6 +344,54 @@ public:
     }
 
 private:
+    void sendToRenderingServer(void *data, int dataLen) {
+        AutoLog();
+
+        DDD("%s: trying to send %d bytes to rendering server", __func__, dataLen);
+
+        EmuglSendBuffer emuglSndBuf = {data, dataLen};
+        {
+            AutoLock lock(mSendBuffersLock);
+            mSendBuffers.push_back(emuglSndBuf);
+        }
+
+        asio::error_code ec;
+        // Kick off send to server
+        handleSendDataToServer(ec, dataLen);
+        assert(!ec);
+    }
+
+    void handleSendDataToServer(const asio::error_code& error, size_t bytes_snded) {
+        AutoLog();
+
+        EmuglSendBuffer emuglSndBuf;
+        {
+            AutoLock lock(mSendBuffersLock);
+            if (mSendBuffers.empty()) {
+                return;
+            }
+            emuglSndBuf = *(mSendBuffers.begin());
+            mSendBuffers.pop_front();
+        }
+
+        void *data    = emuglSndBuf.data;
+        int   dataLen = emuglSndBuf.dataLen;
+        asio::async_write(
+            mTcpSocket,
+            asio::buffer(data, dataLen),
+            [this, data](const asio::error_code& ec, std::size_t bytes_transferred) {
+                // Release data memory
+                free(data);
+
+                android_tid_function_print(false, "async_write", "sock:%p send %lu bytes to rendering server", &mTcpSocket, bytes_transferred);
+                if (ec) {
+                    fprintf(stderr, "cannot send data to rendering server.(%d:%s)\n", ec.value(), ec.message().c_str());
+                } else {
+                    handleSendDataToServer(ec, bytes_transferred);
+                }
+            });
+    }
+
     void handleBodyReceiveFrom(const asio::error_code& error, size_t bytes_rcved) {
         AutoLog();
 
@@ -391,9 +424,10 @@ private:
     void handleHeadReceiveFrom(const asio::error_code& error, size_t bytes_rcved) {
         AutoLog();
 
-        DDD("%s: error:%d, bytes received:%d, working:%d",
+        DDD("%s: error:(%d,%s), bytes received:%d, working:%d",
             __func__,
             error.value(),
+            error.message().c_str(),
             (int)bytes_rcved,
             (int)mIsWorking);
         if (!mIsWorking)
@@ -527,6 +561,9 @@ private:
     AsioTCP::socket mTcpSocket;
 
     mutable android::base::Lock mLock;
+
+    std::list<EmuglSendBuffer>  mSendBuffers;
+    mutable android::base::Lock mSendBuffersLock;
 
     DISALLOW_COPY_ASSIGN_AND_MOVE(EmuglPipeClient);
 };
