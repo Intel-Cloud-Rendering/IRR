@@ -20,6 +20,28 @@
 
 ANDROID_BEGIN_HEADER
 
+#define DEBUG 0
+
+#if DEBUG >= 1
+#define D(...) printf(__VA_ARGS__), printf("\n"), fflush(stdout)
+#else
+#define D(...) ((void)0)
+#endif
+
+#if DEBUG >= 2
+#define DD(...) printf(__VA_ARGS__), printf("\n"), fflush(stdout)
+#else
+#define DD(...) ((void)0)
+#endif
+
+#if DEBUG >= 3
+#define DDD(...) printf(__VA_ARGS__), printf("\n"), fflush(stdout)
+#define AutoLog() AutoLogger autoLogger(__func__, this)
+#else
+#define DDD(...) ((void)0)
+#define AutoLog() ((void)0)
+#endif
+
 typedef enum {
     DATA_PACKET = 0x0,
 
@@ -43,17 +65,19 @@ typedef struct _GLCmdPacketHead {
 
 class AutoLogger {
 public:
-    AutoLogger(const char *name) {
+    AutoLogger(const char *name, void *id) {
         mTid = android_get_thread_id();
+        mId = id;
         assert(strlen(name) < sizeof(mFuncName));
         strcpy(mFuncName, name);
-        printf("[DEBUG][0x%" ANDROID_THREADID_FMT "][%s <<<<<]\n", mTid, mFuncName);
+        printf("[DEBUG][%p][0x%" ANDROID_THREADID_FMT "][%s <<<<<]\n", mId, mTid, mFuncName);
     };
     ~AutoLogger() {
-        printf("[DEBUG][0x%" ANDROID_THREADID_FMT "][%s >>>>>]\n", mTid, mFuncName);
+        printf("[DEBUG][%p][0x%" ANDROID_THREADID_FMT "][%s >>>>>]\n", mId, mTid, mFuncName);
     };
 private:
     char mFuncName[512] = {0};
+    void *mId;
     android_thread_id_t mTid;
 };
 

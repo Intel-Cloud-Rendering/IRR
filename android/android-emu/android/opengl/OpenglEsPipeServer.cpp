@@ -18,6 +18,8 @@
 #include "android/opengles-pipe.h"
 #include "android/opengl/GLProcessPipe.h"
 #include "android/utils/gl_cmd_net_format.h"
+#include "android/utils/system.h"
+#include "android/utils/debug.h"
 
 #include <atomic>
 
@@ -28,28 +30,6 @@
 #include <memory>
 
 #include "asio.hpp"
-
-
-// Set to 1 or 2 for debug traces
-#define DEBUG 0
-
-#if DEBUG >= 1
-#define D(...) printf(__VA_ARGS__), printf("\n"), fflush(stdout)
-#else
-#define D(...) ((void)0)
-#endif
-
-#if DEBUG >= 2
-#define DD(...) printf(__VA_ARGS__), printf("\n"), fflush(stdout)
-#else
-#define DD(...) ((void)0)
-#endif
-
-#if DEBUG >= 3
-#define DDD(...) printf(__VA_ARGS__), printf("\n"), fflush(stdout)
-#else
-#define DDD(...) ((void)0)
-#endif
 
 using ChannelBuffer = emugl::RenderChannel::Buffer;
 using emugl::RenderChannel;
@@ -77,6 +57,7 @@ EmuglPipeServerListener *globalPipeServer = nullptr;
 class EmuglPipeConnection : android::base::Thread{
 public:
     EmuglPipeConnection(AsioTCP::socket socket) : mSocket(std::move(socket)) {
+        AutoLog();
         auto renderer = android_getOpenglesRenderer();
         if (!renderer) {
             // This should never happen, unless there is a bug in the
@@ -86,6 +67,7 @@ public:
         }
         
 		DDD("%s: create", __func__);
+
         mChannel = renderer->createRenderChannel();
         if (!mChannel) {
             fprintf(stderr, "Failed to create an OpenGLES pipe channel!");
@@ -102,7 +84,7 @@ public:
     }
 
     ~EmuglPipeConnection() {    
-        DD("%s:", __func__);
+        AutoLog();
     }
 
     bool isWorking() {
@@ -110,6 +92,7 @@ public:
     }
 
     virtual intptr_t main() override {
+        AutoLog();
         // Inject callback to channel
         mChannel->setEventCallback(
             [this](RenderChannel::State events) {
@@ -163,6 +146,7 @@ private:
 
     void closeFromHost()
     {
+        AutoLog();
         mIsWorking = false;
         mChannel->stop();
 
@@ -189,11 +173,12 @@ private:
 
 
     void onGuestRecv() {
-        DD("%s", __func__);
+        AutoLog();
 
         while ((mChannel->state() & ChannelState::CanRead) != 0) {
             auto result = mChannel->tryRead(&mDataFromRender);
             DDD("%s: Trying send data to client (%d). result:%d", __func__, (int)(mDataFromRender.size()), (int)result);
+
             if (result != IoResult::Ok) {
                 if (result == IoResult::TryAgain) {
                     continue;
@@ -224,42 +209,14 @@ private:
             //delete packet;
 
             DD("%s: Send data to client.(%d bytes)", __func__, (int)(PACKET_HEAD_LEN + mDataFromRender.size()));
-            
-            //asio::async_write(
-            //    mSocket,
-            //    asio::buffer(packetHead, PACKET_HEAD_LEN),
-            //    [this, packetHead](const asio::error_code& ec, std::size_t bytes_transferred) {
-            //        if (ec) {
-            //            fprintf(stderr, "Cannot send data to client.(%d:%s)\n", ec.value(), ec.message().c_str());
-            //        } else {
-            //            DD("%s: Send head to client.(%d bytes)", __func__, (int)bytes_transferred);
-            //        }
-
-            //        delete packetHead;
-  //              });
-
-    //        asio::async_write(
-      //          mSocket,
-        //        asio::buffer(packet, mDataFromRender.size()),
-          //      [this, packet](const asio::error_code& ec, std::size_t bytes_transferred) {
-            //        if (ec) {
-              //          fprintf(stderr, "Cannot send data to client.(%d:%s)\n", ec.value(), ec.message().c_str());
-                //    } else {
-                  //      DD("%s: Send data to client.(%d bytes)", __func__, (int)bytes_transferred);
-                    //}
-
-                  //  delete packet;
-                //});
         }
-
-        
 
         return;
     }
 
     int onGuestSend(const AndroidPipeBuffer* buffers,
                             int numBuffers){
-        DDD("%s", __func__);
+        AutoLog();
 
         if (!mIsWorking) {
             DDD("%s: pipe already closed!", __func__);
@@ -281,7 +238,8 @@ private:
             ptr += buffers[n].size;
         }
 
-        DD("%s: sending %d bytes to host", __func__, count);
+        D("%s: write %d bytes to host", __func__, count);
+
         // Send it through the channel.
         auto result = mChannel->tryWrite(std::move(outBuffer));
         if (result != IoResult::Ok) {
@@ -294,7 +252,7 @@ private:
     }
 
     void onGuestWantWakeOn(int flags) {
-        DD("%s:", __func__);
+        AutoLog();
 
         // Translate |flags| into ChannelState flags.
         ChannelState wanted = ChannelState::Empty;
@@ -322,7 +280,9 @@ private:
         }
     }
 
+
     void handleHeadReceiveFrom(const asio::error_code& error, size_t bytes_rcved) {
+        AutoLog();
         if (!error) {
             assert(bytes_rcved == PACKET_HEAD_LEN);
 
@@ -363,7 +323,9 @@ private:
     }
 
     void handleBodyReceiveFrom(const asio::error_code& error, size_t bytes_rcved) {
+
         if (!error) {
+            AutoLog();
             DD("handleBodyReceiveFrom body:%d", (int)(bytes_rcved + PACKET_HEAD_LEN));
             assert(bytes_rcved == mRcvPacketBodyLen);
 
@@ -412,6 +374,8 @@ class EmuglPipeServerListener : public android::base::Thread {
 public:
     EmuglPipeServerListener() : android::base::Thread(), mIoService(), mSocket(mIoService) {
         DDD("%s", __func__);
+        AutoLog();
+
         char *render_svr_port = getenv("render_svr_port");
         if (render_svr_port) {
             printf("Render server port: %s\n", render_svr_port);
@@ -425,13 +389,15 @@ public:
 
     ~EmuglPipeServerListener() {
         DDD("%s", __func__);
+        AutoLog();
+
         if (mAcceptor != nullptr) {
             delete mAcceptor;
         }
     }
 
     void startAccept() {
-        DDD("%s: start accepting", __func__);
+        AutoLog();
         mAcceptor->async_accept(
             mSocket,
             [this](std::error_code ec) {
@@ -443,13 +409,11 @@ public:
                 }
                 startAccept();
             });
-        DDD("%s: done accepting", __func__);
     }
 
     virtual intptr_t main() override {
-        DDD("%s: io sevice start working", __func__);
+        AutoLog();
         mIoService.run();
-        DDD("%s: io sevice stop working", __func__);
         return 0;
     }
 
