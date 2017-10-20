@@ -9,6 +9,7 @@
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 #include "android/opengl/OpenglEsPipeServer.h"
+#include "android/opengl/GLProcessPipeConnection.h"
 
 #include "android/base/Log.h"
 #include "android/base/threads/Thread.h"
@@ -431,6 +432,8 @@ void registerPipeServerService() {
     globalPipeServer->start();
 
     registerGLProcessPipeService();
+
+    setupGLProcessPipeConnection();
 }
 
 }  // namespace opengl

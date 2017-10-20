@@ -12,6 +12,7 @@
 #include "android/emulation/AndroidPipe.h"
 
 #include "android/opengles.h"
+#include "android/opengl/GLProcessPipeConnection.h"
 #include <assert.h>
 #include <atomic>
 #include <memory>
@@ -50,7 +51,7 @@ public:
 
     void onGuestClose() override {
         // process died on the guest, cleanup gralloc memory on the host
-        android_cleanupProcGLObjects(m_uniqueId);
+        cleanupGLProcObjOverSocket(m_uniqueId);
     }
     unsigned onGuestPoll() override {
         return PIPE_POLL_IN | PIPE_POLL_OUT;
