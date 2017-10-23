@@ -14,7 +14,7 @@
 #pragma once
 
 #include "OpenglRender/RenderChannel.h"
-#include "BufferQueue.h"
+#include "OpenglRender/BufferQueue.h"
 #include "RendererImpl.h"
 
 namespace emugl {

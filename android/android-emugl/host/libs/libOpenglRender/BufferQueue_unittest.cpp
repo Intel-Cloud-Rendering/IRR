@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "BufferQueue.h"
+#include "OpenglRender/BufferQueue.h"
 
 #ifdef _WIN32
 #undef ERROR   // Make LOG(ERROR) compile properly.
