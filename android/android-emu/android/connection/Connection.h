@@ -56,7 +56,7 @@ private:
         if (addr != nullptr) {
             mAddr = asio::ip::address_v4::from_string(addr);
         } else {
-            if (server()) {
+            if (client()) {
                 fprintf(stderr, "%s: no server addr provided in client mode\n", __func__);
                 assert(false);
             }
