@@ -104,7 +104,7 @@ asio::ip::address_v4 address::to_v4() const
   if (type_ != ipv4)
   {
     std::bad_cast ex;
-    asio::detail::throw_exception(ex);
+    /* asio::detail::throw_exception(ex); */
   }
   return ipv4_address_;
 }
@@ -114,7 +114,7 @@ asio::ip::address_v6 address::to_v6() const
   if (type_ != ipv6)
   {
     std::bad_cast ex;
-    asio::detail::throw_exception(ex);
+    /* asio::detail::throw_exception(ex); */
   }
   return ipv6_address_;
 }

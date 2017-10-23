@@ -9,6 +9,7 @@
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 #include "android/opengl/OpenglEsPipeClient.h"
+#include "android/opengl/GLProcessPipeConnection.h"
 
 #include "android/base/async/Looper.h"
 #include "android/base/threads/Thread.h"
@@ -302,7 +303,7 @@ public:
         
         asio::error_code ec;
 
-        DDD("%s: send bytes(head, body):(%d,%d)", __func__, PACKET_HEAD_LEN, count);
+        DDD("%s: send bytes(head, body):(%ld,%d)", __func__, PACKET_HEAD_LEN, count);
         asio::write(mTcpSocket, asio::buffer(sndBuf, PACKET_HEAD_LEN + count), ec);
         if (ec) {
             fprintf(stderr, "Cannot send data to server.(%d:%s)\n", ec.value(), ec.message().c_str());
@@ -548,7 +549,10 @@ private:
 
 void registerPipeClientService() {
     android::AndroidPipe::Service::add(new EmuglPipeClient::Service());
+
+    // we need the original GLProcessPipe to catch cleanup request.
     registerGLProcessPipeService();
+    setupGLProcessPipeConnection();
 }
 
 }  // namespace opengl
