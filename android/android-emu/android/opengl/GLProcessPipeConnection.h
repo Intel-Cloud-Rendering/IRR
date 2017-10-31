@@ -14,7 +14,7 @@ namespace android {
 namespace opengl {
 
 void setupGLProcessPipeConnection(void);
-void cleanupGLProcObjOverSocket(const uint64_t puid);
+void cleanupGLProcObjOverNetwork(const uint64_t puid);
 
 }  // namespace opengl
 }  // namespace android

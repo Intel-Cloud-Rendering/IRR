@@ -48,6 +48,7 @@ private:
         const char* port = std::getenv("render_svr_port");
         if (port != nullptr) {
             mPort = std::atoi(port);
+            printf("%s: port %d\n", __func__, mPort);
         } else {
             mPort = default_port;
         }
@@ -55,11 +56,7 @@ private:
         const char* addr = std::getenv("render_svr_hostname");
         if (addr != nullptr) {
             mAddr = asio::ip::address_v4::from_string(addr);
-        } else {
-            if (client()) {
-                fprintf(stderr, "%s: no server addr provided in client mode\n", __func__);
-                assert(false);
-            }
+            printf("%s: hostname %s\n", __func__, addr);
         }
     }
 

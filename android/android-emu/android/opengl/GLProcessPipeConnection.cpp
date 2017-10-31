@@ -28,6 +28,7 @@ namespace opengl {
 class GLProcessPipeConnectionBase {
 public:
     unsigned short port() {
+        // We use the "OpenGL port + 1" to avoid too much env var.
         return (connection::Connection::Config().port() + 1);
     }
 
@@ -41,6 +42,8 @@ public:
     static GLProcessPipeConnectionServer& Instance() {
         static GLProcessPipeConnectionServer* server = nullptr;
         if (server == nullptr) {
+            // Nobody can delete this instance, but that's fine since
+            // we only have one instance which is expected to long live.
             server = new GLProcessPipeConnectionServer;
         }
         return *server;
@@ -120,6 +123,8 @@ public:
     static GLProcessPipeConnectionClient& Instance() {
         static GLProcessPipeConnectionClient* client = nullptr;
         if (client == nullptr) {
+            // Nobody can delete this instance, but that's fine since
+            // we only have one instance which is expected to long live.
             client = new GLProcessPipeConnectionClient;
         }
         return *client;
@@ -171,15 +176,17 @@ private:
 
 void setupGLProcessPipeConnection()
 {
+    // I was thinking to enforce our client/server check to avoid logic typo,
+    // however, currently we prefer to disable these check such that we can
+    // boot original Qemu to investigate issues.
     if (connection::Connection::Config().server()) {
         GLProcessPipeConnectionServer::Instance();
     } else {
-        assert(connection::Connection::Config().client());
         GLProcessPipeConnectionClient::Instance();
     }
 }
 
-void cleanupGLProcObjOverSocket(const uint64_t puid)
+void cleanupGLProcObjOverNetwork(const uint64_t puid)
 {
     assert(connection::Connection::Config().client());
     if (!GLProcessPipeConnectionClient::Instance().cleanupGL(puid)) {

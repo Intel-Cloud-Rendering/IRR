@@ -13,6 +13,7 @@
 
 #include "android/opengles.h"
 #include "android/opengl/GLProcessPipeConnection.h"
+#include "android/connection/Connection.h"
 #include <assert.h>
 #include <atomic>
 #include <memory>
@@ -51,7 +52,13 @@ public:
 
     void onGuestClose() override {
         // process died on the guest, cleanup gralloc memory on the host
-        cleanupGLProcObjOverSocket(m_uniqueId);
+        if (connection::Connection::Config().client()) {
+            cleanupGLProcObjOverNetwork(m_uniqueId);
+        } else {
+            printf("WARNING: GLProcessPipe:%s: not in client mode, "
+                   "calling android_cleanupProcGLObjects\n", __func__);
+            android_cleanupProcGLObjects(m_uniqueId);
+        }
     }
     unsigned onGuestPoll() override {
         return PIPE_POLL_IN | PIPE_POLL_OUT;
