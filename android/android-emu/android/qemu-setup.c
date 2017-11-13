@@ -308,10 +308,12 @@ bool android_emulation_setup(const AndroidConsoleAgents* agents) {
 
     const char* render_client = getenv("render_client");
     const char* render_server = getenv("render_server");
-    if (render_client) {
+    (void)render_client;
+    if (atoi(render_client) == 1) {
         android_init_opengles_client_pipe();
-    } else if (render_server) {
-        android_init_opengles_server_pipe();
+    } else if (atoi(render_server) == 1) {
+        //android_init_opengles_server_pipe();
+        android_opengles_server_init(atoi(getenv("render_srv_port")));
     } else {
         android_init_opengles_pipe();
     }

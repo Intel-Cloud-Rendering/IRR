@@ -178,7 +178,7 @@ private:
 
         while ((mChannel->state() & ChannelState::CanRead) != 0) {
             auto result = mChannel->tryRead(&mDataFromRender);
-            DDD("%s: Trying send data to client (%d). result:%d", __func__, (int)(mDataFromRender.size()), (int)result);
+            DD("%s: Trying send data to client (%d). result:%d", __func__, (int)(mDataFromRender.size()), (int)result);
 
             if (result != IoResult::Ok) {
                 if (result == IoResult::TryAgain) {
@@ -188,21 +188,19 @@ private:
                 assert(false);
             }
 
-            GLCmdPacketHead packetHead;
-            packetHead.packet_type = DATA_PACKET;
-            packetHead.packet_body_size = mDataFromRender.size();
-
-            //uint8_t * packet = (uint8_t*)malloc(mDataFromRender.size());
-            //memcpy(packet, mDataFromRender.data(), mDataFromRender.size());
+            //GLCmdPacketHead packetHead;
+            //packetHead.packet_type = DATA_PACKET;
+            //packetHead.packet_body_size = mDataFromRender.size();
 
             asio::error_code ec;
-            size_t sentLen = asio::write(mSocket, asio::buffer(&packetHead, PACKET_HEAD_LEN), ec);
-            if (sentLen != PACKET_HEAD_LEN) {
-                assert(0);
-                }
-            
-            sentLen = asio::write(mSocket, asio::buffer(mDataFromRender.data(), mDataFromRender.size()), ec);
-            if (sentLen != mDataFromRender.size()) {
+            //size_t sentLen = asio::write(mSocket, asio::buffer(&packetHead, PACKET_HEAD_LEN), ec);
+            //if (sentLen != PACKET_HEAD_LEN) {
+            //    assert(0);
+            //    }
+
+             //asio::error_code ec;
+            size_t sentBodyLen = asio::write(mSocket, asio::buffer(mDataFromRender.data(), mDataFromRender.size()), ec);
+            if (sentBodyLen != mDataFromRender.size()) {
                 assert(0);
                 }
 
@@ -322,7 +320,7 @@ private:
 
 		return;
     }
-
+    
     void handleBodyReceiveFrom(const asio::error_code& error, size_t bytes_rcved) {
 
         if (!error) {
@@ -382,6 +380,7 @@ public:
             printf("Render server port: %s\n", render_svr_port);
             mEndPoint = AsioTCP::endpoint(AsioTCP::v4(), atoi(render_svr_port));
         } else {
+            printf("Render server port: %d\n", DEFAULT_PORT);
             mEndPoint = AsioTCP::endpoint(AsioTCP::v4(), DEFAULT_PORT);
         }
         mAcceptor = new AsioTCP::acceptor(mIoService, mEndPoint);

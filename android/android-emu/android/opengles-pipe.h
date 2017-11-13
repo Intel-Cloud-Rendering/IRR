@@ -27,5 +27,7 @@ ANDROID_BEGIN_HEADER
 void android_init_opengles_pipe(void);
 void android_init_opengles_client_pipe(void);
 void android_init_opengles_server_pipe(void);
+int android_opengles_server_init(int port);
+
 
 ANDROID_END_HEADER

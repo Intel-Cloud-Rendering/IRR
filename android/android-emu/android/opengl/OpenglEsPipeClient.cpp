@@ -303,7 +303,7 @@ public:
         
         asio::error_code ec;
 
-        DDD("%s: send bytes(head, body):(%ld,%d)", __func__, PACKET_HEAD_LEN, count);
+        DD("%s: send bytes(head, body):(%ld,%d)", __func__, PACKET_HEAD_LEN, count);
         asio::write(mTcpSocket, asio::buffer(sndBuf, PACKET_HEAD_LEN + count), ec);
         if (ec) {
             fprintf(stderr, "Cannot send data to server.(%d:%s)\n", ec.value(), ec.message().c_str());

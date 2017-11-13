@@ -120,10 +120,10 @@ intptr_t RenderThread::main() {
 
         const int stat = readBuf.getData(&stream, packetSize);
         if (stat <= 0) {
-            D("Warning: render thread could not read data from stream");
+            D("Warning: render thread could not read data from stream\n");
             break;
         }
-        DD("render thread read %d bytes, op %d, packet size %d",
+        DD("render thread read %d bytes, op %d, packet size %d\n",
            (int)readBuf.validData(), *(int32_t*)readBuf.buf(),
            *(int32_t*)(readBuf.buf() + 4));
 

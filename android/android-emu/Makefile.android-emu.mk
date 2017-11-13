@@ -358,6 +358,8 @@ LOCAL_SRC_FILES := \
     android/opengl/OpenglEsPipe.cpp \
     android/opengl/OpenglEsPipeClient.cpp \
     android/opengl/OpenglEsPipeServer.cpp \
+    android/OpenGLESHostServer.cpp \
+    android/opengl/OpenGLESHostListener.cpp \
     android/opengles.cpp \
     android/openssl-support.cpp \
     android/process_setup.cpp \
