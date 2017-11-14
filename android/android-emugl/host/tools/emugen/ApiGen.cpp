@@ -1041,11 +1041,11 @@ R"(        // Do this on every iteration, as some commands may change the checks
                 }
             } else if (pass == PASS_DebugPrint) {
                 if (strstr(m_basename.c_str(), "gl")) {
-                    fprintf(fp, "\t\t#ifdef CHECK_GL_ERRORS\n");
-                    fprintf(fp, "\t\tGLint err = this->glGetError();\n");
-                    fprintf(fp, "\t\tif (err) fprintf(stderr, \"%s Error (pre-call): 0x%%X before %s\\n\", err);\n",
+                    fprintf(fp, "\t\t\t#ifdef CHECK_GL_ERRORS\n");
+                    fprintf(fp, "\t\t\tGLint err = this->glGetError();\n");
+                    fprintf(fp, "\t\t\tif (err) fprintf(stderr, \"%s Error (pre-call): 0x%%X before %s\\n\", err);\n",
                             m_basename.c_str(), e->name().c_str());
-                    fprintf(fp, "\t\t#endif\n");
+                    fprintf(fp, "\t\t\t#endif\n");
                 }
                 fprintf(fp,
                         "\t\t\tDEBUG(\"%s(%%p): %s(%s)\\n\", stream",
@@ -1331,6 +1331,23 @@ R"(        // Do this on every iteration, as some commands may change the checks
                             "&tmpBuf[totalTmpSize - checksumSize], checksumSize);\n"
                             "\t\t\t}\n"
                             "\t\t\tstream->flush();\n");
+                    // pull the "fake ID" which is sent from instance.
+                    // this is purely binary stream and the decoder know the format of it - though we won't interpret it.
+                    // it safe for us to read stream (though ReadBuffer may read more then it need), since
+                    // the guest is waiting for such data - no more data coming from stream to decoder.
+                    fprintf(fp,
+                            "\n"
+                            "\t\t\tchar* fakeIdBuf = (char*)malloc(totalTmpSize);\n"
+                            "\t\t\tassert(fakeIdBuf != NULL);\n"
+                            "\t\t\tsize_t toReadSize = totalTmpSize;\n"
+                            "\t\t\tDEBUG(\"reading %%lx bytes of fake ID via stream\\n\", totalTmpSize);\n"
+                            "\t\t\twhile (toReadSize > 0) {\n"
+                            "\t\t\t\tsize_t fakeIdBufOffset = totalTmpSize - toReadSize;\n"
+                            "\t\t\t\ttoReadSize -= stream->read(fakeIdBuf + fakeIdBufOffset, toReadSize);\n"
+                            "\t\t\t}\n"
+                            "\t\t\tfree(fakeIdBuf);\n"
+                            "\n"
+                            );
                 }
             }
         } // pass;
