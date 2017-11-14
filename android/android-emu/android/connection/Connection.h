@@ -45,7 +45,7 @@ private:
         const char* server_env = std::getenv("render_server");
         mServer = (server_env != nullptr || client_env == nullptr);
 
-        const char* port = std::getenv("render_svr_port");
+        const char* port = std::getenv("render_server_port");
         if (port != nullptr) {
             mPort = std::atoi(port);
             printf("%s: port %d\n", __func__, mPort);
