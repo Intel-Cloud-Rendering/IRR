@@ -375,7 +375,7 @@ public:
         DDD("%s", __func__);
         AutoLog();
 
-        char *render_svr_port = getenv("render_svr_port");
+        char *render_svr_port = getenv("render_server_port");
         if (render_svr_port) {
             printf("Render server port: %s\n", render_svr_port);
             mEndPoint = AsioTCP::endpoint(AsioTCP::v4(), atoi(render_svr_port));

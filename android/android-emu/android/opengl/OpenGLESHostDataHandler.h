@@ -29,8 +29,9 @@ public:
                 mDatatReady.wait(&mQueueLock);
             }
 
-            if (!mIsWorking)
+            if (!mIsWorking) {
                 break;
+                }
 
             std::function<void()> func = mHandlerQueue.front();
             mHandlerQueue.pop_front();
@@ -39,6 +40,8 @@ public:
             
             (func)();
         }
+
+        printf("datahandler thread exit\n");
         return 0;
     }
 
@@ -59,7 +62,7 @@ public:
     void PushBack(std::function<void()> func) {
         AutoLock lock(mQueueLock);
         mHandlerQueue.push_back(func);
-        mDatatReady.signal();
+        mDatatReady.signalAndUnlock(&lock);
     }
     
 private:

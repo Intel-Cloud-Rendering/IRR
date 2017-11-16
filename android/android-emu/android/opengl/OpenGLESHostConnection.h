@@ -107,12 +107,12 @@ public:
     ~OpenGLESHostServerConnection() {};
 
     void onHostSocketEvent(unsigned events) {
-        DDD("%s: events %d\n", __func__, (int)events);
         if ((events & FdWatch::kEventRead) != 0) {
-            mSocket->dontWantRead();
+            //mSocket->dontWantRead();
             mDataHandlerPtr->PushBack(std::bind(&OpenGLESHostServerConnection::onNetworkDataReady, this));
-//            mDataHandlerPtr->NotifyDataReady();
+            //mDataHandlerPtr->NotifyDataReady();
         }
+
         //if ((events & FdWatch::kEventWrite) != 0) {
         //    printf("ready to write socket\n");
         //    mSocket->dontWantWrite();
@@ -163,7 +163,7 @@ public:
         }
 
     void onNetworkDataReady() {
-        DD("%s : ", __func__);\
+        DD("%s : \n", __func__);\
         if (!mSocket) {
             assert(0);
             return;
@@ -197,11 +197,12 @@ public:
                 return;
                 }
             uint8_t packet_type = mRecvingPacketHead.packet_type;
+            mSessionId = mRecvingPacketHead.session_id;
 
-            DD("%s: packet_type = %d", __func__, packet_type);
+            DD("%s: packet_type = %d\n", __func__, packet_type);
 
             if (packet_type == CTRL_PACKET_GUEST_CLOSE) {
-                DDD("%s: try to close pipe server", __func__);
+                printf("%s: try to close pipe server\n", __func__);
                 CloseConnection();
                 return;
             }
@@ -254,7 +255,7 @@ public:
             if (mRecvPacketBodyLeftLen > 0)
                 outBuffer.resize_noinit(bodyLen);
         
-            DD("read %d bytes data from socket, write to render channel\n", (int)bodyLen);
+            DD("read %d bytes data from socket (%d), write to render channel\n", (int)bodyLen, mSessionId);
             auto result = mChannel->tryWrite(std::move(outBuffer));
             if (result != IoResult::Ok) {
                 DDD("%s: tryWrite() failed with %d", __func__, (int)result);
@@ -273,7 +274,7 @@ public:
     }
 
     void onRenderChannelDataReady() {
-        DD("%s : ", __func__);
+        //DD("%s : ", __func__);
         if (!mSocket)
             return;
         
@@ -334,7 +335,7 @@ public:
 
             }
 
-            DD("write to client %d bytes from render channel\n", (int)DataFromRender.size());
+            DD("write to client(%d) %d bytes from render channel\n", mSessionId, (int)DataFromRender.size());
 
         }
 
@@ -347,6 +348,7 @@ private:
     ssize_t mRecvPacketBodyLeftLen;
 
     GLCmdPacketHead mRecvingPacketHead;
+    int mSessionId;
     android::base::ScopedSocketWatch mSocket; 
     RenderChannelPtr mChannel;
 
