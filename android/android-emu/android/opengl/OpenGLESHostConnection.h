@@ -165,7 +165,7 @@ public:
     void onNetworkDataReady() {
         DD("%s : \n", __func__);\
         if (!mSocket) {
-            assert(0);
+            //assert(0);
             return;
             }
 
@@ -197,7 +197,7 @@ public:
                 return;
                 }
             uint8_t packet_type = mRecvingPacketHead.packet_type;
-            mSessionId = mRecvingPacketHead.session_id;
+            //mSessionId = mRecvingPacketHead.session_id;
 
             DD("%s: packet_type = %d\n", __func__, packet_type);
 

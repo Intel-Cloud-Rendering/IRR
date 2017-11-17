@@ -58,8 +58,8 @@ typedef enum {
 
 typedef struct _GLCmdPacketHead {
     int packet_type : 8;
-    int session_id : 8;
-    int packet_body_size : 16;
+    //int session_id : 8;
+    int packet_body_size : 24;
 } __attribute__ ((packed)) GLCmdPacketHead;
 
 #define PACKET_HEAD_LEN       (sizeof(GLCmdPacketHead))
