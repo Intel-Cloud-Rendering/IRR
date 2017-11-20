@@ -55,9 +55,13 @@ size_t renderControl_decoder_context_t::decode(void *buf, size_t len, IOStream *
 			unsigned char *tmpBuf = stream->alloc(totalTmpSize);
 			DEBUG("renderControl(%p): rcGetRendererVersion()\n", stream);
 			*(GLint *)(&tmpBuf[0]) = 			this->rcGetRendererVersion();
+
+			char* cmpBuf = (char*)malloc(totalTmpSize);
+			assert(cmpBuf != NULL);
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::writeChecksum(checksumCalc, &tmpBuf[0], totalTmpSize - checksumSize, &tmpBuf[totalTmpSize - checksumSize], checksumSize);
 			}
+			memcpy(cmpBuf, tmpBuf, totalTmpSize);
 			stream->flush();
 
 			char* fakeIdBuf = (char*)malloc(totalTmpSize);
@@ -68,8 +72,10 @@ size_t renderControl_decoder_context_t::decode(void *buf, size_t len, IOStream *
 				size_t fakeIdBufOffset = totalTmpSize - toReadSize;
 				toReadSize -= stream->read(fakeIdBuf + fakeIdBufOffset, toReadSize);
 			}
-			free(fakeIdBuf);
 
+			if (memcmp(fakeIdBuf, cmpBuf, totalTmpSize) != 0) assert(false);
+			free(fakeIdBuf);
+			free(cmpBuf);
 			SET_LASTCALL("rcGetRendererVersion");
 			break;
 		}
@@ -91,9 +97,13 @@ size_t renderControl_decoder_context_t::decode(void *buf, size_t len, IOStream *
 			*(EGLint *)(&tmpBuf[0 + size_major + size_minor]) = 			this->rcGetEGLVersion((EGLint*)(outptr_major.get()), (EGLint*)(outptr_minor.get()));
 			outptr_major.flush();
 			outptr_minor.flush();
+
+			char* cmpBuf = (char*)malloc(totalTmpSize);
+			assert(cmpBuf != NULL);
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::writeChecksum(checksumCalc, &tmpBuf[0], totalTmpSize - checksumSize, &tmpBuf[totalTmpSize - checksumSize], checksumSize);
 			}
+			memcpy(cmpBuf, tmpBuf, totalTmpSize);
 			stream->flush();
 
 			char* fakeIdBuf = (char*)malloc(totalTmpSize);
@@ -104,8 +114,10 @@ size_t renderControl_decoder_context_t::decode(void *buf, size_t len, IOStream *
 				size_t fakeIdBufOffset = totalTmpSize - toReadSize;
 				toReadSize -= stream->read(fakeIdBuf + fakeIdBufOffset, toReadSize);
 			}
-			free(fakeIdBuf);
 
+			if (memcmp(fakeIdBuf, cmpBuf, totalTmpSize) != 0) assert(false);
+			free(fakeIdBuf);
+			free(cmpBuf);
 			SET_LASTCALL("rcGetEGLVersion");
 			break;
 		}
@@ -125,9 +137,13 @@ size_t renderControl_decoder_context_t::decode(void *buf, size_t len, IOStream *
 			DEBUG("renderControl(%p): rcQueryEGLString(0x%08x %p(%u) 0x%08x )\n", stream, var_name, (void*)(outptr_buffer.get()), size_buffer, var_bufferSize);
 			*(EGLint *)(&tmpBuf[0 + size_buffer]) = 			this->rcQueryEGLString(var_name, (void*)(outptr_buffer.get()), var_bufferSize);
 			outptr_buffer.flush();
+
+			char* cmpBuf = (char*)malloc(totalTmpSize);
+			assert(cmpBuf != NULL);
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::writeChecksum(checksumCalc, &tmpBuf[0], totalTmpSize - checksumSize, &tmpBuf[totalTmpSize - checksumSize], checksumSize);
 			}
+			memcpy(cmpBuf, tmpBuf, totalTmpSize);
 			stream->flush();
 
 			char* fakeIdBuf = (char*)malloc(totalTmpSize);
@@ -138,8 +154,10 @@ size_t renderControl_decoder_context_t::decode(void *buf, size_t len, IOStream *
 				size_t fakeIdBufOffset = totalTmpSize - toReadSize;
 				toReadSize -= stream->read(fakeIdBuf + fakeIdBufOffset, toReadSize);
 			}
-			free(fakeIdBuf);
 
+			if (memcmp(fakeIdBuf, cmpBuf, totalTmpSize) != 0) assert(false);
+			free(fakeIdBuf);
+			free(cmpBuf);
 			SET_LASTCALL("rcQueryEGLString");
 			break;
 		}
@@ -159,9 +177,13 @@ size_t renderControl_decoder_context_t::decode(void *buf, size_t len, IOStream *
 			DEBUG("renderControl(%p): rcGetGLString(0x%08x %p(%u) 0x%08x )\n", stream, var_name, (void*)(outptr_buffer.get()), size_buffer, var_bufferSize);
 			*(EGLint *)(&tmpBuf[0 + size_buffer]) = 			this->rcGetGLString(var_name, (void*)(outptr_buffer.get()), var_bufferSize);
 			outptr_buffer.flush();
+
+			char* cmpBuf = (char*)malloc(totalTmpSize);
+			assert(cmpBuf != NULL);
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::writeChecksum(checksumCalc, &tmpBuf[0], totalTmpSize - checksumSize, &tmpBuf[totalTmpSize - checksumSize], checksumSize);
 			}
+			memcpy(cmpBuf, tmpBuf, totalTmpSize);
 			stream->flush();
 
 			char* fakeIdBuf = (char*)malloc(totalTmpSize);
@@ -172,8 +194,10 @@ size_t renderControl_decoder_context_t::decode(void *buf, size_t len, IOStream *
 				size_t fakeIdBufOffset = totalTmpSize - toReadSize;
 				toReadSize -= stream->read(fakeIdBuf + fakeIdBufOffset, toReadSize);
 			}
-			free(fakeIdBuf);
 
+			if (memcmp(fakeIdBuf, cmpBuf, totalTmpSize) != 0) assert(false);
+			free(fakeIdBuf);
+			free(cmpBuf);
 			SET_LASTCALL("rcGetGLString");
 			break;
 		}
@@ -191,9 +215,13 @@ size_t renderControl_decoder_context_t::decode(void *buf, size_t len, IOStream *
 			DEBUG("renderControl(%p): rcGetNumConfigs(%p(%u) )\n", stream, (uint32_t*)(outptr_numAttribs.get()), size_numAttribs);
 			*(EGLint *)(&tmpBuf[0 + size_numAttribs]) = 			this->rcGetNumConfigs((uint32_t*)(outptr_numAttribs.get()));
 			outptr_numAttribs.flush();
+
+			char* cmpBuf = (char*)malloc(totalTmpSize);
+			assert(cmpBuf != NULL);
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::writeChecksum(checksumCalc, &tmpBuf[0], totalTmpSize - checksumSize, &tmpBuf[totalTmpSize - checksumSize], checksumSize);
 			}
+			memcpy(cmpBuf, tmpBuf, totalTmpSize);
 			stream->flush();
 
 			char* fakeIdBuf = (char*)malloc(totalTmpSize);
@@ -204,8 +232,10 @@ size_t renderControl_decoder_context_t::decode(void *buf, size_t len, IOStream *
 				size_t fakeIdBufOffset = totalTmpSize - toReadSize;
 				toReadSize -= stream->read(fakeIdBuf + fakeIdBufOffset, toReadSize);
 			}
-			free(fakeIdBuf);
 
+			if (memcmp(fakeIdBuf, cmpBuf, totalTmpSize) != 0) assert(false);
+			free(fakeIdBuf);
+			free(cmpBuf);
 			SET_LASTCALL("rcGetNumConfigs");
 			break;
 		}
@@ -224,9 +254,13 @@ size_t renderControl_decoder_context_t::decode(void *buf, size_t len, IOStream *
 			DEBUG("renderControl(%p): rcGetConfigs(0x%08x %p(%u) )\n", stream, var_bufSize, (GLuint*)(outptr_buffer.get()), size_buffer);
 			*(EGLint *)(&tmpBuf[0 + size_buffer]) = 			this->rcGetConfigs(var_bufSize, (GLuint*)(outptr_buffer.get()));
 			outptr_buffer.flush();
+
+			char* cmpBuf = (char*)malloc(totalTmpSize);
+			assert(cmpBuf != NULL);
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::writeChecksum(checksumCalc, &tmpBuf[0], totalTmpSize - checksumSize, &tmpBuf[totalTmpSize - checksumSize], checksumSize);
 			}
+			memcpy(cmpBuf, tmpBuf, totalTmpSize);
 			stream->flush();
 
 			char* fakeIdBuf = (char*)malloc(totalTmpSize);
@@ -237,8 +271,10 @@ size_t renderControl_decoder_context_t::decode(void *buf, size_t len, IOStream *
 				size_t fakeIdBufOffset = totalTmpSize - toReadSize;
 				toReadSize -= stream->read(fakeIdBuf + fakeIdBufOffset, toReadSize);
 			}
-			free(fakeIdBuf);
 
+			if (memcmp(fakeIdBuf, cmpBuf, totalTmpSize) != 0) assert(false);
+			free(fakeIdBuf);
+			free(cmpBuf);
 			SET_LASTCALL("rcGetConfigs");
 			break;
 		}
@@ -260,9 +296,13 @@ size_t renderControl_decoder_context_t::decode(void *buf, size_t len, IOStream *
 			DEBUG("renderControl(%p): rcChooseConfig(%p(%u) 0x%08x %p(%u) 0x%08x )\n", stream, (EGLint*)(inptr_attribs.get()), size_attribs, var_attribs_size, (uint32_t*)(outptr_configs.get()), size_configs, var_configs_size);
 			*(EGLint *)(&tmpBuf[0 + size_configs]) = 			this->rcChooseConfig((EGLint*)(inptr_attribs.get()), var_attribs_size, size_configs == 0 ? nullptr : (uint32_t*)(outptr_configs.get()), var_configs_size);
 			outptr_configs.flush();
+
+			char* cmpBuf = (char*)malloc(totalTmpSize);
+			assert(cmpBuf != NULL);
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::writeChecksum(checksumCalc, &tmpBuf[0], totalTmpSize - checksumSize, &tmpBuf[totalTmpSize - checksumSize], checksumSize);
 			}
+			memcpy(cmpBuf, tmpBuf, totalTmpSize);
 			stream->flush();
 
 			char* fakeIdBuf = (char*)malloc(totalTmpSize);
@@ -273,8 +313,10 @@ size_t renderControl_decoder_context_t::decode(void *buf, size_t len, IOStream *
 				size_t fakeIdBufOffset = totalTmpSize - toReadSize;
 				toReadSize -= stream->read(fakeIdBuf + fakeIdBufOffset, toReadSize);
 			}
-			free(fakeIdBuf);
 
+			if (memcmp(fakeIdBuf, cmpBuf, totalTmpSize) != 0) assert(false);
+			free(fakeIdBuf);
+			free(cmpBuf);
 			SET_LASTCALL("rcChooseConfig");
 			break;
 		}
@@ -289,9 +331,13 @@ size_t renderControl_decoder_context_t::decode(void *buf, size_t len, IOStream *
 			unsigned char *tmpBuf = stream->alloc(totalTmpSize);
 			DEBUG("renderControl(%p): rcGetFBParam(0x%08x )\n", stream, var_param);
 			*(EGLint *)(&tmpBuf[0]) = 			this->rcGetFBParam(var_param);
+
+			char* cmpBuf = (char*)malloc(totalTmpSize);
+			assert(cmpBuf != NULL);
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::writeChecksum(checksumCalc, &tmpBuf[0], totalTmpSize - checksumSize, &tmpBuf[totalTmpSize - checksumSize], checksumSize);
 			}
+			memcpy(cmpBuf, tmpBuf, totalTmpSize);
 			stream->flush();
 
 			char* fakeIdBuf = (char*)malloc(totalTmpSize);
@@ -302,8 +348,10 @@ size_t renderControl_decoder_context_t::decode(void *buf, size_t len, IOStream *
 				size_t fakeIdBufOffset = totalTmpSize - toReadSize;
 				toReadSize -= stream->read(fakeIdBuf + fakeIdBufOffset, toReadSize);
 			}
-			free(fakeIdBuf);
 
+			if (memcmp(fakeIdBuf, cmpBuf, totalTmpSize) != 0) assert(false);
+			free(fakeIdBuf);
+			free(cmpBuf);
 			SET_LASTCALL("rcGetFBParam");
 			break;
 		}
@@ -320,9 +368,13 @@ size_t renderControl_decoder_context_t::decode(void *buf, size_t len, IOStream *
 			unsigned char *tmpBuf = stream->alloc(totalTmpSize);
 			DEBUG("renderControl(%p): rcCreateContext(0x%08x 0x%08x 0x%08x )\n", stream, var_config, var_share, var_glVersion);
 			*(uint32_t *)(&tmpBuf[0]) = 			this->rcCreateContext(var_config, var_share, var_glVersion);
+
+			char* cmpBuf = (char*)malloc(totalTmpSize);
+			assert(cmpBuf != NULL);
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::writeChecksum(checksumCalc, &tmpBuf[0], totalTmpSize - checksumSize, &tmpBuf[totalTmpSize - checksumSize], checksumSize);
 			}
+			memcpy(cmpBuf, tmpBuf, totalTmpSize);
 			stream->flush();
 
 			char* fakeIdBuf = (char*)malloc(totalTmpSize);
@@ -333,8 +385,10 @@ size_t renderControl_decoder_context_t::decode(void *buf, size_t len, IOStream *
 				size_t fakeIdBufOffset = totalTmpSize - toReadSize;
 				toReadSize -= stream->read(fakeIdBuf + fakeIdBufOffset, toReadSize);
 			}
-			free(fakeIdBuf);
 
+			if (memcmp(fakeIdBuf, cmpBuf, totalTmpSize) != 0) assert(false);
+			free(fakeIdBuf);
+			free(cmpBuf);
 			SET_LASTCALL("rcCreateContext");
 			break;
 		}
@@ -362,9 +416,13 @@ size_t renderControl_decoder_context_t::decode(void *buf, size_t len, IOStream *
 			unsigned char *tmpBuf = stream->alloc(totalTmpSize);
 			DEBUG("renderControl(%p): rcCreateWindowSurface(0x%08x 0x%08x 0x%08x )\n", stream, var_config, var_width, var_height);
 			*(uint32_t *)(&tmpBuf[0]) = 			this->rcCreateWindowSurface(var_config, var_width, var_height);
+
+			char* cmpBuf = (char*)malloc(totalTmpSize);
+			assert(cmpBuf != NULL);
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::writeChecksum(checksumCalc, &tmpBuf[0], totalTmpSize - checksumSize, &tmpBuf[totalTmpSize - checksumSize], checksumSize);
 			}
+			memcpy(cmpBuf, tmpBuf, totalTmpSize);
 			stream->flush();
 
 			char* fakeIdBuf = (char*)malloc(totalTmpSize);
@@ -375,8 +433,10 @@ size_t renderControl_decoder_context_t::decode(void *buf, size_t len, IOStream *
 				size_t fakeIdBufOffset = totalTmpSize - toReadSize;
 				toReadSize -= stream->read(fakeIdBuf + fakeIdBufOffset, toReadSize);
 			}
-			free(fakeIdBuf);
 
+			if (memcmp(fakeIdBuf, cmpBuf, totalTmpSize) != 0) assert(false);
+			free(fakeIdBuf);
+			free(cmpBuf);
 			SET_LASTCALL("rcCreateWindowSurface");
 			break;
 		}
@@ -404,9 +464,13 @@ size_t renderControl_decoder_context_t::decode(void *buf, size_t len, IOStream *
 			unsigned char *tmpBuf = stream->alloc(totalTmpSize);
 			DEBUG("renderControl(%p): rcCreateColorBuffer(0x%08x 0x%08x 0x%08x )\n", stream, var_width, var_height, var_internalFormat);
 			*(uint32_t *)(&tmpBuf[0]) = 			this->rcCreateColorBuffer(var_width, var_height, var_internalFormat);
+
+			char* cmpBuf = (char*)malloc(totalTmpSize);
+			assert(cmpBuf != NULL);
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::writeChecksum(checksumCalc, &tmpBuf[0], totalTmpSize - checksumSize, &tmpBuf[totalTmpSize - checksumSize], checksumSize);
 			}
+			memcpy(cmpBuf, tmpBuf, totalTmpSize);
 			stream->flush();
 
 			char* fakeIdBuf = (char*)malloc(totalTmpSize);
@@ -417,8 +481,10 @@ size_t renderControl_decoder_context_t::decode(void *buf, size_t len, IOStream *
 				size_t fakeIdBufOffset = totalTmpSize - toReadSize;
 				toReadSize -= stream->read(fakeIdBuf + fakeIdBufOffset, toReadSize);
 			}
-			free(fakeIdBuf);
 
+			if (memcmp(fakeIdBuf, cmpBuf, totalTmpSize) != 0) assert(false);
+			free(fakeIdBuf);
+			free(cmpBuf);
 			SET_LASTCALL("rcCreateColorBuffer");
 			break;
 		}
@@ -467,9 +533,13 @@ size_t renderControl_decoder_context_t::decode(void *buf, size_t len, IOStream *
 			unsigned char *tmpBuf = stream->alloc(totalTmpSize);
 			DEBUG("renderControl(%p): rcFlushWindowColorBuffer(0x%08x )\n", stream, var_windowSurface);
 			*(int *)(&tmpBuf[0]) = 			this->rcFlushWindowColorBuffer(var_windowSurface);
+
+			char* cmpBuf = (char*)malloc(totalTmpSize);
+			assert(cmpBuf != NULL);
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::writeChecksum(checksumCalc, &tmpBuf[0], totalTmpSize - checksumSize, &tmpBuf[totalTmpSize - checksumSize], checksumSize);
 			}
+			memcpy(cmpBuf, tmpBuf, totalTmpSize);
 			stream->flush();
 
 			char* fakeIdBuf = (char*)malloc(totalTmpSize);
@@ -480,8 +550,10 @@ size_t renderControl_decoder_context_t::decode(void *buf, size_t len, IOStream *
 				size_t fakeIdBufOffset = totalTmpSize - toReadSize;
 				toReadSize -= stream->read(fakeIdBuf + fakeIdBufOffset, toReadSize);
 			}
-			free(fakeIdBuf);
 
+			if (memcmp(fakeIdBuf, cmpBuf, totalTmpSize) != 0) assert(false);
+			free(fakeIdBuf);
+			free(cmpBuf);
 			SET_LASTCALL("rcFlushWindowColorBuffer");
 			break;
 		}
@@ -498,9 +570,13 @@ size_t renderControl_decoder_context_t::decode(void *buf, size_t len, IOStream *
 			unsigned char *tmpBuf = stream->alloc(totalTmpSize);
 			DEBUG("renderControl(%p): rcMakeCurrent(0x%08x 0x%08x 0x%08x )\n", stream, var_context, var_drawSurf, var_readSurf);
 			*(EGLint *)(&tmpBuf[0]) = 			this->rcMakeCurrent(var_context, var_drawSurf, var_readSurf);
+
+			char* cmpBuf = (char*)malloc(totalTmpSize);
+			assert(cmpBuf != NULL);
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::writeChecksum(checksumCalc, &tmpBuf[0], totalTmpSize - checksumSize, &tmpBuf[totalTmpSize - checksumSize], checksumSize);
 			}
+			memcpy(cmpBuf, tmpBuf, totalTmpSize);
 			stream->flush();
 
 			char* fakeIdBuf = (char*)malloc(totalTmpSize);
@@ -511,8 +587,10 @@ size_t renderControl_decoder_context_t::decode(void *buf, size_t len, IOStream *
 				size_t fakeIdBufOffset = totalTmpSize - toReadSize;
 				toReadSize -= stream->read(fakeIdBuf + fakeIdBufOffset, toReadSize);
 			}
-			free(fakeIdBuf);
 
+			if (memcmp(fakeIdBuf, cmpBuf, totalTmpSize) != 0) assert(false);
+			free(fakeIdBuf);
+			free(cmpBuf);
 			SET_LASTCALL("rcMakeCurrent");
 			break;
 		}
@@ -573,9 +651,13 @@ size_t renderControl_decoder_context_t::decode(void *buf, size_t len, IOStream *
 			unsigned char *tmpBuf = stream->alloc(totalTmpSize);
 			DEBUG("renderControl(%p): rcColorBufferCacheFlush(0x%08x 0x%08x %d )\n", stream, var_colorbuffer, var_postCount, var_forRead);
 			*(EGLint *)(&tmpBuf[0]) = 			this->rcColorBufferCacheFlush(var_colorbuffer, var_postCount, var_forRead);
+
+			char* cmpBuf = (char*)malloc(totalTmpSize);
+			assert(cmpBuf != NULL);
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::writeChecksum(checksumCalc, &tmpBuf[0], totalTmpSize - checksumSize, &tmpBuf[totalTmpSize - checksumSize], checksumSize);
 			}
+			memcpy(cmpBuf, tmpBuf, totalTmpSize);
 			stream->flush();
 
 			char* fakeIdBuf = (char*)malloc(totalTmpSize);
@@ -586,8 +668,10 @@ size_t renderControl_decoder_context_t::decode(void *buf, size_t len, IOStream *
 				size_t fakeIdBufOffset = totalTmpSize - toReadSize;
 				toReadSize -= stream->read(fakeIdBuf + fakeIdBufOffset, toReadSize);
 			}
-			free(fakeIdBuf);
 
+			if (memcmp(fakeIdBuf, cmpBuf, totalTmpSize) != 0) assert(false);
+			free(fakeIdBuf);
+			free(cmpBuf);
 			SET_LASTCALL("rcColorBufferCacheFlush");
 			break;
 		}
@@ -611,9 +695,13 @@ size_t renderControl_decoder_context_t::decode(void *buf, size_t len, IOStream *
 			DEBUG("renderControl(%p): rcReadColorBuffer(0x%08x 0x%08x 0x%08x 0x%08x 0x%08x 0x%08x 0x%08x %p(%u) )\n", stream, var_colorbuffer, var_x, var_y, var_width, var_height, var_format, var_type, (void*)(outptr_pixels.get()), size_pixels);
 			this->rcReadColorBuffer(var_colorbuffer, var_x, var_y, var_width, var_height, var_format, var_type, (void*)(outptr_pixels.get()));
 			outptr_pixels.flush();
+
+			char* cmpBuf = (char*)malloc(totalTmpSize);
+			assert(cmpBuf != NULL);
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::writeChecksum(checksumCalc, &tmpBuf[0], totalTmpSize - checksumSize, &tmpBuf[totalTmpSize - checksumSize], checksumSize);
 			}
+			memcpy(cmpBuf, tmpBuf, totalTmpSize);
 			stream->flush();
 
 			char* fakeIdBuf = (char*)malloc(totalTmpSize);
@@ -624,8 +712,10 @@ size_t renderControl_decoder_context_t::decode(void *buf, size_t len, IOStream *
 				size_t fakeIdBufOffset = totalTmpSize - toReadSize;
 				toReadSize -= stream->read(fakeIdBuf + fakeIdBufOffset, toReadSize);
 			}
-			free(fakeIdBuf);
 
+			if (memcmp(fakeIdBuf, cmpBuf, totalTmpSize) != 0) assert(false);
+			free(fakeIdBuf);
+			free(cmpBuf);
 			SET_LASTCALL("rcReadColorBuffer");
 			break;
 		}
@@ -648,9 +738,13 @@ size_t renderControl_decoder_context_t::decode(void *buf, size_t len, IOStream *
 			unsigned char *tmpBuf = stream->alloc(totalTmpSize);
 			DEBUG("renderControl(%p): rcUpdateColorBuffer(0x%08x 0x%08x 0x%08x 0x%08x 0x%08x 0x%08x 0x%08x %p(%u) )\n", stream, var_colorbuffer, var_x, var_y, var_width, var_height, var_format, var_type, (void*)(inptr_pixels.get()), size_pixels);
 			*(int *)(&tmpBuf[0]) = 			this->rcUpdateColorBuffer(var_colorbuffer, var_x, var_y, var_width, var_height, var_format, var_type, (void*)(inptr_pixels.get()));
+
+			char* cmpBuf = (char*)malloc(totalTmpSize);
+			assert(cmpBuf != NULL);
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::writeChecksum(checksumCalc, &tmpBuf[0], totalTmpSize - checksumSize, &tmpBuf[totalTmpSize - checksumSize], checksumSize);
 			}
+			memcpy(cmpBuf, tmpBuf, totalTmpSize);
 			stream->flush();
 
 			char* fakeIdBuf = (char*)malloc(totalTmpSize);
@@ -661,8 +755,10 @@ size_t renderControl_decoder_context_t::decode(void *buf, size_t len, IOStream *
 				size_t fakeIdBufOffset = totalTmpSize - toReadSize;
 				toReadSize -= stream->read(fakeIdBuf + fakeIdBufOffset, toReadSize);
 			}
-			free(fakeIdBuf);
 
+			if (memcmp(fakeIdBuf, cmpBuf, totalTmpSize) != 0) assert(false);
+			free(fakeIdBuf);
+			free(cmpBuf);
 			SET_LASTCALL("rcUpdateColorBuffer");
 			break;
 		}
@@ -677,9 +773,13 @@ size_t renderControl_decoder_context_t::decode(void *buf, size_t len, IOStream *
 			unsigned char *tmpBuf = stream->alloc(totalTmpSize);
 			DEBUG("renderControl(%p): rcOpenColorBuffer2(0x%08x )\n", stream, var_colorbuffer);
 			*(int *)(&tmpBuf[0]) = 			this->rcOpenColorBuffer2(var_colorbuffer);
+
+			char* cmpBuf = (char*)malloc(totalTmpSize);
+			assert(cmpBuf != NULL);
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::writeChecksum(checksumCalc, &tmpBuf[0], totalTmpSize - checksumSize, &tmpBuf[totalTmpSize - checksumSize], checksumSize);
 			}
+			memcpy(cmpBuf, tmpBuf, totalTmpSize);
 			stream->flush();
 
 			char* fakeIdBuf = (char*)malloc(totalTmpSize);
@@ -690,8 +790,10 @@ size_t renderControl_decoder_context_t::decode(void *buf, size_t len, IOStream *
 				size_t fakeIdBufOffset = totalTmpSize - toReadSize;
 				toReadSize -= stream->read(fakeIdBuf + fakeIdBufOffset, toReadSize);
 			}
-			free(fakeIdBuf);
 
+			if (memcmp(fakeIdBuf, cmpBuf, totalTmpSize) != 0) assert(false);
+			free(fakeIdBuf);
+			free(cmpBuf);
 			SET_LASTCALL("rcOpenColorBuffer2");
 			break;
 		}
@@ -708,9 +810,13 @@ size_t renderControl_decoder_context_t::decode(void *buf, size_t len, IOStream *
 			unsigned char *tmpBuf = stream->alloc(totalTmpSize);
 			DEBUG("renderControl(%p): rcCreateClientImage(0x%08x 0x%08x 0x%08x )\n", stream, var_context, var_target, var_buffer);
 			*(uint32_t *)(&tmpBuf[0]) = 			this->rcCreateClientImage(var_context, var_target, var_buffer);
+
+			char* cmpBuf = (char*)malloc(totalTmpSize);
+			assert(cmpBuf != NULL);
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::writeChecksum(checksumCalc, &tmpBuf[0], totalTmpSize - checksumSize, &tmpBuf[totalTmpSize - checksumSize], checksumSize);
 			}
+			memcpy(cmpBuf, tmpBuf, totalTmpSize);
 			stream->flush();
 
 			char* fakeIdBuf = (char*)malloc(totalTmpSize);
@@ -721,8 +827,10 @@ size_t renderControl_decoder_context_t::decode(void *buf, size_t len, IOStream *
 				size_t fakeIdBufOffset = totalTmpSize - toReadSize;
 				toReadSize -= stream->read(fakeIdBuf + fakeIdBufOffset, toReadSize);
 			}
-			free(fakeIdBuf);
 
+			if (memcmp(fakeIdBuf, cmpBuf, totalTmpSize) != 0) assert(false);
+			free(fakeIdBuf);
+			free(cmpBuf);
 			SET_LASTCALL("rcCreateClientImage");
 			break;
 		}
@@ -737,9 +845,13 @@ size_t renderControl_decoder_context_t::decode(void *buf, size_t len, IOStream *
 			unsigned char *tmpBuf = stream->alloc(totalTmpSize);
 			DEBUG("renderControl(%p): rcDestroyClientImage(0x%08x )\n", stream, var_image);
 			*(int *)(&tmpBuf[0]) = 			this->rcDestroyClientImage(var_image);
+
+			char* cmpBuf = (char*)malloc(totalTmpSize);
+			assert(cmpBuf != NULL);
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::writeChecksum(checksumCalc, &tmpBuf[0], totalTmpSize - checksumSize, &tmpBuf[totalTmpSize - checksumSize], checksumSize);
 			}
+			memcpy(cmpBuf, tmpBuf, totalTmpSize);
 			stream->flush();
 
 			char* fakeIdBuf = (char*)malloc(totalTmpSize);
@@ -750,8 +862,10 @@ size_t renderControl_decoder_context_t::decode(void *buf, size_t len, IOStream *
 				size_t fakeIdBufOffset = totalTmpSize - toReadSize;
 				toReadSize -= stream->read(fakeIdBuf + fakeIdBufOffset, toReadSize);
 			}
-			free(fakeIdBuf);
 
+			if (memcmp(fakeIdBuf, cmpBuf, totalTmpSize) != 0) assert(false);
+			free(fakeIdBuf);
+			free(cmpBuf);
 			SET_LASTCALL("rcDestroyClientImage");
 			break;
 		}
@@ -789,9 +903,13 @@ size_t renderControl_decoder_context_t::decode(void *buf, size_t len, IOStream *
 			this->rcCreateSyncKHR(var_type, (EGLint*)(inptr_attribs.get()), var_num_attribs, var_destroy_when_signaled, (uint64_t*)(outptr_glsync_out.get()), (uint64_t*)(outptr_syncthread_out.get()));
 			outptr_glsync_out.flush();
 			outptr_syncthread_out.flush();
+
+			char* cmpBuf = (char*)malloc(totalTmpSize);
+			assert(cmpBuf != NULL);
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::writeChecksum(checksumCalc, &tmpBuf[0], totalTmpSize - checksumSize, &tmpBuf[totalTmpSize - checksumSize], checksumSize);
 			}
+			memcpy(cmpBuf, tmpBuf, totalTmpSize);
 			stream->flush();
 
 			char* fakeIdBuf = (char*)malloc(totalTmpSize);
@@ -802,8 +920,10 @@ size_t renderControl_decoder_context_t::decode(void *buf, size_t len, IOStream *
 				size_t fakeIdBufOffset = totalTmpSize - toReadSize;
 				toReadSize -= stream->read(fakeIdBuf + fakeIdBufOffset, toReadSize);
 			}
-			free(fakeIdBuf);
 
+			if (memcmp(fakeIdBuf, cmpBuf, totalTmpSize) != 0) assert(false);
+			free(fakeIdBuf);
+			free(cmpBuf);
 			SET_LASTCALL("rcCreateSyncKHR");
 			break;
 		}
@@ -820,9 +940,13 @@ size_t renderControl_decoder_context_t::decode(void *buf, size_t len, IOStream *
 			unsigned char *tmpBuf = stream->alloc(totalTmpSize);
 			DEBUG("renderControl(%p): rcClientWaitSyncKHR(0x%016lx 0x%08x 0x%016lx )\n", stream, var_sync, var_flags, var_timeout);
 			*(EGLint *)(&tmpBuf[0]) = 			this->rcClientWaitSyncKHR(var_sync, var_flags, var_timeout);
+
+			char* cmpBuf = (char*)malloc(totalTmpSize);
+			assert(cmpBuf != NULL);
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::writeChecksum(checksumCalc, &tmpBuf[0], totalTmpSize - checksumSize, &tmpBuf[totalTmpSize - checksumSize], checksumSize);
 			}
+			memcpy(cmpBuf, tmpBuf, totalTmpSize);
 			stream->flush();
 
 			char* fakeIdBuf = (char*)malloc(totalTmpSize);
@@ -833,8 +957,10 @@ size_t renderControl_decoder_context_t::decode(void *buf, size_t len, IOStream *
 				size_t fakeIdBufOffset = totalTmpSize - toReadSize;
 				toReadSize -= stream->read(fakeIdBuf + fakeIdBufOffset, toReadSize);
 			}
-			free(fakeIdBuf);
 
+			if (memcmp(fakeIdBuf, cmpBuf, totalTmpSize) != 0) assert(false);
+			free(fakeIdBuf);
+			free(cmpBuf);
 			SET_LASTCALL("rcClientWaitSyncKHR");
 			break;
 		}
@@ -860,9 +986,13 @@ size_t renderControl_decoder_context_t::decode(void *buf, size_t len, IOStream *
 			unsigned char *tmpBuf = stream->alloc(totalTmpSize);
 			DEBUG("renderControl(%p): rcDestroySyncKHR(0x%016lx )\n", stream, var_sync);
 			*(int *)(&tmpBuf[0]) = 			this->rcDestroySyncKHR(var_sync);
+
+			char* cmpBuf = (char*)malloc(totalTmpSize);
+			assert(cmpBuf != NULL);
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::writeChecksum(checksumCalc, &tmpBuf[0], totalTmpSize - checksumSize, &tmpBuf[totalTmpSize - checksumSize], checksumSize);
 			}
+			memcpy(cmpBuf, tmpBuf, totalTmpSize);
 			stream->flush();
 
 			char* fakeIdBuf = (char*)malloc(totalTmpSize);
@@ -873,8 +1003,10 @@ size_t renderControl_decoder_context_t::decode(void *buf, size_t len, IOStream *
 				size_t fakeIdBufOffset = totalTmpSize - toReadSize;
 				toReadSize -= stream->read(fakeIdBuf + fakeIdBufOffset, toReadSize);
 			}
-			free(fakeIdBuf);
 
+			if (memcmp(fakeIdBuf, cmpBuf, totalTmpSize) != 0) assert(false);
+			free(fakeIdBuf);
+			free(cmpBuf);
 			SET_LASTCALL("rcDestroySyncKHR");
 			break;
 		}
@@ -911,9 +1043,13 @@ size_t renderControl_decoder_context_t::decode(void *buf, size_t len, IOStream *
 			DEBUG("renderControl(%p): rcUpdateColorBufferDMA(0x%08x 0x%08x 0x%08x 0x%08x 0x%08x 0x%08x 0x%08x %p(%u) 0x%08x )\n", stream, var_colorbuffer, var_x, var_y, var_width, var_height, var_format, var_type, var_pixels, var_pixels_size);
 			*(int *)(&tmpBuf[0]) = 			this->rcUpdateColorBufferDMA(var_colorbuffer, var_x, var_y, var_width, var_height, var_format, var_type, var_pixels, var_pixels_size);
 			stream->unlockDma(var_pixels_guest_paddr);
+
+			char* cmpBuf = (char*)malloc(totalTmpSize);
+			assert(cmpBuf != NULL);
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::writeChecksum(checksumCalc, &tmpBuf[0], totalTmpSize - checksumSize, &tmpBuf[totalTmpSize - checksumSize], checksumSize);
 			}
+			memcpy(cmpBuf, tmpBuf, totalTmpSize);
 			stream->flush();
 
 			char* fakeIdBuf = (char*)malloc(totalTmpSize);
@@ -924,8 +1060,10 @@ size_t renderControl_decoder_context_t::decode(void *buf, size_t len, IOStream *
 				size_t fakeIdBufOffset = totalTmpSize - toReadSize;
 				toReadSize -= stream->read(fakeIdBuf + fakeIdBufOffset, toReadSize);
 			}
-			free(fakeIdBuf);
 
+			if (memcmp(fakeIdBuf, cmpBuf, totalTmpSize) != 0) assert(false);
+			free(fakeIdBuf);
+			free(cmpBuf);
 			SET_LASTCALL("rcUpdateColorBufferDMA");
 			break;
 		}
@@ -943,9 +1081,13 @@ size_t renderControl_decoder_context_t::decode(void *buf, size_t len, IOStream *
 			unsigned char *tmpBuf = stream->alloc(totalTmpSize);
 			DEBUG("renderControl(%p): rcCreateColorBufferDMA(0x%08x 0x%08x 0x%08x %d )\n", stream, var_width, var_height, var_internalFormat, var_frameworkFormat);
 			*(uint32_t *)(&tmpBuf[0]) = 			this->rcCreateColorBufferDMA(var_width, var_height, var_internalFormat, var_frameworkFormat);
+
+			char* cmpBuf = (char*)malloc(totalTmpSize);
+			assert(cmpBuf != NULL);
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::writeChecksum(checksumCalc, &tmpBuf[0], totalTmpSize - checksumSize, &tmpBuf[totalTmpSize - checksumSize], checksumSize);
 			}
+			memcpy(cmpBuf, tmpBuf, totalTmpSize);
 			stream->flush();
 
 			char* fakeIdBuf = (char*)malloc(totalTmpSize);
@@ -956,8 +1098,10 @@ size_t renderControl_decoder_context_t::decode(void *buf, size_t len, IOStream *
 				size_t fakeIdBufOffset = totalTmpSize - toReadSize;
 				toReadSize -= stream->read(fakeIdBuf + fakeIdBufOffset, toReadSize);
 			}
-			free(fakeIdBuf);
 
+			if (memcmp(fakeIdBuf, cmpBuf, totalTmpSize) != 0) assert(false);
+			free(fakeIdBuf);
+			free(cmpBuf);
 			SET_LASTCALL("rcCreateColorBufferDMA");
 			break;
 		}

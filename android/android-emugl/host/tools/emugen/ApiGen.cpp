@@ -1325,11 +1325,18 @@ R"(        // Do this on every iteration, as some commands may change the checks
                 // send back out pointers data as well as retval
                 if (totalTmpBuffExist) {
                     fprintf(fp,
+                            "\n"
+                            "\t\t\tchar* cmpBuf = (char*)malloc(totalTmpSize);\n"
+                            "\t\t\tassert(cmpBuf != NULL);\n"
+                            /* "\t\t\tfree(fakeIdBuf);\n" */
+                           );
+                    fprintf(fp,
                             "\t\t\tif (useChecksum) {\n"
                             "\t\t\t\tChecksumCalculatorThreadInfo::writeChecksum(checksumCalc, "
                             "&tmpBuf[0], totalTmpSize - checksumSize, "
                             "&tmpBuf[totalTmpSize - checksumSize], checksumSize);\n"
                             "\t\t\t}\n"
+                            "\t\t\tmemcpy(cmpBuf, tmpBuf, totalTmpSize);\n"
                             "\t\t\tstream->flush();\n");
                     // pull the "fake ID" which is sent from instance.
                     // this is purely binary stream and the decoder know the format of it - though we won't interpret it.
@@ -1345,9 +1352,13 @@ R"(        // Do this on every iteration, as some commands may change the checks
                             "\t\t\t\tsize_t fakeIdBufOffset = totalTmpSize - toReadSize;\n"
                             "\t\t\t\ttoReadSize -= stream->read(fakeIdBuf + fakeIdBufOffset, toReadSize);\n"
                             "\t\t\t}\n"
-                            "\t\t\tfree(fakeIdBuf);\n"
+                            /* "\t\t\tfree(fakeIdBuf);\n" */
                             "\n"
                             );
+                    fprintf(fp,
+                            "\t\t\tif (memcmp(fakeIdBuf, cmpBuf, totalTmpSize) != 0) assert(false);\n"
+                            "\t\t\tfree(fakeIdBuf);\n"
+                            "\t\t\tfree(cmpBuf);\n");
                 }
             }
         } // pass;

@@ -292,9 +292,13 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			#endif
 			DEBUG("gles2(%p): glCheckFramebufferStatus(0x%08x )\n", stream, var_target);
 			*(GLenum *)(&tmpBuf[0]) = 			this->glCheckFramebufferStatus(var_target);
+
+			char* cmpBuf = (char*)malloc(totalTmpSize);
+			assert(cmpBuf != NULL);
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::writeChecksum(checksumCalc, &tmpBuf[0], totalTmpSize - checksumSize, &tmpBuf[totalTmpSize - checksumSize], checksumSize);
 			}
+			memcpy(cmpBuf, tmpBuf, totalTmpSize);
 			stream->flush();
 
 			char* fakeIdBuf = (char*)malloc(totalTmpSize);
@@ -305,8 +309,10 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 				size_t fakeIdBufOffset = totalTmpSize - toReadSize;
 				toReadSize -= stream->read(fakeIdBuf + fakeIdBufOffset, toReadSize);
 			}
-			free(fakeIdBuf);
 
+			if (memcmp(fakeIdBuf, cmpBuf, totalTmpSize) != 0) assert(false);
+			free(fakeIdBuf);
+			free(cmpBuf);
 			SET_LASTCALL("glCheckFramebufferStatus");
 			break;
 		}
@@ -511,9 +517,13 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			#endif
 			DEBUG("gles2(%p): glCreateProgram()\n", stream);
 			*(GLuint *)(&tmpBuf[0]) = 			this->glCreateProgram();
+
+			char* cmpBuf = (char*)malloc(totalTmpSize);
+			assert(cmpBuf != NULL);
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::writeChecksum(checksumCalc, &tmpBuf[0], totalTmpSize - checksumSize, &tmpBuf[totalTmpSize - checksumSize], checksumSize);
 			}
+			memcpy(cmpBuf, tmpBuf, totalTmpSize);
 			stream->flush();
 
 			char* fakeIdBuf = (char*)malloc(totalTmpSize);
@@ -524,8 +534,10 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 				size_t fakeIdBufOffset = totalTmpSize - toReadSize;
 				toReadSize -= stream->read(fakeIdBuf + fakeIdBufOffset, toReadSize);
 			}
-			free(fakeIdBuf);
 
+			if (memcmp(fakeIdBuf, cmpBuf, totalTmpSize) != 0) assert(false);
+			free(fakeIdBuf);
+			free(cmpBuf);
 			SET_LASTCALL("glCreateProgram");
 			break;
 		}
@@ -544,9 +556,13 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			#endif
 			DEBUG("gles2(%p): glCreateShader(0x%08x )\n", stream, var_type);
 			*(GLuint *)(&tmpBuf[0]) = 			this->glCreateShader(var_type);
+
+			char* cmpBuf = (char*)malloc(totalTmpSize);
+			assert(cmpBuf != NULL);
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::writeChecksum(checksumCalc, &tmpBuf[0], totalTmpSize - checksumSize, &tmpBuf[totalTmpSize - checksumSize], checksumSize);
 			}
+			memcpy(cmpBuf, tmpBuf, totalTmpSize);
 			stream->flush();
 
 			char* fakeIdBuf = (char*)malloc(totalTmpSize);
@@ -557,8 +573,10 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 				size_t fakeIdBufOffset = totalTmpSize - toReadSize;
 				toReadSize -= stream->read(fakeIdBuf + fakeIdBufOffset, toReadSize);
 			}
-			free(fakeIdBuf);
 
+			if (memcmp(fakeIdBuf, cmpBuf, totalTmpSize) != 0) assert(false);
+			free(fakeIdBuf);
+			free(cmpBuf);
 			SET_LASTCALL("glCreateShader");
 			break;
 		}
@@ -931,9 +949,13 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DEBUG("gles2(%p): glGenBuffers(%d %p(%u) )\n", stream, var_n, (GLuint*)(outptr_buffers.get()), size_buffers);
 			this->glGenBuffers(var_n, (GLuint*)(outptr_buffers.get()));
 			outptr_buffers.flush();
+
+			char* cmpBuf = (char*)malloc(totalTmpSize);
+			assert(cmpBuf != NULL);
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::writeChecksum(checksumCalc, &tmpBuf[0], totalTmpSize - checksumSize, &tmpBuf[totalTmpSize - checksumSize], checksumSize);
 			}
+			memcpy(cmpBuf, tmpBuf, totalTmpSize);
 			stream->flush();
 
 			char* fakeIdBuf = (char*)malloc(totalTmpSize);
@@ -944,8 +966,10 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 				size_t fakeIdBufOffset = totalTmpSize - toReadSize;
 				toReadSize -= stream->read(fakeIdBuf + fakeIdBufOffset, toReadSize);
 			}
-			free(fakeIdBuf);
 
+			if (memcmp(fakeIdBuf, cmpBuf, totalTmpSize) != 0) assert(false);
+			free(fakeIdBuf);
+			free(cmpBuf);
 			SET_LASTCALL("glGenBuffers");
 			break;
 		}
@@ -982,9 +1006,13 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DEBUG("gles2(%p): glGenFramebuffers(%d %p(%u) )\n", stream, var_n, (GLuint*)(outptr_framebuffers.get()), size_framebuffers);
 			this->glGenFramebuffers(var_n, (GLuint*)(outptr_framebuffers.get()));
 			outptr_framebuffers.flush();
+
+			char* cmpBuf = (char*)malloc(totalTmpSize);
+			assert(cmpBuf != NULL);
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::writeChecksum(checksumCalc, &tmpBuf[0], totalTmpSize - checksumSize, &tmpBuf[totalTmpSize - checksumSize], checksumSize);
 			}
+			memcpy(cmpBuf, tmpBuf, totalTmpSize);
 			stream->flush();
 
 			char* fakeIdBuf = (char*)malloc(totalTmpSize);
@@ -995,8 +1023,10 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 				size_t fakeIdBufOffset = totalTmpSize - toReadSize;
 				toReadSize -= stream->read(fakeIdBuf + fakeIdBufOffset, toReadSize);
 			}
-			free(fakeIdBuf);
 
+			if (memcmp(fakeIdBuf, cmpBuf, totalTmpSize) != 0) assert(false);
+			free(fakeIdBuf);
+			free(cmpBuf);
 			SET_LASTCALL("glGenFramebuffers");
 			break;
 		}
@@ -1018,9 +1048,13 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DEBUG("gles2(%p): glGenRenderbuffers(%d %p(%u) )\n", stream, var_n, (GLuint*)(outptr_renderbuffers.get()), size_renderbuffers);
 			this->glGenRenderbuffers(var_n, (GLuint*)(outptr_renderbuffers.get()));
 			outptr_renderbuffers.flush();
+
+			char* cmpBuf = (char*)malloc(totalTmpSize);
+			assert(cmpBuf != NULL);
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::writeChecksum(checksumCalc, &tmpBuf[0], totalTmpSize - checksumSize, &tmpBuf[totalTmpSize - checksumSize], checksumSize);
 			}
+			memcpy(cmpBuf, tmpBuf, totalTmpSize);
 			stream->flush();
 
 			char* fakeIdBuf = (char*)malloc(totalTmpSize);
@@ -1031,8 +1065,10 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 				size_t fakeIdBufOffset = totalTmpSize - toReadSize;
 				toReadSize -= stream->read(fakeIdBuf + fakeIdBufOffset, toReadSize);
 			}
-			free(fakeIdBuf);
 
+			if (memcmp(fakeIdBuf, cmpBuf, totalTmpSize) != 0) assert(false);
+			free(fakeIdBuf);
+			free(cmpBuf);
 			SET_LASTCALL("glGenRenderbuffers");
 			break;
 		}
@@ -1054,9 +1090,13 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DEBUG("gles2(%p): glGenTextures(%d %p(%u) )\n", stream, var_n, (GLuint*)(outptr_textures.get()), size_textures);
 			this->glGenTextures(var_n, (GLuint*)(outptr_textures.get()));
 			outptr_textures.flush();
+
+			char* cmpBuf = (char*)malloc(totalTmpSize);
+			assert(cmpBuf != NULL);
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::writeChecksum(checksumCalc, &tmpBuf[0], totalTmpSize - checksumSize, &tmpBuf[totalTmpSize - checksumSize], checksumSize);
 			}
+			memcpy(cmpBuf, tmpBuf, totalTmpSize);
 			stream->flush();
 
 			char* fakeIdBuf = (char*)malloc(totalTmpSize);
@@ -1067,8 +1107,10 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 				size_t fakeIdBufOffset = totalTmpSize - toReadSize;
 				toReadSize -= stream->read(fakeIdBuf + fakeIdBufOffset, toReadSize);
 			}
-			free(fakeIdBuf);
 
+			if (memcmp(fakeIdBuf, cmpBuf, totalTmpSize) != 0) assert(false);
+			free(fakeIdBuf);
+			free(cmpBuf);
 			SET_LASTCALL("glGenTextures");
 			break;
 		}
@@ -1104,9 +1146,13 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			outptr_size.flush();
 			outptr_type.flush();
 			outptr_name.flush();
+
+			char* cmpBuf = (char*)malloc(totalTmpSize);
+			assert(cmpBuf != NULL);
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::writeChecksum(checksumCalc, &tmpBuf[0], totalTmpSize - checksumSize, &tmpBuf[totalTmpSize - checksumSize], checksumSize);
 			}
+			memcpy(cmpBuf, tmpBuf, totalTmpSize);
 			stream->flush();
 
 			char* fakeIdBuf = (char*)malloc(totalTmpSize);
@@ -1117,8 +1163,10 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 				size_t fakeIdBufOffset = totalTmpSize - toReadSize;
 				toReadSize -= stream->read(fakeIdBuf + fakeIdBufOffset, toReadSize);
 			}
-			free(fakeIdBuf);
 
+			if (memcmp(fakeIdBuf, cmpBuf, totalTmpSize) != 0) assert(false);
+			free(fakeIdBuf);
+			free(cmpBuf);
 			SET_LASTCALL("glGetActiveAttrib");
 			break;
 		}
@@ -1154,9 +1202,13 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			outptr_size.flush();
 			outptr_type.flush();
 			outptr_name.flush();
+
+			char* cmpBuf = (char*)malloc(totalTmpSize);
+			assert(cmpBuf != NULL);
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::writeChecksum(checksumCalc, &tmpBuf[0], totalTmpSize - checksumSize, &tmpBuf[totalTmpSize - checksumSize], checksumSize);
 			}
+			memcpy(cmpBuf, tmpBuf, totalTmpSize);
 			stream->flush();
 
 			char* fakeIdBuf = (char*)malloc(totalTmpSize);
@@ -1167,8 +1219,10 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 				size_t fakeIdBufOffset = totalTmpSize - toReadSize;
 				toReadSize -= stream->read(fakeIdBuf + fakeIdBufOffset, toReadSize);
 			}
-			free(fakeIdBuf);
 
+			if (memcmp(fakeIdBuf, cmpBuf, totalTmpSize) != 0) assert(false);
+			free(fakeIdBuf);
+			free(cmpBuf);
 			SET_LASTCALL("glGetActiveUniform");
 			break;
 		}
@@ -1195,9 +1249,13 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			this->glGetAttachedShaders(var_program, var_maxcount, size_count == 0 ? nullptr : (GLsizei*)(outptr_count.get()), (GLuint*)(outptr_shaders.get()));
 			outptr_count.flush();
 			outptr_shaders.flush();
+
+			char* cmpBuf = (char*)malloc(totalTmpSize);
+			assert(cmpBuf != NULL);
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::writeChecksum(checksumCalc, &tmpBuf[0], totalTmpSize - checksumSize, &tmpBuf[totalTmpSize - checksumSize], checksumSize);
 			}
+			memcpy(cmpBuf, tmpBuf, totalTmpSize);
 			stream->flush();
 
 			char* fakeIdBuf = (char*)malloc(totalTmpSize);
@@ -1208,8 +1266,10 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 				size_t fakeIdBufOffset = totalTmpSize - toReadSize;
 				toReadSize -= stream->read(fakeIdBuf + fakeIdBufOffset, toReadSize);
 			}
-			free(fakeIdBuf);
 
+			if (memcmp(fakeIdBuf, cmpBuf, totalTmpSize) != 0) assert(false);
+			free(fakeIdBuf);
+			free(cmpBuf);
 			SET_LASTCALL("glGetAttachedShaders");
 			break;
 		}
@@ -1230,9 +1290,13 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			#endif
 			DEBUG("gles2(%p): glGetAttribLocation(%u %p(%u) )\n", stream, var_program, (const GLchar*)(inptr_name.get()), size_name);
 			*(int *)(&tmpBuf[0]) = 			this->glGetAttribLocation(var_program, (const GLchar*)(inptr_name.get()));
+
+			char* cmpBuf = (char*)malloc(totalTmpSize);
+			assert(cmpBuf != NULL);
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::writeChecksum(checksumCalc, &tmpBuf[0], totalTmpSize - checksumSize, &tmpBuf[totalTmpSize - checksumSize], checksumSize);
 			}
+			memcpy(cmpBuf, tmpBuf, totalTmpSize);
 			stream->flush();
 
 			char* fakeIdBuf = (char*)malloc(totalTmpSize);
@@ -1243,8 +1307,10 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 				size_t fakeIdBufOffset = totalTmpSize - toReadSize;
 				toReadSize -= stream->read(fakeIdBuf + fakeIdBufOffset, toReadSize);
 			}
-			free(fakeIdBuf);
 
+			if (memcmp(fakeIdBuf, cmpBuf, totalTmpSize) != 0) assert(false);
+			free(fakeIdBuf);
+			free(cmpBuf);
 			SET_LASTCALL("glGetAttribLocation");
 			break;
 		}
@@ -1266,9 +1332,13 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DEBUG("gles2(%p): glGetBooleanv(0x%08x %p(%u) )\n", stream, var_pname, (GLboolean*)(outptr_params.get()), size_params);
 			this->glGetBooleanv(var_pname, (GLboolean*)(outptr_params.get()));
 			outptr_params.flush();
+
+			char* cmpBuf = (char*)malloc(totalTmpSize);
+			assert(cmpBuf != NULL);
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::writeChecksum(checksumCalc, &tmpBuf[0], totalTmpSize - checksumSize, &tmpBuf[totalTmpSize - checksumSize], checksumSize);
 			}
+			memcpy(cmpBuf, tmpBuf, totalTmpSize);
 			stream->flush();
 
 			char* fakeIdBuf = (char*)malloc(totalTmpSize);
@@ -1279,8 +1349,10 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 				size_t fakeIdBufOffset = totalTmpSize - toReadSize;
 				toReadSize -= stream->read(fakeIdBuf + fakeIdBufOffset, toReadSize);
 			}
-			free(fakeIdBuf);
 
+			if (memcmp(fakeIdBuf, cmpBuf, totalTmpSize) != 0) assert(false);
+			free(fakeIdBuf);
+			free(cmpBuf);
 			SET_LASTCALL("glGetBooleanv");
 			break;
 		}
@@ -1303,9 +1375,13 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DEBUG("gles2(%p): glGetBufferParameteriv(0x%08x 0x%08x %p(%u) )\n", stream, var_target, var_pname, (GLint*)(outptr_params.get()), size_params);
 			this->glGetBufferParameteriv(var_target, var_pname, (GLint*)(outptr_params.get()));
 			outptr_params.flush();
+
+			char* cmpBuf = (char*)malloc(totalTmpSize);
+			assert(cmpBuf != NULL);
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::writeChecksum(checksumCalc, &tmpBuf[0], totalTmpSize - checksumSize, &tmpBuf[totalTmpSize - checksumSize], checksumSize);
 			}
+			memcpy(cmpBuf, tmpBuf, totalTmpSize);
 			stream->flush();
 
 			char* fakeIdBuf = (char*)malloc(totalTmpSize);
@@ -1316,8 +1392,10 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 				size_t fakeIdBufOffset = totalTmpSize - toReadSize;
 				toReadSize -= stream->read(fakeIdBuf + fakeIdBufOffset, toReadSize);
 			}
-			free(fakeIdBuf);
 
+			if (memcmp(fakeIdBuf, cmpBuf, totalTmpSize) != 0) assert(false);
+			free(fakeIdBuf);
+			free(cmpBuf);
 			SET_LASTCALL("glGetBufferParameteriv");
 			break;
 		}
@@ -1335,9 +1413,13 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			#endif
 			DEBUG("gles2(%p): glGetError()\n", stream);
 			*(GLenum *)(&tmpBuf[0]) = 			this->glGetError();
+
+			char* cmpBuf = (char*)malloc(totalTmpSize);
+			assert(cmpBuf != NULL);
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::writeChecksum(checksumCalc, &tmpBuf[0], totalTmpSize - checksumSize, &tmpBuf[totalTmpSize - checksumSize], checksumSize);
 			}
+			memcpy(cmpBuf, tmpBuf, totalTmpSize);
 			stream->flush();
 
 			char* fakeIdBuf = (char*)malloc(totalTmpSize);
@@ -1348,8 +1430,10 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 				size_t fakeIdBufOffset = totalTmpSize - toReadSize;
 				toReadSize -= stream->read(fakeIdBuf + fakeIdBufOffset, toReadSize);
 			}
-			free(fakeIdBuf);
 
+			if (memcmp(fakeIdBuf, cmpBuf, totalTmpSize) != 0) assert(false);
+			free(fakeIdBuf);
+			free(cmpBuf);
 			SET_LASTCALL("glGetError");
 			break;
 		}
@@ -1371,9 +1455,13 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DEBUG("gles2(%p): glGetFloatv(0x%08x %p(%u) )\n", stream, var_pname, (GLfloat*)(outptr_params.get()), size_params);
 			this->glGetFloatv(var_pname, (GLfloat*)(outptr_params.get()));
 			outptr_params.flush();
+
+			char* cmpBuf = (char*)malloc(totalTmpSize);
+			assert(cmpBuf != NULL);
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::writeChecksum(checksumCalc, &tmpBuf[0], totalTmpSize - checksumSize, &tmpBuf[totalTmpSize - checksumSize], checksumSize);
 			}
+			memcpy(cmpBuf, tmpBuf, totalTmpSize);
 			stream->flush();
 
 			char* fakeIdBuf = (char*)malloc(totalTmpSize);
@@ -1384,8 +1472,10 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 				size_t fakeIdBufOffset = totalTmpSize - toReadSize;
 				toReadSize -= stream->read(fakeIdBuf + fakeIdBufOffset, toReadSize);
 			}
-			free(fakeIdBuf);
 
+			if (memcmp(fakeIdBuf, cmpBuf, totalTmpSize) != 0) assert(false);
+			free(fakeIdBuf);
+			free(cmpBuf);
 			SET_LASTCALL("glGetFloatv");
 			break;
 		}
@@ -1409,9 +1499,13 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DEBUG("gles2(%p): glGetFramebufferAttachmentParameteriv(0x%08x 0x%08x 0x%08x %p(%u) )\n", stream, var_target, var_attachment, var_pname, (GLint*)(outptr_params.get()), size_params);
 			this->glGetFramebufferAttachmentParameteriv(var_target, var_attachment, var_pname, (GLint*)(outptr_params.get()));
 			outptr_params.flush();
+
+			char* cmpBuf = (char*)malloc(totalTmpSize);
+			assert(cmpBuf != NULL);
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::writeChecksum(checksumCalc, &tmpBuf[0], totalTmpSize - checksumSize, &tmpBuf[totalTmpSize - checksumSize], checksumSize);
 			}
+			memcpy(cmpBuf, tmpBuf, totalTmpSize);
 			stream->flush();
 
 			char* fakeIdBuf = (char*)malloc(totalTmpSize);
@@ -1422,8 +1516,10 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 				size_t fakeIdBufOffset = totalTmpSize - toReadSize;
 				toReadSize -= stream->read(fakeIdBuf + fakeIdBufOffset, toReadSize);
 			}
-			free(fakeIdBuf);
 
+			if (memcmp(fakeIdBuf, cmpBuf, totalTmpSize) != 0) assert(false);
+			free(fakeIdBuf);
+			free(cmpBuf);
 			SET_LASTCALL("glGetFramebufferAttachmentParameteriv");
 			break;
 		}
@@ -1445,9 +1541,13 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DEBUG("gles2(%p): glGetIntegerv(0x%08x %p(%u) )\n", stream, var_pname, (GLint*)(outptr_params.get()), size_params);
 			this->glGetIntegerv(var_pname, (GLint*)(outptr_params.get()));
 			outptr_params.flush();
+
+			char* cmpBuf = (char*)malloc(totalTmpSize);
+			assert(cmpBuf != NULL);
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::writeChecksum(checksumCalc, &tmpBuf[0], totalTmpSize - checksumSize, &tmpBuf[totalTmpSize - checksumSize], checksumSize);
 			}
+			memcpy(cmpBuf, tmpBuf, totalTmpSize);
 			stream->flush();
 
 			char* fakeIdBuf = (char*)malloc(totalTmpSize);
@@ -1458,8 +1558,10 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 				size_t fakeIdBufOffset = totalTmpSize - toReadSize;
 				toReadSize -= stream->read(fakeIdBuf + fakeIdBufOffset, toReadSize);
 			}
-			free(fakeIdBuf);
 
+			if (memcmp(fakeIdBuf, cmpBuf, totalTmpSize) != 0) assert(false);
+			free(fakeIdBuf);
+			free(cmpBuf);
 			SET_LASTCALL("glGetIntegerv");
 			break;
 		}
@@ -1482,9 +1584,13 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DEBUG("gles2(%p): glGetProgramiv(%u 0x%08x %p(%u) )\n", stream, var_program, var_pname, (GLint*)(outptr_params.get()), size_params);
 			this->glGetProgramiv(var_program, var_pname, (GLint*)(outptr_params.get()));
 			outptr_params.flush();
+
+			char* cmpBuf = (char*)malloc(totalTmpSize);
+			assert(cmpBuf != NULL);
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::writeChecksum(checksumCalc, &tmpBuf[0], totalTmpSize - checksumSize, &tmpBuf[totalTmpSize - checksumSize], checksumSize);
 			}
+			memcpy(cmpBuf, tmpBuf, totalTmpSize);
 			stream->flush();
 
 			char* fakeIdBuf = (char*)malloc(totalTmpSize);
@@ -1495,8 +1601,10 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 				size_t fakeIdBufOffset = totalTmpSize - toReadSize;
 				toReadSize -= stream->read(fakeIdBuf + fakeIdBufOffset, toReadSize);
 			}
-			free(fakeIdBuf);
 
+			if (memcmp(fakeIdBuf, cmpBuf, totalTmpSize) != 0) assert(false);
+			free(fakeIdBuf);
+			free(cmpBuf);
 			SET_LASTCALL("glGetProgramiv");
 			break;
 		}
@@ -1523,9 +1631,13 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			this->glGetProgramInfoLog(var_program, var_bufsize, size_length == 0 ? nullptr : (GLsizei*)(outptr_length.get()), (GLchar*)(outptr_infolog.get()));
 			outptr_length.flush();
 			outptr_infolog.flush();
+
+			char* cmpBuf = (char*)malloc(totalTmpSize);
+			assert(cmpBuf != NULL);
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::writeChecksum(checksumCalc, &tmpBuf[0], totalTmpSize - checksumSize, &tmpBuf[totalTmpSize - checksumSize], checksumSize);
 			}
+			memcpy(cmpBuf, tmpBuf, totalTmpSize);
 			stream->flush();
 
 			char* fakeIdBuf = (char*)malloc(totalTmpSize);
@@ -1536,8 +1648,10 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 				size_t fakeIdBufOffset = totalTmpSize - toReadSize;
 				toReadSize -= stream->read(fakeIdBuf + fakeIdBufOffset, toReadSize);
 			}
-			free(fakeIdBuf);
 
+			if (memcmp(fakeIdBuf, cmpBuf, totalTmpSize) != 0) assert(false);
+			free(fakeIdBuf);
+			free(cmpBuf);
 			SET_LASTCALL("glGetProgramInfoLog");
 			break;
 		}
@@ -1560,9 +1674,13 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DEBUG("gles2(%p): glGetRenderbufferParameteriv(0x%08x 0x%08x %p(%u) )\n", stream, var_target, var_pname, (GLint*)(outptr_params.get()), size_params);
 			this->glGetRenderbufferParameteriv(var_target, var_pname, (GLint*)(outptr_params.get()));
 			outptr_params.flush();
+
+			char* cmpBuf = (char*)malloc(totalTmpSize);
+			assert(cmpBuf != NULL);
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::writeChecksum(checksumCalc, &tmpBuf[0], totalTmpSize - checksumSize, &tmpBuf[totalTmpSize - checksumSize], checksumSize);
 			}
+			memcpy(cmpBuf, tmpBuf, totalTmpSize);
 			stream->flush();
 
 			char* fakeIdBuf = (char*)malloc(totalTmpSize);
@@ -1573,8 +1691,10 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 				size_t fakeIdBufOffset = totalTmpSize - toReadSize;
 				toReadSize -= stream->read(fakeIdBuf + fakeIdBufOffset, toReadSize);
 			}
-			free(fakeIdBuf);
 
+			if (memcmp(fakeIdBuf, cmpBuf, totalTmpSize) != 0) assert(false);
+			free(fakeIdBuf);
+			free(cmpBuf);
 			SET_LASTCALL("glGetRenderbufferParameteriv");
 			break;
 		}
@@ -1597,9 +1717,13 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DEBUG("gles2(%p): glGetShaderiv(%u 0x%08x %p(%u) )\n", stream, var_shader, var_pname, (GLint*)(outptr_params.get()), size_params);
 			this->glGetShaderiv(var_shader, var_pname, (GLint*)(outptr_params.get()));
 			outptr_params.flush();
+
+			char* cmpBuf = (char*)malloc(totalTmpSize);
+			assert(cmpBuf != NULL);
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::writeChecksum(checksumCalc, &tmpBuf[0], totalTmpSize - checksumSize, &tmpBuf[totalTmpSize - checksumSize], checksumSize);
 			}
+			memcpy(cmpBuf, tmpBuf, totalTmpSize);
 			stream->flush();
 
 			char* fakeIdBuf = (char*)malloc(totalTmpSize);
@@ -1610,8 +1734,10 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 				size_t fakeIdBufOffset = totalTmpSize - toReadSize;
 				toReadSize -= stream->read(fakeIdBuf + fakeIdBufOffset, toReadSize);
 			}
-			free(fakeIdBuf);
 
+			if (memcmp(fakeIdBuf, cmpBuf, totalTmpSize) != 0) assert(false);
+			free(fakeIdBuf);
+			free(cmpBuf);
 			SET_LASTCALL("glGetShaderiv");
 			break;
 		}
@@ -1638,9 +1764,13 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			this->glGetShaderInfoLog(var_shader, var_bufsize, size_length == 0 ? nullptr : (GLsizei*)(outptr_length.get()), (GLchar*)(outptr_infolog.get()));
 			outptr_length.flush();
 			outptr_infolog.flush();
+
+			char* cmpBuf = (char*)malloc(totalTmpSize);
+			assert(cmpBuf != NULL);
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::writeChecksum(checksumCalc, &tmpBuf[0], totalTmpSize - checksumSize, &tmpBuf[totalTmpSize - checksumSize], checksumSize);
 			}
+			memcpy(cmpBuf, tmpBuf, totalTmpSize);
 			stream->flush();
 
 			char* fakeIdBuf = (char*)malloc(totalTmpSize);
@@ -1651,8 +1781,10 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 				size_t fakeIdBufOffset = totalTmpSize - toReadSize;
 				toReadSize -= stream->read(fakeIdBuf + fakeIdBufOffset, toReadSize);
 			}
-			free(fakeIdBuf);
 
+			if (memcmp(fakeIdBuf, cmpBuf, totalTmpSize) != 0) assert(false);
+			free(fakeIdBuf);
+			free(cmpBuf);
 			SET_LASTCALL("glGetShaderInfoLog");
 			break;
 		}
@@ -1679,9 +1811,13 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			this->glGetShaderPrecisionFormat(var_shadertype, var_precisiontype, (GLint*)(outptr_range.get()), (GLint*)(outptr_precision.get()));
 			outptr_range.flush();
 			outptr_precision.flush();
+
+			char* cmpBuf = (char*)malloc(totalTmpSize);
+			assert(cmpBuf != NULL);
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::writeChecksum(checksumCalc, &tmpBuf[0], totalTmpSize - checksumSize, &tmpBuf[totalTmpSize - checksumSize], checksumSize);
 			}
+			memcpy(cmpBuf, tmpBuf, totalTmpSize);
 			stream->flush();
 
 			char* fakeIdBuf = (char*)malloc(totalTmpSize);
@@ -1692,8 +1828,10 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 				size_t fakeIdBufOffset = totalTmpSize - toReadSize;
 				toReadSize -= stream->read(fakeIdBuf + fakeIdBufOffset, toReadSize);
 			}
-			free(fakeIdBuf);
 
+			if (memcmp(fakeIdBuf, cmpBuf, totalTmpSize) != 0) assert(false);
+			free(fakeIdBuf);
+			free(cmpBuf);
 			SET_LASTCALL("glGetShaderPrecisionFormat");
 			break;
 		}
@@ -1720,9 +1858,13 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			this->glGetShaderSource(var_shader, var_bufsize, size_length == 0 ? nullptr : (GLsizei*)(outptr_length.get()), (GLchar*)(outptr_source.get()));
 			outptr_length.flush();
 			outptr_source.flush();
+
+			char* cmpBuf = (char*)malloc(totalTmpSize);
+			assert(cmpBuf != NULL);
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::writeChecksum(checksumCalc, &tmpBuf[0], totalTmpSize - checksumSize, &tmpBuf[totalTmpSize - checksumSize], checksumSize);
 			}
+			memcpy(cmpBuf, tmpBuf, totalTmpSize);
 			stream->flush();
 
 			char* fakeIdBuf = (char*)malloc(totalTmpSize);
@@ -1733,8 +1875,10 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 				size_t fakeIdBufOffset = totalTmpSize - toReadSize;
 				toReadSize -= stream->read(fakeIdBuf + fakeIdBufOffset, toReadSize);
 			}
-			free(fakeIdBuf);
 
+			if (memcmp(fakeIdBuf, cmpBuf, totalTmpSize) != 0) assert(false);
+			free(fakeIdBuf);
+			free(cmpBuf);
 			SET_LASTCALL("glGetShaderSource");
 			break;
 		}
@@ -1772,9 +1916,13 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DEBUG("gles2(%p): glGetTexParameterfv(0x%08x 0x%08x %p(%u) )\n", stream, var_target, var_pname, (GLfloat*)(outptr_params.get()), size_params);
 			this->glGetTexParameterfv(var_target, var_pname, (GLfloat*)(outptr_params.get()));
 			outptr_params.flush();
+
+			char* cmpBuf = (char*)malloc(totalTmpSize);
+			assert(cmpBuf != NULL);
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::writeChecksum(checksumCalc, &tmpBuf[0], totalTmpSize - checksumSize, &tmpBuf[totalTmpSize - checksumSize], checksumSize);
 			}
+			memcpy(cmpBuf, tmpBuf, totalTmpSize);
 			stream->flush();
 
 			char* fakeIdBuf = (char*)malloc(totalTmpSize);
@@ -1785,8 +1933,10 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 				size_t fakeIdBufOffset = totalTmpSize - toReadSize;
 				toReadSize -= stream->read(fakeIdBuf + fakeIdBufOffset, toReadSize);
 			}
-			free(fakeIdBuf);
 
+			if (memcmp(fakeIdBuf, cmpBuf, totalTmpSize) != 0) assert(false);
+			free(fakeIdBuf);
+			free(cmpBuf);
 			SET_LASTCALL("glGetTexParameterfv");
 			break;
 		}
@@ -1809,9 +1959,13 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DEBUG("gles2(%p): glGetTexParameteriv(0x%08x 0x%08x %p(%u) )\n", stream, var_target, var_pname, (GLint*)(outptr_params.get()), size_params);
 			this->glGetTexParameteriv(var_target, var_pname, (GLint*)(outptr_params.get()));
 			outptr_params.flush();
+
+			char* cmpBuf = (char*)malloc(totalTmpSize);
+			assert(cmpBuf != NULL);
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::writeChecksum(checksumCalc, &tmpBuf[0], totalTmpSize - checksumSize, &tmpBuf[totalTmpSize - checksumSize], checksumSize);
 			}
+			memcpy(cmpBuf, tmpBuf, totalTmpSize);
 			stream->flush();
 
 			char* fakeIdBuf = (char*)malloc(totalTmpSize);
@@ -1822,8 +1976,10 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 				size_t fakeIdBufOffset = totalTmpSize - toReadSize;
 				toReadSize -= stream->read(fakeIdBuf + fakeIdBufOffset, toReadSize);
 			}
-			free(fakeIdBuf);
 
+			if (memcmp(fakeIdBuf, cmpBuf, totalTmpSize) != 0) assert(false);
+			free(fakeIdBuf);
+			free(cmpBuf);
 			SET_LASTCALL("glGetTexParameteriv");
 			break;
 		}
@@ -1846,9 +2002,13 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DEBUG("gles2(%p): glGetUniformfv(%u %d %p(%u) )\n", stream, var_program, var_location, (GLfloat*)(outptr_params.get()), size_params);
 			this->glGetUniformfv(var_program, var_location, (GLfloat*)(outptr_params.get()));
 			outptr_params.flush();
+
+			char* cmpBuf = (char*)malloc(totalTmpSize);
+			assert(cmpBuf != NULL);
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::writeChecksum(checksumCalc, &tmpBuf[0], totalTmpSize - checksumSize, &tmpBuf[totalTmpSize - checksumSize], checksumSize);
 			}
+			memcpy(cmpBuf, tmpBuf, totalTmpSize);
 			stream->flush();
 
 			char* fakeIdBuf = (char*)malloc(totalTmpSize);
@@ -1859,8 +2019,10 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 				size_t fakeIdBufOffset = totalTmpSize - toReadSize;
 				toReadSize -= stream->read(fakeIdBuf + fakeIdBufOffset, toReadSize);
 			}
-			free(fakeIdBuf);
 
+			if (memcmp(fakeIdBuf, cmpBuf, totalTmpSize) != 0) assert(false);
+			free(fakeIdBuf);
+			free(cmpBuf);
 			SET_LASTCALL("glGetUniformfv");
 			break;
 		}
@@ -1883,9 +2045,13 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DEBUG("gles2(%p): glGetUniformiv(%u %d %p(%u) )\n", stream, var_program, var_location, (GLint*)(outptr_params.get()), size_params);
 			this->glGetUniformiv(var_program, var_location, (GLint*)(outptr_params.get()));
 			outptr_params.flush();
+
+			char* cmpBuf = (char*)malloc(totalTmpSize);
+			assert(cmpBuf != NULL);
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::writeChecksum(checksumCalc, &tmpBuf[0], totalTmpSize - checksumSize, &tmpBuf[totalTmpSize - checksumSize], checksumSize);
 			}
+			memcpy(cmpBuf, tmpBuf, totalTmpSize);
 			stream->flush();
 
 			char* fakeIdBuf = (char*)malloc(totalTmpSize);
@@ -1896,8 +2062,10 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 				size_t fakeIdBufOffset = totalTmpSize - toReadSize;
 				toReadSize -= stream->read(fakeIdBuf + fakeIdBufOffset, toReadSize);
 			}
-			free(fakeIdBuf);
 
+			if (memcmp(fakeIdBuf, cmpBuf, totalTmpSize) != 0) assert(false);
+			free(fakeIdBuf);
+			free(cmpBuf);
 			SET_LASTCALL("glGetUniformiv");
 			break;
 		}
@@ -1918,9 +2086,13 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			#endif
 			DEBUG("gles2(%p): glGetUniformLocation(%u %p(%u) )\n", stream, var_program, (const GLchar*)(inptr_name.get()), size_name);
 			*(int *)(&tmpBuf[0]) = 			this->glGetUniformLocation(var_program, (const GLchar*)(inptr_name.get()));
+
+			char* cmpBuf = (char*)malloc(totalTmpSize);
+			assert(cmpBuf != NULL);
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::writeChecksum(checksumCalc, &tmpBuf[0], totalTmpSize - checksumSize, &tmpBuf[totalTmpSize - checksumSize], checksumSize);
 			}
+			memcpy(cmpBuf, tmpBuf, totalTmpSize);
 			stream->flush();
 
 			char* fakeIdBuf = (char*)malloc(totalTmpSize);
@@ -1931,8 +2103,10 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 				size_t fakeIdBufOffset = totalTmpSize - toReadSize;
 				toReadSize -= stream->read(fakeIdBuf + fakeIdBufOffset, toReadSize);
 			}
-			free(fakeIdBuf);
 
+			if (memcmp(fakeIdBuf, cmpBuf, totalTmpSize) != 0) assert(false);
+			free(fakeIdBuf);
+			free(cmpBuf);
 			SET_LASTCALL("glGetUniformLocation");
 			break;
 		}
@@ -1955,9 +2129,13 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DEBUG("gles2(%p): glGetVertexAttribfv(%u 0x%08x %p(%u) )\n", stream, var_index, var_pname, (GLfloat*)(outptr_params.get()), size_params);
 			this->glGetVertexAttribfv(var_index, var_pname, (GLfloat*)(outptr_params.get()));
 			outptr_params.flush();
+
+			char* cmpBuf = (char*)malloc(totalTmpSize);
+			assert(cmpBuf != NULL);
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::writeChecksum(checksumCalc, &tmpBuf[0], totalTmpSize - checksumSize, &tmpBuf[totalTmpSize - checksumSize], checksumSize);
 			}
+			memcpy(cmpBuf, tmpBuf, totalTmpSize);
 			stream->flush();
 
 			char* fakeIdBuf = (char*)malloc(totalTmpSize);
@@ -1968,8 +2146,10 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 				size_t fakeIdBufOffset = totalTmpSize - toReadSize;
 				toReadSize -= stream->read(fakeIdBuf + fakeIdBufOffset, toReadSize);
 			}
-			free(fakeIdBuf);
 
+			if (memcmp(fakeIdBuf, cmpBuf, totalTmpSize) != 0) assert(false);
+			free(fakeIdBuf);
+			free(cmpBuf);
 			SET_LASTCALL("glGetVertexAttribfv");
 			break;
 		}
@@ -1992,9 +2172,13 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DEBUG("gles2(%p): glGetVertexAttribiv(%u 0x%08x %p(%u) )\n", stream, var_index, var_pname, (GLint*)(outptr_params.get()), size_params);
 			this->glGetVertexAttribiv(var_index, var_pname, (GLint*)(outptr_params.get()));
 			outptr_params.flush();
+
+			char* cmpBuf = (char*)malloc(totalTmpSize);
+			assert(cmpBuf != NULL);
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::writeChecksum(checksumCalc, &tmpBuf[0], totalTmpSize - checksumSize, &tmpBuf[totalTmpSize - checksumSize], checksumSize);
 			}
+			memcpy(cmpBuf, tmpBuf, totalTmpSize);
 			stream->flush();
 
 			char* fakeIdBuf = (char*)malloc(totalTmpSize);
@@ -2005,8 +2189,10 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 				size_t fakeIdBufOffset = totalTmpSize - toReadSize;
 				toReadSize -= stream->read(fakeIdBuf + fakeIdBufOffset, toReadSize);
 			}
-			free(fakeIdBuf);
 
+			if (memcmp(fakeIdBuf, cmpBuf, totalTmpSize) != 0) assert(false);
+			free(fakeIdBuf);
+			free(cmpBuf);
 			SET_LASTCALL("glGetVertexAttribiv");
 			break;
 		}
@@ -2059,9 +2245,13 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			#endif
 			DEBUG("gles2(%p): glIsBuffer(%u )\n", stream, var_buffer);
 			*(GLboolean *)(&tmpBuf[0]) = 			this->glIsBuffer(var_buffer);
+
+			char* cmpBuf = (char*)malloc(totalTmpSize);
+			assert(cmpBuf != NULL);
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::writeChecksum(checksumCalc, &tmpBuf[0], totalTmpSize - checksumSize, &tmpBuf[totalTmpSize - checksumSize], checksumSize);
 			}
+			memcpy(cmpBuf, tmpBuf, totalTmpSize);
 			stream->flush();
 
 			char* fakeIdBuf = (char*)malloc(totalTmpSize);
@@ -2072,8 +2262,10 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 				size_t fakeIdBufOffset = totalTmpSize - toReadSize;
 				toReadSize -= stream->read(fakeIdBuf + fakeIdBufOffset, toReadSize);
 			}
-			free(fakeIdBuf);
 
+			if (memcmp(fakeIdBuf, cmpBuf, totalTmpSize) != 0) assert(false);
+			free(fakeIdBuf);
+			free(cmpBuf);
 			SET_LASTCALL("glIsBuffer");
 			break;
 		}
@@ -2092,9 +2284,13 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			#endif
 			DEBUG("gles2(%p): glIsEnabled(0x%08x )\n", stream, var_cap);
 			*(GLboolean *)(&tmpBuf[0]) = 			this->glIsEnabled(var_cap);
+
+			char* cmpBuf = (char*)malloc(totalTmpSize);
+			assert(cmpBuf != NULL);
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::writeChecksum(checksumCalc, &tmpBuf[0], totalTmpSize - checksumSize, &tmpBuf[totalTmpSize - checksumSize], checksumSize);
 			}
+			memcpy(cmpBuf, tmpBuf, totalTmpSize);
 			stream->flush();
 
 			char* fakeIdBuf = (char*)malloc(totalTmpSize);
@@ -2105,8 +2301,10 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 				size_t fakeIdBufOffset = totalTmpSize - toReadSize;
 				toReadSize -= stream->read(fakeIdBuf + fakeIdBufOffset, toReadSize);
 			}
-			free(fakeIdBuf);
 
+			if (memcmp(fakeIdBuf, cmpBuf, totalTmpSize) != 0) assert(false);
+			free(fakeIdBuf);
+			free(cmpBuf);
 			SET_LASTCALL("glIsEnabled");
 			break;
 		}
@@ -2125,9 +2323,13 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			#endif
 			DEBUG("gles2(%p): glIsFramebuffer(%u )\n", stream, var_framebuffer);
 			*(GLboolean *)(&tmpBuf[0]) = 			this->glIsFramebuffer(var_framebuffer);
+
+			char* cmpBuf = (char*)malloc(totalTmpSize);
+			assert(cmpBuf != NULL);
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::writeChecksum(checksumCalc, &tmpBuf[0], totalTmpSize - checksumSize, &tmpBuf[totalTmpSize - checksumSize], checksumSize);
 			}
+			memcpy(cmpBuf, tmpBuf, totalTmpSize);
 			stream->flush();
 
 			char* fakeIdBuf = (char*)malloc(totalTmpSize);
@@ -2138,8 +2340,10 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 				size_t fakeIdBufOffset = totalTmpSize - toReadSize;
 				toReadSize -= stream->read(fakeIdBuf + fakeIdBufOffset, toReadSize);
 			}
-			free(fakeIdBuf);
 
+			if (memcmp(fakeIdBuf, cmpBuf, totalTmpSize) != 0) assert(false);
+			free(fakeIdBuf);
+			free(cmpBuf);
 			SET_LASTCALL("glIsFramebuffer");
 			break;
 		}
@@ -2158,9 +2362,13 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			#endif
 			DEBUG("gles2(%p): glIsProgram(%u )\n", stream, var_program);
 			*(GLboolean *)(&tmpBuf[0]) = 			this->glIsProgram(var_program);
+
+			char* cmpBuf = (char*)malloc(totalTmpSize);
+			assert(cmpBuf != NULL);
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::writeChecksum(checksumCalc, &tmpBuf[0], totalTmpSize - checksumSize, &tmpBuf[totalTmpSize - checksumSize], checksumSize);
 			}
+			memcpy(cmpBuf, tmpBuf, totalTmpSize);
 			stream->flush();
 
 			char* fakeIdBuf = (char*)malloc(totalTmpSize);
@@ -2171,8 +2379,10 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 				size_t fakeIdBufOffset = totalTmpSize - toReadSize;
 				toReadSize -= stream->read(fakeIdBuf + fakeIdBufOffset, toReadSize);
 			}
-			free(fakeIdBuf);
 
+			if (memcmp(fakeIdBuf, cmpBuf, totalTmpSize) != 0) assert(false);
+			free(fakeIdBuf);
+			free(cmpBuf);
 			SET_LASTCALL("glIsProgram");
 			break;
 		}
@@ -2191,9 +2401,13 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			#endif
 			DEBUG("gles2(%p): glIsRenderbuffer(%u )\n", stream, var_renderbuffer);
 			*(GLboolean *)(&tmpBuf[0]) = 			this->glIsRenderbuffer(var_renderbuffer);
+
+			char* cmpBuf = (char*)malloc(totalTmpSize);
+			assert(cmpBuf != NULL);
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::writeChecksum(checksumCalc, &tmpBuf[0], totalTmpSize - checksumSize, &tmpBuf[totalTmpSize - checksumSize], checksumSize);
 			}
+			memcpy(cmpBuf, tmpBuf, totalTmpSize);
 			stream->flush();
 
 			char* fakeIdBuf = (char*)malloc(totalTmpSize);
@@ -2204,8 +2418,10 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 				size_t fakeIdBufOffset = totalTmpSize - toReadSize;
 				toReadSize -= stream->read(fakeIdBuf + fakeIdBufOffset, toReadSize);
 			}
-			free(fakeIdBuf);
 
+			if (memcmp(fakeIdBuf, cmpBuf, totalTmpSize) != 0) assert(false);
+			free(fakeIdBuf);
+			free(cmpBuf);
 			SET_LASTCALL("glIsRenderbuffer");
 			break;
 		}
@@ -2224,9 +2440,13 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			#endif
 			DEBUG("gles2(%p): glIsShader(%u )\n", stream, var_shader);
 			*(GLboolean *)(&tmpBuf[0]) = 			this->glIsShader(var_shader);
+
+			char* cmpBuf = (char*)malloc(totalTmpSize);
+			assert(cmpBuf != NULL);
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::writeChecksum(checksumCalc, &tmpBuf[0], totalTmpSize - checksumSize, &tmpBuf[totalTmpSize - checksumSize], checksumSize);
 			}
+			memcpy(cmpBuf, tmpBuf, totalTmpSize);
 			stream->flush();
 
 			char* fakeIdBuf = (char*)malloc(totalTmpSize);
@@ -2237,8 +2457,10 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 				size_t fakeIdBufOffset = totalTmpSize - toReadSize;
 				toReadSize -= stream->read(fakeIdBuf + fakeIdBufOffset, toReadSize);
 			}
-			free(fakeIdBuf);
 
+			if (memcmp(fakeIdBuf, cmpBuf, totalTmpSize) != 0) assert(false);
+			free(fakeIdBuf);
+			free(cmpBuf);
 			SET_LASTCALL("glIsShader");
 			break;
 		}
@@ -2257,9 +2479,13 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			#endif
 			DEBUG("gles2(%p): glIsTexture(%u )\n", stream, var_texture);
 			*(GLboolean *)(&tmpBuf[0]) = 			this->glIsTexture(var_texture);
+
+			char* cmpBuf = (char*)malloc(totalTmpSize);
+			assert(cmpBuf != NULL);
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::writeChecksum(checksumCalc, &tmpBuf[0], totalTmpSize - checksumSize, &tmpBuf[totalTmpSize - checksumSize], checksumSize);
 			}
+			memcpy(cmpBuf, tmpBuf, totalTmpSize);
 			stream->flush();
 
 			char* fakeIdBuf = (char*)malloc(totalTmpSize);
@@ -2270,8 +2496,10 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 				size_t fakeIdBufOffset = totalTmpSize - toReadSize;
 				toReadSize -= stream->read(fakeIdBuf + fakeIdBufOffset, toReadSize);
 			}
-			free(fakeIdBuf);
 
+			if (memcmp(fakeIdBuf, cmpBuf, totalTmpSize) != 0) assert(false);
+			free(fakeIdBuf);
+			free(cmpBuf);
 			SET_LASTCALL("glIsTexture");
 			break;
 		}
@@ -2360,9 +2588,13 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DEBUG("gles2(%p): glReadPixels(%d %d %d %d 0x%08x 0x%08x %p(%u) )\n", stream, var_x, var_y, var_width, var_height, var_format, var_type, (GLvoid*)(outptr_pixels.get()), size_pixels);
 			this->glReadPixels(var_x, var_y, var_width, var_height, var_format, var_type, (GLvoid*)(outptr_pixels.get()));
 			outptr_pixels.flush();
+
+			char* cmpBuf = (char*)malloc(totalTmpSize);
+			assert(cmpBuf != NULL);
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::writeChecksum(checksumCalc, &tmpBuf[0], totalTmpSize - checksumSize, &tmpBuf[totalTmpSize - checksumSize], checksumSize);
 			}
+			memcpy(cmpBuf, tmpBuf, totalTmpSize);
 			stream->flush();
 
 			char* fakeIdBuf = (char*)malloc(totalTmpSize);
@@ -2373,8 +2605,10 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 				size_t fakeIdBufOffset = totalTmpSize - toReadSize;
 				toReadSize -= stream->read(fakeIdBuf + fakeIdBufOffset, toReadSize);
 			}
-			free(fakeIdBuf);
 
+			if (memcmp(fakeIdBuf, cmpBuf, totalTmpSize) != 0) assert(false);
+			free(fakeIdBuf);
+			free(cmpBuf);
 			SET_LASTCALL("glReadPixels");
 			break;
 		}
@@ -3356,9 +3590,13 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			#endif
 			DEBUG("gles2(%p): glUnmapBufferOES(0x%08x )\n", stream, var_target);
 			*(GLboolean *)(&tmpBuf[0]) = 			this->glUnmapBufferOES(var_target);
+
+			char* cmpBuf = (char*)malloc(totalTmpSize);
+			assert(cmpBuf != NULL);
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::writeChecksum(checksumCalc, &tmpBuf[0], totalTmpSize - checksumSize, &tmpBuf[totalTmpSize - checksumSize], checksumSize);
 			}
+			memcpy(cmpBuf, tmpBuf, totalTmpSize);
 			stream->flush();
 
 			char* fakeIdBuf = (char*)malloc(totalTmpSize);
@@ -3369,8 +3607,10 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 				size_t fakeIdBufOffset = totalTmpSize - toReadSize;
 				toReadSize -= stream->read(fakeIdBuf + fakeIdBufOffset, toReadSize);
 			}
-			free(fakeIdBuf);
 
+			if (memcmp(fakeIdBuf, cmpBuf, totalTmpSize) != 0) assert(false);
+			free(fakeIdBuf);
+			free(cmpBuf);
 			SET_LASTCALL("glUnmapBufferOES");
 			break;
 		}
@@ -3568,9 +3808,13 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DEBUG("gles2(%p): glGenVertexArraysOES(%d %p(%u) )\n", stream, var_n, (GLuint*)(outptr_arrays.get()), size_arrays);
 			this->glGenVertexArraysOES(var_n, (GLuint*)(outptr_arrays.get()));
 			outptr_arrays.flush();
+
+			char* cmpBuf = (char*)malloc(totalTmpSize);
+			assert(cmpBuf != NULL);
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::writeChecksum(checksumCalc, &tmpBuf[0], totalTmpSize - checksumSize, &tmpBuf[totalTmpSize - checksumSize], checksumSize);
 			}
+			memcpy(cmpBuf, tmpBuf, totalTmpSize);
 			stream->flush();
 
 			char* fakeIdBuf = (char*)malloc(totalTmpSize);
@@ -3581,8 +3825,10 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 				size_t fakeIdBufOffset = totalTmpSize - toReadSize;
 				toReadSize -= stream->read(fakeIdBuf + fakeIdBufOffset, toReadSize);
 			}
-			free(fakeIdBuf);
 
+			if (memcmp(fakeIdBuf, cmpBuf, totalTmpSize) != 0) assert(false);
+			free(fakeIdBuf);
+			free(cmpBuf);
 			SET_LASTCALL("glGenVertexArraysOES");
 			break;
 		}
@@ -3601,9 +3847,13 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			#endif
 			DEBUG("gles2(%p): glIsVertexArrayOES(%u )\n", stream, var_array);
 			*(GLboolean *)(&tmpBuf[0]) = 			this->glIsVertexArrayOES(var_array);
+
+			char* cmpBuf = (char*)malloc(totalTmpSize);
+			assert(cmpBuf != NULL);
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::writeChecksum(checksumCalc, &tmpBuf[0], totalTmpSize - checksumSize, &tmpBuf[totalTmpSize - checksumSize], checksumSize);
 			}
+			memcpy(cmpBuf, tmpBuf, totalTmpSize);
 			stream->flush();
 
 			char* fakeIdBuf = (char*)malloc(totalTmpSize);
@@ -3614,8 +3864,10 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 				size_t fakeIdBufOffset = totalTmpSize - toReadSize;
 				toReadSize -= stream->read(fakeIdBuf + fakeIdBufOffset, toReadSize);
 			}
-			free(fakeIdBuf);
 
+			if (memcmp(fakeIdBuf, cmpBuf, totalTmpSize) != 0) assert(false);
+			free(fakeIdBuf);
+			free(cmpBuf);
 			SET_LASTCALL("glIsVertexArrayOES");
 			break;
 		}
@@ -3972,9 +4224,13 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			#endif
 			DEBUG("gles2(%p): glIsFenceNV(%u )\n", stream, var_fence);
 			*(GLboolean *)(&tmpBuf[0]) = 			this->glIsFenceNV(var_fence);
+
+			char* cmpBuf = (char*)malloc(totalTmpSize);
+			assert(cmpBuf != NULL);
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::writeChecksum(checksumCalc, &tmpBuf[0], totalTmpSize - checksumSize, &tmpBuf[totalTmpSize - checksumSize], checksumSize);
 			}
+			memcpy(cmpBuf, tmpBuf, totalTmpSize);
 			stream->flush();
 
 			char* fakeIdBuf = (char*)malloc(totalTmpSize);
@@ -3985,8 +4241,10 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 				size_t fakeIdBufOffset = totalTmpSize - toReadSize;
 				toReadSize -= stream->read(fakeIdBuf + fakeIdBufOffset, toReadSize);
 			}
-			free(fakeIdBuf);
 
+			if (memcmp(fakeIdBuf, cmpBuf, totalTmpSize) != 0) assert(false);
+			free(fakeIdBuf);
+			free(cmpBuf);
 			SET_LASTCALL("glIsFenceNV");
 			break;
 		}
@@ -4005,9 +4263,13 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			#endif
 			DEBUG("gles2(%p): glTestFenceNV(%u )\n", stream, var_fence);
 			*(GLboolean *)(&tmpBuf[0]) = 			this->glTestFenceNV(var_fence);
+
+			char* cmpBuf = (char*)malloc(totalTmpSize);
+			assert(cmpBuf != NULL);
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::writeChecksum(checksumCalc, &tmpBuf[0], totalTmpSize - checksumSize, &tmpBuf[totalTmpSize - checksumSize], checksumSize);
 			}
+			memcpy(cmpBuf, tmpBuf, totalTmpSize);
 			stream->flush();
 
 			char* fakeIdBuf = (char*)malloc(totalTmpSize);
@@ -4018,8 +4280,10 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 				size_t fakeIdBufOffset = totalTmpSize - toReadSize;
 				toReadSize -= stream->read(fakeIdBuf + fakeIdBufOffset, toReadSize);
 			}
-			free(fakeIdBuf);
 
+			if (memcmp(fakeIdBuf, cmpBuf, totalTmpSize) != 0) assert(false);
+			free(fakeIdBuf);
+			free(cmpBuf);
 			SET_LASTCALL("glTestFenceNV");
 			break;
 		}
@@ -4380,9 +4644,13 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			#endif
 			DEBUG("gles2(%p): glExtIsProgramBinaryQCOM(%u )\n", stream, var_program);
 			*(GLboolean *)(&tmpBuf[0]) = 			this->glExtIsProgramBinaryQCOM(var_program);
+
+			char* cmpBuf = (char*)malloc(totalTmpSize);
+			assert(cmpBuf != NULL);
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::writeChecksum(checksumCalc, &tmpBuf[0], totalTmpSize - checksumSize, &tmpBuf[totalTmpSize - checksumSize], checksumSize);
 			}
+			memcpy(cmpBuf, tmpBuf, totalTmpSize);
 			stream->flush();
 
 			char* fakeIdBuf = (char*)malloc(totalTmpSize);
@@ -4393,8 +4661,10 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 				size_t fakeIdBufOffset = totalTmpSize - toReadSize;
 				toReadSize -= stream->read(fakeIdBuf + fakeIdBufOffset, toReadSize);
 			}
-			free(fakeIdBuf);
 
+			if (memcmp(fakeIdBuf, cmpBuf, totalTmpSize) != 0) assert(false);
+			free(fakeIdBuf);
+			free(cmpBuf);
 			SET_LASTCALL("glExtIsProgramBinaryQCOM");
 			break;
 		}
@@ -4550,9 +4820,13 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DEBUG("gles2(%p): glGetCompressedTextureFormats(%d %p(%u) )\n", stream, var_count, (GLint*)(outptr_formats.get()), size_formats);
 			this->glGetCompressedTextureFormats(this, var_count, (GLint*)(outptr_formats.get()));
 			outptr_formats.flush();
+
+			char* cmpBuf = (char*)malloc(totalTmpSize);
+			assert(cmpBuf != NULL);
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::writeChecksum(checksumCalc, &tmpBuf[0], totalTmpSize - checksumSize, &tmpBuf[totalTmpSize - checksumSize], checksumSize);
 			}
+			memcpy(cmpBuf, tmpBuf, totalTmpSize);
 			stream->flush();
 
 			char* fakeIdBuf = (char*)malloc(totalTmpSize);
@@ -4563,8 +4837,10 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 				size_t fakeIdBufOffset = totalTmpSize - toReadSize;
 				toReadSize -= stream->read(fakeIdBuf + fakeIdBufOffset, toReadSize);
 			}
-			free(fakeIdBuf);
 
+			if (memcmp(fakeIdBuf, cmpBuf, totalTmpSize) != 0) assert(false);
+			free(fakeIdBuf);
+			free(cmpBuf);
 			SET_LASTCALL("glGetCompressedTextureFormats");
 			break;
 		}
@@ -4600,9 +4876,13 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			#endif
 			DEBUG("gles2(%p): glFinishRoundTrip()\n", stream);
 			*(int *)(&tmpBuf[0]) = 			this->glFinishRoundTrip(this);
+
+			char* cmpBuf = (char*)malloc(totalTmpSize);
+			assert(cmpBuf != NULL);
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::writeChecksum(checksumCalc, &tmpBuf[0], totalTmpSize - checksumSize, &tmpBuf[totalTmpSize - checksumSize], checksumSize);
 			}
+			memcpy(cmpBuf, tmpBuf, totalTmpSize);
 			stream->flush();
 
 			char* fakeIdBuf = (char*)malloc(totalTmpSize);
@@ -4613,8 +4893,10 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 				size_t fakeIdBufOffset = totalTmpSize - toReadSize;
 				toReadSize -= stream->read(fakeIdBuf + fakeIdBufOffset, toReadSize);
 			}
-			free(fakeIdBuf);
 
+			if (memcmp(fakeIdBuf, cmpBuf, totalTmpSize) != 0) assert(false);
+			free(fakeIdBuf);
+			free(cmpBuf);
 			SET_LASTCALL("glFinishRoundTrip");
 			break;
 		}
@@ -4636,9 +4918,13 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DEBUG("gles2(%p): glGenVertexArrays(%d %p(%u) )\n", stream, var_n, (GLuint*)(outptr_arrays.get()), size_arrays);
 			this->glGenVertexArrays(var_n, (GLuint*)(outptr_arrays.get()));
 			outptr_arrays.flush();
+
+			char* cmpBuf = (char*)malloc(totalTmpSize);
+			assert(cmpBuf != NULL);
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::writeChecksum(checksumCalc, &tmpBuf[0], totalTmpSize - checksumSize, &tmpBuf[totalTmpSize - checksumSize], checksumSize);
 			}
+			memcpy(cmpBuf, tmpBuf, totalTmpSize);
 			stream->flush();
 
 			char* fakeIdBuf = (char*)malloc(totalTmpSize);
@@ -4649,8 +4935,10 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 				size_t fakeIdBufOffset = totalTmpSize - toReadSize;
 				toReadSize -= stream->read(fakeIdBuf + fakeIdBufOffset, toReadSize);
 			}
-			free(fakeIdBuf);
 
+			if (memcmp(fakeIdBuf, cmpBuf, totalTmpSize) != 0) assert(false);
+			free(fakeIdBuf);
+			free(cmpBuf);
 			SET_LASTCALL("glGenVertexArrays");
 			break;
 		}
@@ -4701,9 +4989,13 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			#endif
 			DEBUG("gles2(%p): glIsVertexArray(%u )\n", stream, var_array);
 			*(GLboolean *)(&tmpBuf[0]) = 			this->glIsVertexArray(var_array);
+
+			char* cmpBuf = (char*)malloc(totalTmpSize);
+			assert(cmpBuf != NULL);
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::writeChecksum(checksumCalc, &tmpBuf[0], totalTmpSize - checksumSize, &tmpBuf[totalTmpSize - checksumSize], checksumSize);
 			}
+			memcpy(cmpBuf, tmpBuf, totalTmpSize);
 			stream->flush();
 
 			char* fakeIdBuf = (char*)malloc(totalTmpSize);
@@ -4714,8 +5006,10 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 				size_t fakeIdBufOffset = totalTmpSize - toReadSize;
 				toReadSize -= stream->read(fakeIdBuf + fakeIdBufOffset, toReadSize);
 			}
-			free(fakeIdBuf);
 
+			if (memcmp(fakeIdBuf, cmpBuf, totalTmpSize) != 0) assert(false);
+			free(fakeIdBuf);
+			free(cmpBuf);
 			SET_LASTCALL("glIsVertexArray");
 			break;
 		}
@@ -4752,9 +5046,13 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			#endif
 			DEBUG("gles2(%p): glUnmapBuffer(0x%08x )\n", stream, var_target);
 			*(GLboolean *)(&tmpBuf[0]) = 			this->glUnmapBuffer(var_target);
+
+			char* cmpBuf = (char*)malloc(totalTmpSize);
+			assert(cmpBuf != NULL);
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::writeChecksum(checksumCalc, &tmpBuf[0], totalTmpSize - checksumSize, &tmpBuf[totalTmpSize - checksumSize], checksumSize);
 			}
+			memcpy(cmpBuf, tmpBuf, totalTmpSize);
 			stream->flush();
 
 			char* fakeIdBuf = (char*)malloc(totalTmpSize);
@@ -4765,8 +5063,10 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 				size_t fakeIdBufOffset = totalTmpSize - toReadSize;
 				toReadSize -= stream->read(fakeIdBuf + fakeIdBufOffset, toReadSize);
 			}
-			free(fakeIdBuf);
 
+			if (memcmp(fakeIdBuf, cmpBuf, totalTmpSize) != 0) assert(false);
+			free(fakeIdBuf);
+			free(cmpBuf);
 			SET_LASTCALL("glUnmapBuffer");
 			break;
 		}
@@ -4808,9 +5108,13 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DEBUG("gles2(%p): glMapBufferRangeAEMU(0x%08x 0x%08lx 0x%08lx 0x%08x %p(%u) )\n", stream, var_target, var_offset, var_length, var_access, (void*)(outptr_mapped.get()), size_mapped);
 			this->glMapBufferRangeAEMU(this, var_target, var_offset, var_length, var_access, size_mapped == 0 ? nullptr : (void*)(outptr_mapped.get()));
 			outptr_mapped.flush();
+
+			char* cmpBuf = (char*)malloc(totalTmpSize);
+			assert(cmpBuf != NULL);
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::writeChecksum(checksumCalc, &tmpBuf[0], totalTmpSize - checksumSize, &tmpBuf[totalTmpSize - checksumSize], checksumSize);
 			}
+			memcpy(cmpBuf, tmpBuf, totalTmpSize);
 			stream->flush();
 
 			char* fakeIdBuf = (char*)malloc(totalTmpSize);
@@ -4821,8 +5125,10 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 				size_t fakeIdBufOffset = totalTmpSize - toReadSize;
 				toReadSize -= stream->read(fakeIdBuf + fakeIdBufOffset, toReadSize);
 			}
-			free(fakeIdBuf);
 
+			if (memcmp(fakeIdBuf, cmpBuf, totalTmpSize) != 0) assert(false);
+			free(fakeIdBuf);
+			free(cmpBuf);
 			SET_LASTCALL("glMapBufferRangeAEMU");
 			break;
 		}
@@ -4849,9 +5155,13 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DEBUG("gles2(%p): glUnmapBufferAEMU(0x%08x 0x%08lx 0x%08lx 0x%08x %p(%u) %p(%u) )\n", stream, var_target, var_offset, var_length, var_access, (void*)(inptr_guest_buffer.get()), size_guest_buffer, (GLboolean*)(outptr_out_res.get()), size_out_res);
 			this->glUnmapBufferAEMU(this, var_target, var_offset, var_length, var_access, size_guest_buffer == 0 ? nullptr : (void*)(inptr_guest_buffer.get()), (GLboolean*)(outptr_out_res.get()));
 			outptr_out_res.flush();
+
+			char* cmpBuf = (char*)malloc(totalTmpSize);
+			assert(cmpBuf != NULL);
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::writeChecksum(checksumCalc, &tmpBuf[0], totalTmpSize - checksumSize, &tmpBuf[totalTmpSize - checksumSize], checksumSize);
 			}
+			memcpy(cmpBuf, tmpBuf, totalTmpSize);
 			stream->flush();
 
 			char* fakeIdBuf = (char*)malloc(totalTmpSize);
@@ -4862,8 +5172,10 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 				size_t fakeIdBufOffset = totalTmpSize - toReadSize;
 				toReadSize -= stream->read(fakeIdBuf + fakeIdBufOffset, toReadSize);
 			}
-			free(fakeIdBuf);
 
+			if (memcmp(fakeIdBuf, cmpBuf, totalTmpSize) != 0) assert(false);
+			free(fakeIdBuf);
+			free(cmpBuf);
 			SET_LASTCALL("glUnmapBufferAEMU");
 			break;
 		}
@@ -5196,9 +5508,13 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			#endif
 			DEBUG("gles2(%p): glGetUniformBlockIndex(%u %p(%u) )\n", stream, var_program, (const GLchar*)(inptr_uniformBlockName.get()), size_uniformBlockName);
 			*(GLuint *)(&tmpBuf[0]) = 			this->glGetUniformBlockIndex(var_program, (const GLchar*)(inptr_uniformBlockName.get()));
+
+			char* cmpBuf = (char*)malloc(totalTmpSize);
+			assert(cmpBuf != NULL);
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::writeChecksum(checksumCalc, &tmpBuf[0], totalTmpSize - checksumSize, &tmpBuf[totalTmpSize - checksumSize], checksumSize);
 			}
+			memcpy(cmpBuf, tmpBuf, totalTmpSize);
 			stream->flush();
 
 			char* fakeIdBuf = (char*)malloc(totalTmpSize);
@@ -5209,8 +5525,10 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 				size_t fakeIdBufOffset = totalTmpSize - toReadSize;
 				toReadSize -= stream->read(fakeIdBuf + fakeIdBufOffset, toReadSize);
 			}
-			free(fakeIdBuf);
 
+			if (memcmp(fakeIdBuf, cmpBuf, totalTmpSize) != 0) assert(false);
+			free(fakeIdBuf);
+			free(cmpBuf);
 			SET_LASTCALL("glGetUniformBlockIndex");
 			break;
 		}
@@ -5256,9 +5574,13 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DEBUG("gles2(%p): glGetUniformIndicesAEMU(%u %d %p(%u) %d %p(%u) )\n", stream, var_program, var_uniformCount, (const GLchar*)(inptr_packedUniformNames.get()), size_packedUniformNames, var_packedLen, (GLuint*)(outptr_uniformIndices.get()), size_uniformIndices);
 			this->glGetUniformIndicesAEMU(this, var_program, var_uniformCount, (const GLchar*)(inptr_packedUniformNames.get()), var_packedLen, (GLuint*)(outptr_uniformIndices.get()));
 			outptr_uniformIndices.flush();
+
+			char* cmpBuf = (char*)malloc(totalTmpSize);
+			assert(cmpBuf != NULL);
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::writeChecksum(checksumCalc, &tmpBuf[0], totalTmpSize - checksumSize, &tmpBuf[totalTmpSize - checksumSize], checksumSize);
 			}
+			memcpy(cmpBuf, tmpBuf, totalTmpSize);
 			stream->flush();
 
 			char* fakeIdBuf = (char*)malloc(totalTmpSize);
@@ -5269,8 +5591,10 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 				size_t fakeIdBufOffset = totalTmpSize - toReadSize;
 				toReadSize -= stream->read(fakeIdBuf + fakeIdBufOffset, toReadSize);
 			}
-			free(fakeIdBuf);
 
+			if (memcmp(fakeIdBuf, cmpBuf, totalTmpSize) != 0) assert(false);
+			free(fakeIdBuf);
+			free(cmpBuf);
 			SET_LASTCALL("glGetUniformIndicesAEMU");
 			break;
 		}
@@ -5294,9 +5618,13 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DEBUG("gles2(%p): glGetActiveUniformBlockiv(%u %u 0x%08x %p(%u) )\n", stream, var_program, var_uniformBlockIndex, var_pname, (GLint*)(outptr_params.get()), size_params);
 			this->glGetActiveUniformBlockiv(var_program, var_uniformBlockIndex, var_pname, (GLint*)(outptr_params.get()));
 			outptr_params.flush();
+
+			char* cmpBuf = (char*)malloc(totalTmpSize);
+			assert(cmpBuf != NULL);
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::writeChecksum(checksumCalc, &tmpBuf[0], totalTmpSize - checksumSize, &tmpBuf[totalTmpSize - checksumSize], checksumSize);
 			}
+			memcpy(cmpBuf, tmpBuf, totalTmpSize);
 			stream->flush();
 
 			char* fakeIdBuf = (char*)malloc(totalTmpSize);
@@ -5307,8 +5635,10 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 				size_t fakeIdBufOffset = totalTmpSize - toReadSize;
 				toReadSize -= stream->read(fakeIdBuf + fakeIdBufOffset, toReadSize);
 			}
-			free(fakeIdBuf);
 
+			if (memcmp(fakeIdBuf, cmpBuf, totalTmpSize) != 0) assert(false);
+			free(fakeIdBuf);
+			free(cmpBuf);
 			SET_LASTCALL("glGetActiveUniformBlockiv");
 			break;
 		}
@@ -5336,9 +5666,13 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			this->glGetActiveUniformBlockName(var_program, var_uniformBlockIndex, var_bufSize, size_length == 0 ? nullptr : (GLsizei*)(outptr_length.get()), size_uniformBlockName == 0 ? nullptr : (GLchar*)(outptr_uniformBlockName.get()));
 			outptr_length.flush();
 			outptr_uniformBlockName.flush();
+
+			char* cmpBuf = (char*)malloc(totalTmpSize);
+			assert(cmpBuf != NULL);
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::writeChecksum(checksumCalc, &tmpBuf[0], totalTmpSize - checksumSize, &tmpBuf[totalTmpSize - checksumSize], checksumSize);
 			}
+			memcpy(cmpBuf, tmpBuf, totalTmpSize);
 			stream->flush();
 
 			char* fakeIdBuf = (char*)malloc(totalTmpSize);
@@ -5349,8 +5683,10 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 				size_t fakeIdBufOffset = totalTmpSize - toReadSize;
 				toReadSize -= stream->read(fakeIdBuf + fakeIdBufOffset, toReadSize);
 			}
-			free(fakeIdBuf);
 
+			if (memcmp(fakeIdBuf, cmpBuf, totalTmpSize) != 0) assert(false);
+			free(fakeIdBuf);
+			free(cmpBuf);
 			SET_LASTCALL("glGetActiveUniformBlockName");
 			break;
 		}
@@ -5629,9 +5965,13 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DEBUG("gles2(%p): glGetUniformuiv(%u %d %p(%u) )\n", stream, var_program, var_location, (GLuint*)(outptr_params.get()), size_params);
 			this->glGetUniformuiv(var_program, var_location, (GLuint*)(outptr_params.get()));
 			outptr_params.flush();
+
+			char* cmpBuf = (char*)malloc(totalTmpSize);
+			assert(cmpBuf != NULL);
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::writeChecksum(checksumCalc, &tmpBuf[0], totalTmpSize - checksumSize, &tmpBuf[totalTmpSize - checksumSize], checksumSize);
 			}
+			memcpy(cmpBuf, tmpBuf, totalTmpSize);
 			stream->flush();
 
 			char* fakeIdBuf = (char*)malloc(totalTmpSize);
@@ -5642,8 +5982,10 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 				size_t fakeIdBufOffset = totalTmpSize - toReadSize;
 				toReadSize -= stream->read(fakeIdBuf + fakeIdBufOffset, toReadSize);
 			}
-			free(fakeIdBuf);
 
+			if (memcmp(fakeIdBuf, cmpBuf, totalTmpSize) != 0) assert(false);
+			free(fakeIdBuf);
+			free(cmpBuf);
 			SET_LASTCALL("glGetUniformuiv");
 			break;
 		}
@@ -5669,9 +6011,13 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DEBUG("gles2(%p): glGetActiveUniformsiv(%u %d %p(%u) 0x%08x %p(%u) )\n", stream, var_program, var_uniformCount, (const GLuint*)(inptr_uniformIndices.get()), size_uniformIndices, var_pname, (GLint*)(outptr_params.get()), size_params);
 			this->glGetActiveUniformsiv(var_program, var_uniformCount, (const GLuint*)(inptr_uniformIndices.get()), var_pname, (GLint*)(outptr_params.get()));
 			outptr_params.flush();
+
+			char* cmpBuf = (char*)malloc(totalTmpSize);
+			assert(cmpBuf != NULL);
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::writeChecksum(checksumCalc, &tmpBuf[0], totalTmpSize - checksumSize, &tmpBuf[totalTmpSize - checksumSize], checksumSize);
 			}
+			memcpy(cmpBuf, tmpBuf, totalTmpSize);
 			stream->flush();
 
 			char* fakeIdBuf = (char*)malloc(totalTmpSize);
@@ -5682,8 +6028,10 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 				size_t fakeIdBufOffset = totalTmpSize - toReadSize;
 				toReadSize -= stream->read(fakeIdBuf + fakeIdBufOffset, toReadSize);
 			}
-			free(fakeIdBuf);
 
+			if (memcmp(fakeIdBuf, cmpBuf, totalTmpSize) != 0) assert(false);
+			free(fakeIdBuf);
+			free(cmpBuf);
 			SET_LASTCALL("glGetActiveUniformsiv");
 			break;
 		}
@@ -5838,9 +6186,13 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DEBUG("gles2(%p): glGetVertexAttribIiv(%u 0x%08x %p(%u) )\n", stream, var_index, var_pname, (GLint*)(outptr_params.get()), size_params);
 			this->glGetVertexAttribIiv(var_index, var_pname, (GLint*)(outptr_params.get()));
 			outptr_params.flush();
+
+			char* cmpBuf = (char*)malloc(totalTmpSize);
+			assert(cmpBuf != NULL);
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::writeChecksum(checksumCalc, &tmpBuf[0], totalTmpSize - checksumSize, &tmpBuf[totalTmpSize - checksumSize], checksumSize);
 			}
+			memcpy(cmpBuf, tmpBuf, totalTmpSize);
 			stream->flush();
 
 			char* fakeIdBuf = (char*)malloc(totalTmpSize);
@@ -5851,8 +6203,10 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 				size_t fakeIdBufOffset = totalTmpSize - toReadSize;
 				toReadSize -= stream->read(fakeIdBuf + fakeIdBufOffset, toReadSize);
 			}
-			free(fakeIdBuf);
 
+			if (memcmp(fakeIdBuf, cmpBuf, totalTmpSize) != 0) assert(false);
+			free(fakeIdBuf);
+			free(cmpBuf);
 			SET_LASTCALL("glGetVertexAttribIiv");
 			break;
 		}
@@ -5875,9 +6229,13 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DEBUG("gles2(%p): glGetVertexAttribIuiv(%u 0x%08x %p(%u) )\n", stream, var_index, var_pname, (GLuint*)(outptr_params.get()), size_params);
 			this->glGetVertexAttribIuiv(var_index, var_pname, (GLuint*)(outptr_params.get()));
 			outptr_params.flush();
+
+			char* cmpBuf = (char*)malloc(totalTmpSize);
+			assert(cmpBuf != NULL);
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::writeChecksum(checksumCalc, &tmpBuf[0], totalTmpSize - checksumSize, &tmpBuf[totalTmpSize - checksumSize], checksumSize);
 			}
+			memcpy(cmpBuf, tmpBuf, totalTmpSize);
 			stream->flush();
 
 			char* fakeIdBuf = (char*)malloc(totalTmpSize);
@@ -5888,8 +6246,10 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 				size_t fakeIdBufOffset = totalTmpSize - toReadSize;
 				toReadSize -= stream->read(fakeIdBuf + fakeIdBufOffset, toReadSize);
 			}
-			free(fakeIdBuf);
 
+			if (memcmp(fakeIdBuf, cmpBuf, totalTmpSize) != 0) assert(false);
+			free(fakeIdBuf);
+			free(cmpBuf);
 			SET_LASTCALL("glGetVertexAttribIuiv");
 			break;
 		}
@@ -6066,9 +6426,13 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			#endif
 			DEBUG("gles2(%p): glFenceSync(0x%08x 0x%08x )\n", stream, var_condition, var_flags);
 			*(GLsync *)(&tmpBuf[0]) = 			this->glFenceSync(var_condition, var_flags);
+
+			char* cmpBuf = (char*)malloc(totalTmpSize);
+			assert(cmpBuf != NULL);
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::writeChecksum(checksumCalc, &tmpBuf[0], totalTmpSize - checksumSize, &tmpBuf[totalTmpSize - checksumSize], checksumSize);
 			}
+			memcpy(cmpBuf, tmpBuf, totalTmpSize);
 			stream->flush();
 
 			char* fakeIdBuf = (char*)malloc(totalTmpSize);
@@ -6079,8 +6443,10 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 				size_t fakeIdBufOffset = totalTmpSize - toReadSize;
 				toReadSize -= stream->read(fakeIdBuf + fakeIdBufOffset, toReadSize);
 			}
-			free(fakeIdBuf);
 
+			if (memcmp(fakeIdBuf, cmpBuf, totalTmpSize) != 0) assert(false);
+			free(fakeIdBuf);
+			free(cmpBuf);
 			SET_LASTCALL("glFenceSync");
 			break;
 		}
@@ -6101,9 +6467,13 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			#endif
 			DEBUG("gles2(%p): glClientWaitSync(%p 0x%08x 0x%016lx )\n", stream, var_wait_on, var_flags, var_timeout);
 			*(GLenum *)(&tmpBuf[0]) = 			this->glClientWaitSync(var_wait_on, var_flags, var_timeout);
+
+			char* cmpBuf = (char*)malloc(totalTmpSize);
+			assert(cmpBuf != NULL);
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::writeChecksum(checksumCalc, &tmpBuf[0], totalTmpSize - checksumSize, &tmpBuf[totalTmpSize - checksumSize], checksumSize);
 			}
+			memcpy(cmpBuf, tmpBuf, totalTmpSize);
 			stream->flush();
 
 			char* fakeIdBuf = (char*)malloc(totalTmpSize);
@@ -6114,8 +6484,10 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 				size_t fakeIdBufOffset = totalTmpSize - toReadSize;
 				toReadSize -= stream->read(fakeIdBuf + fakeIdBufOffset, toReadSize);
 			}
-			free(fakeIdBuf);
 
+			if (memcmp(fakeIdBuf, cmpBuf, totalTmpSize) != 0) assert(false);
+			free(fakeIdBuf);
+			free(cmpBuf);
 			SET_LASTCALL("glClientWaitSync");
 			break;
 		}
@@ -6166,9 +6538,13 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			#endif
 			DEBUG("gles2(%p): glIsSync(%p )\n", stream, var_sync);
 			*(GLboolean *)(&tmpBuf[0]) = 			this->glIsSync(var_sync);
+
+			char* cmpBuf = (char*)malloc(totalTmpSize);
+			assert(cmpBuf != NULL);
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::writeChecksum(checksumCalc, &tmpBuf[0], totalTmpSize - checksumSize, &tmpBuf[totalTmpSize - checksumSize], checksumSize);
 			}
+			memcpy(cmpBuf, tmpBuf, totalTmpSize);
 			stream->flush();
 
 			char* fakeIdBuf = (char*)malloc(totalTmpSize);
@@ -6179,8 +6555,10 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 				size_t fakeIdBufOffset = totalTmpSize - toReadSize;
 				toReadSize -= stream->read(fakeIdBuf + fakeIdBufOffset, toReadSize);
 			}
-			free(fakeIdBuf);
 
+			if (memcmp(fakeIdBuf, cmpBuf, totalTmpSize) != 0) assert(false);
+			free(fakeIdBuf);
+			free(cmpBuf);
 			SET_LASTCALL("glIsSync");
 			break;
 		}
@@ -6221,9 +6599,13 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			#endif
 			DEBUG("gles2(%p): glFenceSyncAEMU(0x%08x 0x%08x )\n", stream, var_condition, var_flags);
 			*(uint64_t *)(&tmpBuf[0]) = 			this->glFenceSyncAEMU(this, var_condition, var_flags);
+
+			char* cmpBuf = (char*)malloc(totalTmpSize);
+			assert(cmpBuf != NULL);
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::writeChecksum(checksumCalc, &tmpBuf[0], totalTmpSize - checksumSize, &tmpBuf[totalTmpSize - checksumSize], checksumSize);
 			}
+			memcpy(cmpBuf, tmpBuf, totalTmpSize);
 			stream->flush();
 
 			char* fakeIdBuf = (char*)malloc(totalTmpSize);
@@ -6234,8 +6616,10 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 				size_t fakeIdBufOffset = totalTmpSize - toReadSize;
 				toReadSize -= stream->read(fakeIdBuf + fakeIdBufOffset, toReadSize);
 			}
-			free(fakeIdBuf);
 
+			if (memcmp(fakeIdBuf, cmpBuf, totalTmpSize) != 0) assert(false);
+			free(fakeIdBuf);
+			free(cmpBuf);
 			SET_LASTCALL("glFenceSyncAEMU");
 			break;
 		}
@@ -6256,9 +6640,13 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			#endif
 			DEBUG("gles2(%p): glClientWaitSyncAEMU(0x%016lx 0x%08x 0x%016lx )\n", stream, var_wait_on, var_flags, var_timeout);
 			*(GLenum *)(&tmpBuf[0]) = 			this->glClientWaitSyncAEMU(this, var_wait_on, var_flags, var_timeout);
+
+			char* cmpBuf = (char*)malloc(totalTmpSize);
+			assert(cmpBuf != NULL);
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::writeChecksum(checksumCalc, &tmpBuf[0], totalTmpSize - checksumSize, &tmpBuf[totalTmpSize - checksumSize], checksumSize);
 			}
+			memcpy(cmpBuf, tmpBuf, totalTmpSize);
 			stream->flush();
 
 			char* fakeIdBuf = (char*)malloc(totalTmpSize);
@@ -6269,8 +6657,10 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 				size_t fakeIdBufOffset = totalTmpSize - toReadSize;
 				toReadSize -= stream->read(fakeIdBuf + fakeIdBufOffset, toReadSize);
 			}
-			free(fakeIdBuf);
 
+			if (memcmp(fakeIdBuf, cmpBuf, totalTmpSize) != 0) assert(false);
+			free(fakeIdBuf);
+			free(cmpBuf);
 			SET_LASTCALL("glClientWaitSyncAEMU");
 			break;
 		}
@@ -6321,9 +6711,13 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			#endif
 			DEBUG("gles2(%p): glIsSyncAEMU(0x%016lx )\n", stream, var_sync);
 			*(GLboolean *)(&tmpBuf[0]) = 			this->glIsSyncAEMU(this, var_sync);
+
+			char* cmpBuf = (char*)malloc(totalTmpSize);
+			assert(cmpBuf != NULL);
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::writeChecksum(checksumCalc, &tmpBuf[0], totalTmpSize - checksumSize, &tmpBuf[totalTmpSize - checksumSize], checksumSize);
 			}
+			memcpy(cmpBuf, tmpBuf, totalTmpSize);
 			stream->flush();
 
 			char* fakeIdBuf = (char*)malloc(totalTmpSize);
@@ -6334,8 +6728,10 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 				size_t fakeIdBufOffset = totalTmpSize - toReadSize;
 				toReadSize -= stream->read(fakeIdBuf + fakeIdBufOffset, toReadSize);
 			}
-			free(fakeIdBuf);
 
+			if (memcmp(fakeIdBuf, cmpBuf, totalTmpSize) != 0) assert(false);
+			free(fakeIdBuf);
+			free(cmpBuf);
 			SET_LASTCALL("glIsSyncAEMU");
 			break;
 		}
@@ -6363,9 +6759,13 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			this->glGetSyncivAEMU(this, var_sync, var_pname, var_bufSize, (GLsizei*)(outptr_length.get()), (GLint*)(outptr_values.get()));
 			outptr_length.flush();
 			outptr_values.flush();
+
+			char* cmpBuf = (char*)malloc(totalTmpSize);
+			assert(cmpBuf != NULL);
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::writeChecksum(checksumCalc, &tmpBuf[0], totalTmpSize - checksumSize, &tmpBuf[totalTmpSize - checksumSize], checksumSize);
 			}
+			memcpy(cmpBuf, tmpBuf, totalTmpSize);
 			stream->flush();
 
 			char* fakeIdBuf = (char*)malloc(totalTmpSize);
@@ -6376,8 +6776,10 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 				size_t fakeIdBufOffset = totalTmpSize - toReadSize;
 				toReadSize -= stream->read(fakeIdBuf + fakeIdBufOffset, toReadSize);
 			}
-			free(fakeIdBuf);
 
+			if (memcmp(fakeIdBuf, cmpBuf, totalTmpSize) != 0) assert(false);
+			free(fakeIdBuf);
+			free(cmpBuf);
 			SET_LASTCALL("glGetSyncivAEMU");
 			break;
 		}
@@ -6555,9 +6957,13 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DEBUG("gles2(%p): glGetInternalformativ(0x%08x 0x%08x 0x%08x %d %p(%u) )\n", stream, var_target, var_internalformat, var_pname, var_bufSize, (GLint*)(outptr_params.get()), size_params);
 			this->glGetInternalformativ(var_target, var_internalformat, var_pname, var_bufSize, (GLint*)(outptr_params.get()));
 			outptr_params.flush();
+
+			char* cmpBuf = (char*)malloc(totalTmpSize);
+			assert(cmpBuf != NULL);
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::writeChecksum(checksumCalc, &tmpBuf[0], totalTmpSize - checksumSize, &tmpBuf[totalTmpSize - checksumSize], checksumSize);
 			}
+			memcpy(cmpBuf, tmpBuf, totalTmpSize);
 			stream->flush();
 
 			char* fakeIdBuf = (char*)malloc(totalTmpSize);
@@ -6568,8 +6974,10 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 				size_t fakeIdBufOffset = totalTmpSize - toReadSize;
 				toReadSize -= stream->read(fakeIdBuf + fakeIdBufOffset, toReadSize);
 			}
-			free(fakeIdBuf);
 
+			if (memcmp(fakeIdBuf, cmpBuf, totalTmpSize) != 0) assert(false);
+			free(fakeIdBuf);
+			free(cmpBuf);
 			SET_LASTCALL("glGetInternalformativ");
 			break;
 		}
@@ -6620,9 +7028,13 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DEBUG("gles2(%p): glGenTransformFeedbacks(%d %p(%u) )\n", stream, var_n, (GLuint*)(outptr_ids.get()), size_ids);
 			this->glGenTransformFeedbacks(var_n, (GLuint*)(outptr_ids.get()));
 			outptr_ids.flush();
+
+			char* cmpBuf = (char*)malloc(totalTmpSize);
+			assert(cmpBuf != NULL);
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::writeChecksum(checksumCalc, &tmpBuf[0], totalTmpSize - checksumSize, &tmpBuf[totalTmpSize - checksumSize], checksumSize);
 			}
+			memcpy(cmpBuf, tmpBuf, totalTmpSize);
 			stream->flush();
 
 			char* fakeIdBuf = (char*)malloc(totalTmpSize);
@@ -6633,8 +7045,10 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 				size_t fakeIdBufOffset = totalTmpSize - toReadSize;
 				toReadSize -= stream->read(fakeIdBuf + fakeIdBufOffset, toReadSize);
 			}
-			free(fakeIdBuf);
 
+			if (memcmp(fakeIdBuf, cmpBuf, totalTmpSize) != 0) assert(false);
+			free(fakeIdBuf);
+			free(cmpBuf);
 			SET_LASTCALL("glGenTransformFeedbacks");
 			break;
 		}
@@ -6714,9 +7128,13 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			#endif
 			DEBUG("gles2(%p): glIsTransformFeedback(%u )\n", stream, var_id);
 			*(GLboolean *)(&tmpBuf[0]) = 			this->glIsTransformFeedback(var_id);
+
+			char* cmpBuf = (char*)malloc(totalTmpSize);
+			assert(cmpBuf != NULL);
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::writeChecksum(checksumCalc, &tmpBuf[0], totalTmpSize - checksumSize, &tmpBuf[totalTmpSize - checksumSize], checksumSize);
 			}
+			memcpy(cmpBuf, tmpBuf, totalTmpSize);
 			stream->flush();
 
 			char* fakeIdBuf = (char*)malloc(totalTmpSize);
@@ -6727,8 +7145,10 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 				size_t fakeIdBufOffset = totalTmpSize - toReadSize;
 				toReadSize -= stream->read(fakeIdBuf + fakeIdBufOffset, toReadSize);
 			}
-			free(fakeIdBuf);
 
+			if (memcmp(fakeIdBuf, cmpBuf, totalTmpSize) != 0) assert(false);
+			free(fakeIdBuf);
+			free(cmpBuf);
 			SET_LASTCALL("glIsTransformFeedback");
 			break;
 		}
@@ -6803,9 +7223,13 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			outptr_size.flush();
 			outptr_type.flush();
 			outptr_name.flush();
+
+			char* cmpBuf = (char*)malloc(totalTmpSize);
+			assert(cmpBuf != NULL);
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::writeChecksum(checksumCalc, &tmpBuf[0], totalTmpSize - checksumSize, &tmpBuf[totalTmpSize - checksumSize], checksumSize);
 			}
+			memcpy(cmpBuf, tmpBuf, totalTmpSize);
 			stream->flush();
 
 			char* fakeIdBuf = (char*)malloc(totalTmpSize);
@@ -6816,8 +7240,10 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 				size_t fakeIdBufOffset = totalTmpSize - toReadSize;
 				toReadSize -= stream->read(fakeIdBuf + fakeIdBufOffset, toReadSize);
 			}
-			free(fakeIdBuf);
 
+			if (memcmp(fakeIdBuf, cmpBuf, totalTmpSize) != 0) assert(false);
+			free(fakeIdBuf);
+			free(cmpBuf);
 			SET_LASTCALL("glGetTransformFeedbackVarying");
 			break;
 		}
@@ -6839,9 +7265,13 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DEBUG("gles2(%p): glGenSamplers(%d %p(%u) )\n", stream, var_n, (GLuint*)(outptr_samplers.get()), size_samplers);
 			this->glGenSamplers(var_n, (GLuint*)(outptr_samplers.get()));
 			outptr_samplers.flush();
+
+			char* cmpBuf = (char*)malloc(totalTmpSize);
+			assert(cmpBuf != NULL);
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::writeChecksum(checksumCalc, &tmpBuf[0], totalTmpSize - checksumSize, &tmpBuf[totalTmpSize - checksumSize], checksumSize);
 			}
+			memcpy(cmpBuf, tmpBuf, totalTmpSize);
 			stream->flush();
 
 			char* fakeIdBuf = (char*)malloc(totalTmpSize);
@@ -6852,8 +7282,10 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 				size_t fakeIdBufOffset = totalTmpSize - toReadSize;
 				toReadSize -= stream->read(fakeIdBuf + fakeIdBufOffset, toReadSize);
 			}
-			free(fakeIdBuf);
 
+			if (memcmp(fakeIdBuf, cmpBuf, totalTmpSize) != 0) assert(false);
+			free(fakeIdBuf);
+			free(cmpBuf);
 			SET_LASTCALL("glGenSamplers");
 			break;
 		}
@@ -6979,9 +7411,13 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DEBUG("gles2(%p): glGetSamplerParameterfv(%u 0x%08x %p(%u) )\n", stream, var_sampler, var_pname, (GLfloat*)(outptr_params.get()), size_params);
 			this->glGetSamplerParameterfv(var_sampler, var_pname, (GLfloat*)(outptr_params.get()));
 			outptr_params.flush();
+
+			char* cmpBuf = (char*)malloc(totalTmpSize);
+			assert(cmpBuf != NULL);
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::writeChecksum(checksumCalc, &tmpBuf[0], totalTmpSize - checksumSize, &tmpBuf[totalTmpSize - checksumSize], checksumSize);
 			}
+			memcpy(cmpBuf, tmpBuf, totalTmpSize);
 			stream->flush();
 
 			char* fakeIdBuf = (char*)malloc(totalTmpSize);
@@ -6992,8 +7428,10 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 				size_t fakeIdBufOffset = totalTmpSize - toReadSize;
 				toReadSize -= stream->read(fakeIdBuf + fakeIdBufOffset, toReadSize);
 			}
-			free(fakeIdBuf);
 
+			if (memcmp(fakeIdBuf, cmpBuf, totalTmpSize) != 0) assert(false);
+			free(fakeIdBuf);
+			free(cmpBuf);
 			SET_LASTCALL("glGetSamplerParameterfv");
 			break;
 		}
@@ -7016,9 +7454,13 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DEBUG("gles2(%p): glGetSamplerParameteriv(%u 0x%08x %p(%u) )\n", stream, var_sampler, var_pname, (GLint*)(outptr_params.get()), size_params);
 			this->glGetSamplerParameteriv(var_sampler, var_pname, (GLint*)(outptr_params.get()));
 			outptr_params.flush();
+
+			char* cmpBuf = (char*)malloc(totalTmpSize);
+			assert(cmpBuf != NULL);
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::writeChecksum(checksumCalc, &tmpBuf[0], totalTmpSize - checksumSize, &tmpBuf[totalTmpSize - checksumSize], checksumSize);
 			}
+			memcpy(cmpBuf, tmpBuf, totalTmpSize);
 			stream->flush();
 
 			char* fakeIdBuf = (char*)malloc(totalTmpSize);
@@ -7029,8 +7471,10 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 				size_t fakeIdBufOffset = totalTmpSize - toReadSize;
 				toReadSize -= stream->read(fakeIdBuf + fakeIdBufOffset, toReadSize);
 			}
-			free(fakeIdBuf);
 
+			if (memcmp(fakeIdBuf, cmpBuf, totalTmpSize) != 0) assert(false);
+			free(fakeIdBuf);
+			free(cmpBuf);
 			SET_LASTCALL("glGetSamplerParameteriv");
 			break;
 		}
@@ -7049,9 +7493,13 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			#endif
 			DEBUG("gles2(%p): glIsSampler(%u )\n", stream, var_sampler);
 			*(GLboolean *)(&tmpBuf[0]) = 			this->glIsSampler(var_sampler);
+
+			char* cmpBuf = (char*)malloc(totalTmpSize);
+			assert(cmpBuf != NULL);
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::writeChecksum(checksumCalc, &tmpBuf[0], totalTmpSize - checksumSize, &tmpBuf[totalTmpSize - checksumSize], checksumSize);
 			}
+			memcpy(cmpBuf, tmpBuf, totalTmpSize);
 			stream->flush();
 
 			char* fakeIdBuf = (char*)malloc(totalTmpSize);
@@ -7062,8 +7510,10 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 				size_t fakeIdBufOffset = totalTmpSize - toReadSize;
 				toReadSize -= stream->read(fakeIdBuf + fakeIdBufOffset, toReadSize);
 			}
-			free(fakeIdBuf);
 
+			if (memcmp(fakeIdBuf, cmpBuf, totalTmpSize) != 0) assert(false);
+			free(fakeIdBuf);
+			free(cmpBuf);
 			SET_LASTCALL("glIsSampler");
 			break;
 		}
@@ -7085,9 +7535,13 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DEBUG("gles2(%p): glGenQueries(%d %p(%u) )\n", stream, var_n, (GLuint*)(outptr_queries.get()), size_queries);
 			this->glGenQueries(var_n, (GLuint*)(outptr_queries.get()));
 			outptr_queries.flush();
+
+			char* cmpBuf = (char*)malloc(totalTmpSize);
+			assert(cmpBuf != NULL);
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::writeChecksum(checksumCalc, &tmpBuf[0], totalTmpSize - checksumSize, &tmpBuf[totalTmpSize - checksumSize], checksumSize);
 			}
+			memcpy(cmpBuf, tmpBuf, totalTmpSize);
 			stream->flush();
 
 			char* fakeIdBuf = (char*)malloc(totalTmpSize);
@@ -7098,8 +7552,10 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 				size_t fakeIdBufOffset = totalTmpSize - toReadSize;
 				toReadSize -= stream->read(fakeIdBuf + fakeIdBufOffset, toReadSize);
 			}
-			free(fakeIdBuf);
 
+			if (memcmp(fakeIdBuf, cmpBuf, totalTmpSize) != 0) assert(false);
+			free(fakeIdBuf);
+			free(cmpBuf);
 			SET_LASTCALL("glGenQueries");
 			break;
 		}
@@ -7170,9 +7626,13 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DEBUG("gles2(%p): glGetQueryiv(0x%08x 0x%08x %p(%u) )\n", stream, var_target, var_pname, (GLint*)(outptr_params.get()), size_params);
 			this->glGetQueryiv(var_target, var_pname, (GLint*)(outptr_params.get()));
 			outptr_params.flush();
+
+			char* cmpBuf = (char*)malloc(totalTmpSize);
+			assert(cmpBuf != NULL);
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::writeChecksum(checksumCalc, &tmpBuf[0], totalTmpSize - checksumSize, &tmpBuf[totalTmpSize - checksumSize], checksumSize);
 			}
+			memcpy(cmpBuf, tmpBuf, totalTmpSize);
 			stream->flush();
 
 			char* fakeIdBuf = (char*)malloc(totalTmpSize);
@@ -7183,8 +7643,10 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 				size_t fakeIdBufOffset = totalTmpSize - toReadSize;
 				toReadSize -= stream->read(fakeIdBuf + fakeIdBufOffset, toReadSize);
 			}
-			free(fakeIdBuf);
 
+			if (memcmp(fakeIdBuf, cmpBuf, totalTmpSize) != 0) assert(false);
+			free(fakeIdBuf);
+			free(cmpBuf);
 			SET_LASTCALL("glGetQueryiv");
 			break;
 		}
@@ -7207,9 +7669,13 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DEBUG("gles2(%p): glGetQueryObjectuiv(%u 0x%08x %p(%u) )\n", stream, var_query, var_pname, (GLuint*)(outptr_params.get()), size_params);
 			this->glGetQueryObjectuiv(var_query, var_pname, (GLuint*)(outptr_params.get()));
 			outptr_params.flush();
+
+			char* cmpBuf = (char*)malloc(totalTmpSize);
+			assert(cmpBuf != NULL);
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::writeChecksum(checksumCalc, &tmpBuf[0], totalTmpSize - checksumSize, &tmpBuf[totalTmpSize - checksumSize], checksumSize);
 			}
+			memcpy(cmpBuf, tmpBuf, totalTmpSize);
 			stream->flush();
 
 			char* fakeIdBuf = (char*)malloc(totalTmpSize);
@@ -7220,8 +7686,10 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 				size_t fakeIdBufOffset = totalTmpSize - toReadSize;
 				toReadSize -= stream->read(fakeIdBuf + fakeIdBufOffset, toReadSize);
 			}
-			free(fakeIdBuf);
 
+			if (memcmp(fakeIdBuf, cmpBuf, totalTmpSize) != 0) assert(false);
+			free(fakeIdBuf);
+			free(cmpBuf);
 			SET_LASTCALL("glGetQueryObjectuiv");
 			break;
 		}
@@ -7240,9 +7708,13 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			#endif
 			DEBUG("gles2(%p): glIsQuery(%u )\n", stream, var_query);
 			*(GLboolean *)(&tmpBuf[0]) = 			this->glIsQuery(var_query);
+
+			char* cmpBuf = (char*)malloc(totalTmpSize);
+			assert(cmpBuf != NULL);
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::writeChecksum(checksumCalc, &tmpBuf[0], totalTmpSize - checksumSize, &tmpBuf[totalTmpSize - checksumSize], checksumSize);
 			}
+			memcpy(cmpBuf, tmpBuf, totalTmpSize);
 			stream->flush();
 
 			char* fakeIdBuf = (char*)malloc(totalTmpSize);
@@ -7253,8 +7725,10 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 				size_t fakeIdBufOffset = totalTmpSize - toReadSize;
 				toReadSize -= stream->read(fakeIdBuf + fakeIdBufOffset, toReadSize);
 			}
-			free(fakeIdBuf);
 
+			if (memcmp(fakeIdBuf, cmpBuf, totalTmpSize) != 0) assert(false);
+			free(fakeIdBuf);
+			free(cmpBuf);
 			SET_LASTCALL("glIsQuery");
 			break;
 		}
@@ -7321,9 +7795,13 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			outptr_length.flush();
 			outptr_binaryFormat.flush();
 			outptr_binary.flush();
+
+			char* cmpBuf = (char*)malloc(totalTmpSize);
+			assert(cmpBuf != NULL);
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::writeChecksum(checksumCalc, &tmpBuf[0], totalTmpSize - checksumSize, &tmpBuf[totalTmpSize - checksumSize], checksumSize);
 			}
+			memcpy(cmpBuf, tmpBuf, totalTmpSize);
 			stream->flush();
 
 			char* fakeIdBuf = (char*)malloc(totalTmpSize);
@@ -7334,8 +7812,10 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 				size_t fakeIdBufOffset = totalTmpSize - toReadSize;
 				toReadSize -= stream->read(fakeIdBuf + fakeIdBufOffset, toReadSize);
 			}
-			free(fakeIdBuf);
 
+			if (memcmp(fakeIdBuf, cmpBuf, totalTmpSize) != 0) assert(false);
+			free(fakeIdBuf);
+			free(cmpBuf);
 			SET_LASTCALL("glGetProgramBinary");
 			break;
 		}
@@ -7356,9 +7836,13 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			#endif
 			DEBUG("gles2(%p): glGetFragDataLocation(%u %p(%u) )\n", stream, var_program, (const char*)(inptr_name.get()), size_name);
 			*(GLint *)(&tmpBuf[0]) = 			this->glGetFragDataLocation(var_program, (const char*)(inptr_name.get()));
+
+			char* cmpBuf = (char*)malloc(totalTmpSize);
+			assert(cmpBuf != NULL);
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::writeChecksum(checksumCalc, &tmpBuf[0], totalTmpSize - checksumSize, &tmpBuf[totalTmpSize - checksumSize], checksumSize);
 			}
+			memcpy(cmpBuf, tmpBuf, totalTmpSize);
 			stream->flush();
 
 			char* fakeIdBuf = (char*)malloc(totalTmpSize);
@@ -7369,8 +7853,10 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 				size_t fakeIdBufOffset = totalTmpSize - toReadSize;
 				toReadSize -= stream->read(fakeIdBuf + fakeIdBufOffset, toReadSize);
 			}
-			free(fakeIdBuf);
 
+			if (memcmp(fakeIdBuf, cmpBuf, totalTmpSize) != 0) assert(false);
+			free(fakeIdBuf);
+			free(cmpBuf);
 			SET_LASTCALL("glGetFragDataLocation");
 			break;
 		}
@@ -7392,9 +7878,13 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DEBUG("gles2(%p): glGetInteger64v(0x%08x %p(%u) )\n", stream, var_pname, (GLint64*)(outptr_data.get()), size_data);
 			this->glGetInteger64v(var_pname, (GLint64*)(outptr_data.get()));
 			outptr_data.flush();
+
+			char* cmpBuf = (char*)malloc(totalTmpSize);
+			assert(cmpBuf != NULL);
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::writeChecksum(checksumCalc, &tmpBuf[0], totalTmpSize - checksumSize, &tmpBuf[totalTmpSize - checksumSize], checksumSize);
 			}
+			memcpy(cmpBuf, tmpBuf, totalTmpSize);
 			stream->flush();
 
 			char* fakeIdBuf = (char*)malloc(totalTmpSize);
@@ -7405,8 +7895,10 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 				size_t fakeIdBufOffset = totalTmpSize - toReadSize;
 				toReadSize -= stream->read(fakeIdBuf + fakeIdBufOffset, toReadSize);
 			}
-			free(fakeIdBuf);
 
+			if (memcmp(fakeIdBuf, cmpBuf, totalTmpSize) != 0) assert(false);
+			free(fakeIdBuf);
+			free(cmpBuf);
 			SET_LASTCALL("glGetInteger64v");
 			break;
 		}
@@ -7429,9 +7921,13 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DEBUG("gles2(%p): glGetIntegeri_v(0x%08x %u %p(%u) )\n", stream, var_target, var_index, (GLint*)(outptr_data.get()), size_data);
 			this->glGetIntegeri_v(var_target, var_index, (GLint*)(outptr_data.get()));
 			outptr_data.flush();
+
+			char* cmpBuf = (char*)malloc(totalTmpSize);
+			assert(cmpBuf != NULL);
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::writeChecksum(checksumCalc, &tmpBuf[0], totalTmpSize - checksumSize, &tmpBuf[totalTmpSize - checksumSize], checksumSize);
 			}
+			memcpy(cmpBuf, tmpBuf, totalTmpSize);
 			stream->flush();
 
 			char* fakeIdBuf = (char*)malloc(totalTmpSize);
@@ -7442,8 +7938,10 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 				size_t fakeIdBufOffset = totalTmpSize - toReadSize;
 				toReadSize -= stream->read(fakeIdBuf + fakeIdBufOffset, toReadSize);
 			}
-			free(fakeIdBuf);
 
+			if (memcmp(fakeIdBuf, cmpBuf, totalTmpSize) != 0) assert(false);
+			free(fakeIdBuf);
+			free(cmpBuf);
 			SET_LASTCALL("glGetIntegeri_v");
 			break;
 		}
@@ -7466,9 +7964,13 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DEBUG("gles2(%p): glGetInteger64i_v(0x%08x %u %p(%u) )\n", stream, var_target, var_index, (GLint64*)(outptr_data.get()), size_data);
 			this->glGetInteger64i_v(var_target, var_index, (GLint64*)(outptr_data.get()));
 			outptr_data.flush();
+
+			char* cmpBuf = (char*)malloc(totalTmpSize);
+			assert(cmpBuf != NULL);
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::writeChecksum(checksumCalc, &tmpBuf[0], totalTmpSize - checksumSize, &tmpBuf[totalTmpSize - checksumSize], checksumSize);
 			}
+			memcpy(cmpBuf, tmpBuf, totalTmpSize);
 			stream->flush();
 
 			char* fakeIdBuf = (char*)malloc(totalTmpSize);
@@ -7479,8 +7981,10 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 				size_t fakeIdBufOffset = totalTmpSize - toReadSize;
 				toReadSize -= stream->read(fakeIdBuf + fakeIdBufOffset, toReadSize);
 			}
-			free(fakeIdBuf);
 
+			if (memcmp(fakeIdBuf, cmpBuf, totalTmpSize) != 0) assert(false);
+			free(fakeIdBuf);
+			free(cmpBuf);
 			SET_LASTCALL("glGetInteger64i_v");
 			break;
 		}
@@ -7760,9 +8264,13 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DEBUG("gles2(%p): glGetBooleani_v(0x%08x %u %p(%u) )\n", stream, var_target, var_index, (GLboolean*)(outptr_data.get()), size_data);
 			this->glGetBooleani_v(var_target, var_index, (GLboolean*)(outptr_data.get()));
 			outptr_data.flush();
+
+			char* cmpBuf = (char*)malloc(totalTmpSize);
+			assert(cmpBuf != NULL);
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::writeChecksum(checksumCalc, &tmpBuf[0], totalTmpSize - checksumSize, &tmpBuf[totalTmpSize - checksumSize], checksumSize);
 			}
+			memcpy(cmpBuf, tmpBuf, totalTmpSize);
 			stream->flush();
 
 			char* fakeIdBuf = (char*)malloc(totalTmpSize);
@@ -7773,8 +8281,10 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 				size_t fakeIdBufOffset = totalTmpSize - toReadSize;
 				toReadSize -= stream->read(fakeIdBuf + fakeIdBufOffset, toReadSize);
 			}
-			free(fakeIdBuf);
 
+			if (memcmp(fakeIdBuf, cmpBuf, totalTmpSize) != 0) assert(false);
+			free(fakeIdBuf);
+			free(cmpBuf);
 			SET_LASTCALL("glGetBooleani_v");
 			break;
 		}
@@ -7826,9 +8336,13 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DEBUG("gles2(%p): glGenProgramPipelines(%d %p(%u) )\n", stream, var_n, (GLuint*)(outptr_pipelines.get()), size_pipelines);
 			this->glGenProgramPipelines(var_n, (GLuint*)(outptr_pipelines.get()));
 			outptr_pipelines.flush();
+
+			char* cmpBuf = (char*)malloc(totalTmpSize);
+			assert(cmpBuf != NULL);
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::writeChecksum(checksumCalc, &tmpBuf[0], totalTmpSize - checksumSize, &tmpBuf[totalTmpSize - checksumSize], checksumSize);
 			}
+			memcpy(cmpBuf, tmpBuf, totalTmpSize);
 			stream->flush();
 
 			char* fakeIdBuf = (char*)malloc(totalTmpSize);
@@ -7839,8 +8353,10 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 				size_t fakeIdBufOffset = totalTmpSize - toReadSize;
 				toReadSize -= stream->read(fakeIdBuf + fakeIdBufOffset, toReadSize);
 			}
-			free(fakeIdBuf);
 
+			if (memcmp(fakeIdBuf, cmpBuf, totalTmpSize) != 0) assert(false);
+			free(fakeIdBuf);
+			free(cmpBuf);
 			SET_LASTCALL("glGenProgramPipelines");
 			break;
 		}
@@ -7895,9 +8411,13 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DEBUG("gles2(%p): glGetProgramPipelineiv(%u 0x%08x %p(%u) )\n", stream, var_pipeline, var_pname, (GLint*)(outptr_params.get()), size_params);
 			this->glGetProgramPipelineiv(var_pipeline, var_pname, (GLint*)(outptr_params.get()));
 			outptr_params.flush();
+
+			char* cmpBuf = (char*)malloc(totalTmpSize);
+			assert(cmpBuf != NULL);
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::writeChecksum(checksumCalc, &tmpBuf[0], totalTmpSize - checksumSize, &tmpBuf[totalTmpSize - checksumSize], checksumSize);
 			}
+			memcpy(cmpBuf, tmpBuf, totalTmpSize);
 			stream->flush();
 
 			char* fakeIdBuf = (char*)malloc(totalTmpSize);
@@ -7908,8 +8428,10 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 				size_t fakeIdBufOffset = totalTmpSize - toReadSize;
 				toReadSize -= stream->read(fakeIdBuf + fakeIdBufOffset, toReadSize);
 			}
-			free(fakeIdBuf);
 
+			if (memcmp(fakeIdBuf, cmpBuf, totalTmpSize) != 0) assert(false);
+			free(fakeIdBuf);
+			free(cmpBuf);
 			SET_LASTCALL("glGetProgramPipelineiv");
 			break;
 		}
@@ -7936,9 +8458,13 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			this->glGetProgramPipelineInfoLog(var_pipeline, var_bufSize, size_length == 0 ? nullptr : (GLsizei*)(outptr_length.get()), (GLchar*)(outptr_infoLog.get()));
 			outptr_length.flush();
 			outptr_infoLog.flush();
+
+			char* cmpBuf = (char*)malloc(totalTmpSize);
+			assert(cmpBuf != NULL);
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::writeChecksum(checksumCalc, &tmpBuf[0], totalTmpSize - checksumSize, &tmpBuf[totalTmpSize - checksumSize], checksumSize);
 			}
+			memcpy(cmpBuf, tmpBuf, totalTmpSize);
 			stream->flush();
 
 			char* fakeIdBuf = (char*)malloc(totalTmpSize);
@@ -7949,8 +8475,10 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 				size_t fakeIdBufOffset = totalTmpSize - toReadSize;
 				toReadSize -= stream->read(fakeIdBuf + fakeIdBufOffset, toReadSize);
 			}
-			free(fakeIdBuf);
 
+			if (memcmp(fakeIdBuf, cmpBuf, totalTmpSize) != 0) assert(false);
+			free(fakeIdBuf);
+			free(cmpBuf);
 			SET_LASTCALL("glGetProgramPipelineInfoLog");
 			break;
 		}
@@ -7984,9 +8512,13 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			#endif
 			DEBUG("gles2(%p): glIsProgramPipeline(%u )\n", stream, var_pipeline);
 			*(GLboolean *)(&tmpBuf[0]) = 			this->glIsProgramPipeline(var_pipeline);
+
+			char* cmpBuf = (char*)malloc(totalTmpSize);
+			assert(cmpBuf != NULL);
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::writeChecksum(checksumCalc, &tmpBuf[0], totalTmpSize - checksumSize, &tmpBuf[totalTmpSize - checksumSize], checksumSize);
 			}
+			memcpy(cmpBuf, tmpBuf, totalTmpSize);
 			stream->flush();
 
 			char* fakeIdBuf = (char*)malloc(totalTmpSize);
@@ -7997,8 +8529,10 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 				size_t fakeIdBufOffset = totalTmpSize - toReadSize;
 				toReadSize -= stream->read(fakeIdBuf + fakeIdBufOffset, toReadSize);
 			}
-			free(fakeIdBuf);
 
+			if (memcmp(fakeIdBuf, cmpBuf, totalTmpSize) != 0) assert(false);
+			free(fakeIdBuf);
+			free(cmpBuf);
 			SET_LASTCALL("glIsProgramPipeline");
 			break;
 		}
@@ -8037,9 +8571,13 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			#endif
 			DEBUG("gles2(%p): glCreateShaderProgramv(0x%08x %d %p(%u) )\n", stream, var_type, var_count, (const char**)(inptr_strings.get()), size_strings);
 			*(GLuint *)(&tmpBuf[0]) = 			this->glCreateShaderProgramv(var_type, var_count, (const char**)(inptr_strings.get()));
+
+			char* cmpBuf = (char*)malloc(totalTmpSize);
+			assert(cmpBuf != NULL);
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::writeChecksum(checksumCalc, &tmpBuf[0], totalTmpSize - checksumSize, &tmpBuf[totalTmpSize - checksumSize], checksumSize);
 			}
+			memcpy(cmpBuf, tmpBuf, totalTmpSize);
 			stream->flush();
 
 			char* fakeIdBuf = (char*)malloc(totalTmpSize);
@@ -8050,8 +8588,10 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 				size_t fakeIdBufOffset = totalTmpSize - toReadSize;
 				toReadSize -= stream->read(fakeIdBuf + fakeIdBufOffset, toReadSize);
 			}
-			free(fakeIdBuf);
 
+			if (memcmp(fakeIdBuf, cmpBuf, totalTmpSize) != 0) assert(false);
+			free(fakeIdBuf);
+			free(cmpBuf);
 			SET_LASTCALL("glCreateShaderProgramv");
 			break;
 		}
@@ -8074,9 +8614,13 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			#endif
 			DEBUG("gles2(%p): glCreateShaderProgramvAEMU(0x%08x %d %p(%u) %u )\n", stream, var_type, var_count, (const char*)(inptr_packedStrings.get()), size_packedStrings, var_packedLen);
 			*(GLuint *)(&tmpBuf[0]) = 			this->glCreateShaderProgramvAEMU(this, var_type, var_count, (const char*)(inptr_packedStrings.get()), var_packedLen);
+
+			char* cmpBuf = (char*)malloc(totalTmpSize);
+			assert(cmpBuf != NULL);
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::writeChecksum(checksumCalc, &tmpBuf[0], totalTmpSize - checksumSize, &tmpBuf[totalTmpSize - checksumSize], checksumSize);
 			}
+			memcpy(cmpBuf, tmpBuf, totalTmpSize);
 			stream->flush();
 
 			char* fakeIdBuf = (char*)malloc(totalTmpSize);
@@ -8087,8 +8631,10 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 				size_t fakeIdBufOffset = totalTmpSize - toReadSize;
 				toReadSize -= stream->read(fakeIdBuf + fakeIdBufOffset, toReadSize);
 			}
-			free(fakeIdBuf);
 
+			if (memcmp(fakeIdBuf, cmpBuf, totalTmpSize) != 0) assert(false);
+			free(fakeIdBuf);
+			free(cmpBuf);
 			SET_LASTCALL("glCreateShaderProgramvAEMU");
 			break;
 		}
@@ -8742,9 +9288,13 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DEBUG("gles2(%p): glGetProgramInterfaceiv(%u 0x%08x 0x%08x %p(%u) )\n", stream, var_program, var_programInterface, var_pname, (GLint*)(outptr_params.get()), size_params);
 			this->glGetProgramInterfaceiv(var_program, var_programInterface, var_pname, (GLint*)(outptr_params.get()));
 			outptr_params.flush();
+
+			char* cmpBuf = (char*)malloc(totalTmpSize);
+			assert(cmpBuf != NULL);
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::writeChecksum(checksumCalc, &tmpBuf[0], totalTmpSize - checksumSize, &tmpBuf[totalTmpSize - checksumSize], checksumSize);
 			}
+			memcpy(cmpBuf, tmpBuf, totalTmpSize);
 			stream->flush();
 
 			char* fakeIdBuf = (char*)malloc(totalTmpSize);
@@ -8755,8 +9305,10 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 				size_t fakeIdBufOffset = totalTmpSize - toReadSize;
 				toReadSize -= stream->read(fakeIdBuf + fakeIdBufOffset, toReadSize);
 			}
-			free(fakeIdBuf);
 
+			if (memcmp(fakeIdBuf, cmpBuf, totalTmpSize) != 0) assert(false);
+			free(fakeIdBuf);
+			free(cmpBuf);
 			SET_LASTCALL("glGetProgramInterfaceiv");
 			break;
 		}
@@ -8788,9 +9340,13 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			this->glGetProgramResourceiv(var_program, var_programInterface, var_index, var_propCount, (const GLenum*)(inptr_props.get()), var_bufSize, size_length == 0 ? nullptr : (GLsizei*)(outptr_length.get()), (GLint*)(outptr_params.get()));
 			outptr_length.flush();
 			outptr_params.flush();
+
+			char* cmpBuf = (char*)malloc(totalTmpSize);
+			assert(cmpBuf != NULL);
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::writeChecksum(checksumCalc, &tmpBuf[0], totalTmpSize - checksumSize, &tmpBuf[totalTmpSize - checksumSize], checksumSize);
 			}
+			memcpy(cmpBuf, tmpBuf, totalTmpSize);
 			stream->flush();
 
 			char* fakeIdBuf = (char*)malloc(totalTmpSize);
@@ -8801,8 +9357,10 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 				size_t fakeIdBufOffset = totalTmpSize - toReadSize;
 				toReadSize -= stream->read(fakeIdBuf + fakeIdBufOffset, toReadSize);
 			}
-			free(fakeIdBuf);
 
+			if (memcmp(fakeIdBuf, cmpBuf, totalTmpSize) != 0) assert(false);
+			free(fakeIdBuf);
+			free(cmpBuf);
 			SET_LASTCALL("glGetProgramResourceiv");
 			break;
 		}
@@ -8824,9 +9382,13 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			#endif
 			DEBUG("gles2(%p): glGetProgramResourceIndex(%u 0x%08x %p(%u) )\n", stream, var_program, var_programInterface, (const char*)(inptr_name.get()), size_name);
 			*(GLuint *)(&tmpBuf[0]) = 			this->glGetProgramResourceIndex(var_program, var_programInterface, (const char*)(inptr_name.get()));
+
+			char* cmpBuf = (char*)malloc(totalTmpSize);
+			assert(cmpBuf != NULL);
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::writeChecksum(checksumCalc, &tmpBuf[0], totalTmpSize - checksumSize, &tmpBuf[totalTmpSize - checksumSize], checksumSize);
 			}
+			memcpy(cmpBuf, tmpBuf, totalTmpSize);
 			stream->flush();
 
 			char* fakeIdBuf = (char*)malloc(totalTmpSize);
@@ -8837,8 +9399,10 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 				size_t fakeIdBufOffset = totalTmpSize - toReadSize;
 				toReadSize -= stream->read(fakeIdBuf + fakeIdBufOffset, toReadSize);
 			}
-			free(fakeIdBuf);
 
+			if (memcmp(fakeIdBuf, cmpBuf, totalTmpSize) != 0) assert(false);
+			free(fakeIdBuf);
+			free(cmpBuf);
 			SET_LASTCALL("glGetProgramResourceIndex");
 			break;
 		}
@@ -8860,9 +9424,13 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			#endif
 			DEBUG("gles2(%p): glGetProgramResourceLocation(%u 0x%08x %p(%u) )\n", stream, var_program, var_programInterface, (const char*)(inptr_name.get()), size_name);
 			*(GLint *)(&tmpBuf[0]) = 			this->glGetProgramResourceLocation(var_program, var_programInterface, (const char*)(inptr_name.get()));
+
+			char* cmpBuf = (char*)malloc(totalTmpSize);
+			assert(cmpBuf != NULL);
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::writeChecksum(checksumCalc, &tmpBuf[0], totalTmpSize - checksumSize, &tmpBuf[totalTmpSize - checksumSize], checksumSize);
 			}
+			memcpy(cmpBuf, tmpBuf, totalTmpSize);
 			stream->flush();
 
 			char* fakeIdBuf = (char*)malloc(totalTmpSize);
@@ -8873,8 +9441,10 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 				size_t fakeIdBufOffset = totalTmpSize - toReadSize;
 				toReadSize -= stream->read(fakeIdBuf + fakeIdBufOffset, toReadSize);
 			}
-			free(fakeIdBuf);
 
+			if (memcmp(fakeIdBuf, cmpBuf, totalTmpSize) != 0) assert(false);
+			free(fakeIdBuf);
+			free(cmpBuf);
 			SET_LASTCALL("glGetProgramResourceLocation");
 			break;
 		}
@@ -8903,9 +9473,13 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			this->glGetProgramResourceName(var_program, var_programInterface, var_index, var_bufSize, size_length == 0 ? nullptr : (GLsizei*)(outptr_length.get()), (char*)(outptr_name.get()));
 			outptr_length.flush();
 			outptr_name.flush();
+
+			char* cmpBuf = (char*)malloc(totalTmpSize);
+			assert(cmpBuf != NULL);
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::writeChecksum(checksumCalc, &tmpBuf[0], totalTmpSize - checksumSize, &tmpBuf[totalTmpSize - checksumSize], checksumSize);
 			}
+			memcpy(cmpBuf, tmpBuf, totalTmpSize);
 			stream->flush();
 
 			char* fakeIdBuf = (char*)malloc(totalTmpSize);
@@ -8916,8 +9490,10 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 				size_t fakeIdBufOffset = totalTmpSize - toReadSize;
 				toReadSize -= stream->read(fakeIdBuf + fakeIdBufOffset, toReadSize);
 			}
-			free(fakeIdBuf);
 
+			if (memcmp(fakeIdBuf, cmpBuf, totalTmpSize) != 0) assert(false);
+			free(fakeIdBuf);
+			free(cmpBuf);
 			SET_LASTCALL("glGetProgramResourceName");
 			break;
 		}
@@ -9221,9 +9797,13 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DEBUG("gles2(%p): glGetMultisamplefv(0x%08x %u %p(%u) )\n", stream, var_pname, var_index, (GLfloat*)(outptr_val.get()), size_val);
 			this->glGetMultisamplefv(var_pname, var_index, (GLfloat*)(outptr_val.get()));
 			outptr_val.flush();
+
+			char* cmpBuf = (char*)malloc(totalTmpSize);
+			assert(cmpBuf != NULL);
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::writeChecksum(checksumCalc, &tmpBuf[0], totalTmpSize - checksumSize, &tmpBuf[totalTmpSize - checksumSize], checksumSize);
 			}
+			memcpy(cmpBuf, tmpBuf, totalTmpSize);
 			stream->flush();
 
 			char* fakeIdBuf = (char*)malloc(totalTmpSize);
@@ -9234,8 +9814,10 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 				size_t fakeIdBufOffset = totalTmpSize - toReadSize;
 				toReadSize -= stream->read(fakeIdBuf + fakeIdBufOffset, toReadSize);
 			}
-			free(fakeIdBuf);
 
+			if (memcmp(fakeIdBuf, cmpBuf, totalTmpSize) != 0) assert(false);
+			free(fakeIdBuf);
+			free(cmpBuf);
 			SET_LASTCALL("glGetMultisamplefv");
 			break;
 		}
@@ -9275,9 +9857,13 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DEBUG("gles2(%p): glGetFramebufferParameteriv(0x%08x 0x%08x %p(%u) )\n", stream, var_target, var_pname, (GLint*)(outptr_params.get()), size_params);
 			this->glGetFramebufferParameteriv(var_target, var_pname, (GLint*)(outptr_params.get()));
 			outptr_params.flush();
+
+			char* cmpBuf = (char*)malloc(totalTmpSize);
+			assert(cmpBuf != NULL);
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::writeChecksum(checksumCalc, &tmpBuf[0], totalTmpSize - checksumSize, &tmpBuf[totalTmpSize - checksumSize], checksumSize);
 			}
+			memcpy(cmpBuf, tmpBuf, totalTmpSize);
 			stream->flush();
 
 			char* fakeIdBuf = (char*)malloc(totalTmpSize);
@@ -9288,8 +9874,10 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 				size_t fakeIdBufOffset = totalTmpSize - toReadSize;
 				toReadSize -= stream->read(fakeIdBuf + fakeIdBufOffset, toReadSize);
 			}
-			free(fakeIdBuf);
 
+			if (memcmp(fakeIdBuf, cmpBuf, totalTmpSize) != 0) assert(false);
+			free(fakeIdBuf);
+			free(cmpBuf);
 			SET_LASTCALL("glGetFramebufferParameteriv");
 			break;
 		}
@@ -9313,9 +9901,13 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DEBUG("gles2(%p): glGetTexLevelParameterfv(0x%08x %d 0x%08x %p(%u) )\n", stream, var_target, var_level, var_pname, (GLfloat*)(outptr_params.get()), size_params);
 			this->glGetTexLevelParameterfv(var_target, var_level, var_pname, (GLfloat*)(outptr_params.get()));
 			outptr_params.flush();
+
+			char* cmpBuf = (char*)malloc(totalTmpSize);
+			assert(cmpBuf != NULL);
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::writeChecksum(checksumCalc, &tmpBuf[0], totalTmpSize - checksumSize, &tmpBuf[totalTmpSize - checksumSize], checksumSize);
 			}
+			memcpy(cmpBuf, tmpBuf, totalTmpSize);
 			stream->flush();
 
 			char* fakeIdBuf = (char*)malloc(totalTmpSize);
@@ -9326,8 +9918,10 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 				size_t fakeIdBufOffset = totalTmpSize - toReadSize;
 				toReadSize -= stream->read(fakeIdBuf + fakeIdBufOffset, toReadSize);
 			}
-			free(fakeIdBuf);
 
+			if (memcmp(fakeIdBuf, cmpBuf, totalTmpSize) != 0) assert(false);
+			free(fakeIdBuf);
+			free(cmpBuf);
 			SET_LASTCALL("glGetTexLevelParameterfv");
 			break;
 		}
@@ -9351,9 +9945,13 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DEBUG("gles2(%p): glGetTexLevelParameteriv(0x%08x %d 0x%08x %p(%u) )\n", stream, var_target, var_level, var_pname, (GLint*)(outptr_params.get()), size_params);
 			this->glGetTexLevelParameteriv(var_target, var_level, var_pname, (GLint*)(outptr_params.get()));
 			outptr_params.flush();
+
+			char* cmpBuf = (char*)malloc(totalTmpSize);
+			assert(cmpBuf != NULL);
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::writeChecksum(checksumCalc, &tmpBuf[0], totalTmpSize - checksumSize, &tmpBuf[totalTmpSize - checksumSize], checksumSize);
 			}
+			memcpy(cmpBuf, tmpBuf, totalTmpSize);
 			stream->flush();
 
 			char* fakeIdBuf = (char*)malloc(totalTmpSize);
@@ -9364,8 +9962,10 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 				size_t fakeIdBufOffset = totalTmpSize - toReadSize;
 				toReadSize -= stream->read(fakeIdBuf + fakeIdBufOffset, toReadSize);
 			}
-			free(fakeIdBuf);
 
+			if (memcmp(fakeIdBuf, cmpBuf, totalTmpSize) != 0) assert(false);
+			free(fakeIdBuf);
+			free(cmpBuf);
 			SET_LASTCALL("glGetTexLevelParameteriv");
 			break;
 		}
