@@ -32,6 +32,7 @@
 
 #include <assert.h>
 #include <stdlib.h>
+#include <stdio.h>
 #include <string.h>
 #include <string>
 #include <list>
@@ -66,8 +67,7 @@ public:
             D("Trying to open the OpenGLES pipe without GPU emulation!");
             return;
         }
-        
-		DDD("%s: create", __func__);
+        DDD("%s: create", __func__);
 
         mChannel = renderer->createRenderChannel();
         if (!mChannel) {
@@ -100,7 +100,30 @@ public:
         if (mSocket.get()) {
             mSocket->wantRead();
         }
-        
+
+        const char* dump_dir = getenv("OPENGLES_HOST_CONNECTION_DUMP_DIR");
+        if (dump_dir) {
+            size_t bsize = strlen(dump_dir) + 512;
+            char* fname = new char[bsize];
+
+            int peerPort = android::base::socketGetPeerPort(socket);
+            snprintf(fname, bsize, "%s/opengles_host_connection_%p_%d_snd", dump_dir, this, peerPort);
+            mDumpSndFP= fopen(fname, "wb");
+            if (!mDumpSndFP) {
+                fprintf(stderr, "Warning: send stream dump failed to open file %s\n",
+                        fname);
+            }
+
+            snprintf(fname, bsize, "%s/opengles_host_connection_%p_%d_rcv", dump_dir, this, peerPort);
+            mDumpRcvFP= fopen(fname, "wb");
+            if (!mDumpRcvFP) {
+                fprintf(stderr, "Warning: receive stream dump failed to open file %s\n",
+                        fname);
+            }
+            delete[] fname;
+        }
+
+
         DDD("%s: create", __func__);
     };
 
@@ -139,12 +162,18 @@ public:
     }
 
     void CloseConnection() {
-
         mChannel->stop();
-
         mSocket.reset();
+
+        if (mDumpSndFP != NULL) {
+            fclose(mDumpSndFP);
+        }
+
+        if (mDumpRcvFP != NULL) {
+            fclose(mDumpRcvFP);
+        }
     }
-    
+
     void ActivateChannelReadNotifier() {
 
             ChannelState flag = ChannelState::CanRead;
@@ -167,22 +196,23 @@ public:
         if (!mSocket) {
             //assert(0);
             return;
-            }
+        }
 
         if (mRecvPacketBodyLeftLen == 0) {
             ssize_t headLen;
             {
                 ScopedVmUnlock unlockBql;
-                headLen = android::base::socketRecv(mSocket->fd(),
-                                                &mRecvingPacketHead + PACKET_HEAD_LEN - mRecvPacketHeadLeftLen, mRecvPacketHeadLeftLen);
+                headLen = android::base::socketRecv(
+                    mSocket->fd(),
+                    &mRecvingPacketHead + PACKET_HEAD_LEN - mRecvPacketHeadLeftLen,
+                    mRecvPacketHeadLeftLen);
             }
 
             if (headLen < 0) {
                 if (errno == EAGAIN || errno == EWOULDBLOCK) {
                     mSocket->wantRead();
                     return;
-                    }
-                else {
+                } else {
                     mSocket->dontWantRead();
                     mSocket.reset();
                     assert(0);
@@ -195,7 +225,13 @@ public:
             if (mRecvPacketHeadLeftLen > 0) {
                 mSocket->wantRead();
                 return;
-                }
+            }
+
+            if (mDumpRcvFP) {
+                fwrite(&mRecvingPacketHead, 1, PACKET_HEAD_LEN, mDumpRcvFP);
+                fflush(mDumpRcvFP);
+            }
+
             uint8_t packet_type = mRecvingPacketHead.packet_type;
             //mSessionId = mRecvingPacketHead.session_id;
 
@@ -207,42 +243,39 @@ public:
                 return;
             }
 
-    		if (packet_type != DATA_PACKET) {
+            if (packet_type != DATA_PACKET) {
                 printf("wrong packet_type = %d\n", packet_type);
                 mSocket->dontWantRead();
-    			assert(0);
-    		}
+                assert(0);
+            }
 
             mRecvPacketBodyLeftLen = mRecvingPacketHead.packet_body_size;
             assert(mRecvPacketBodyLeftLen != 0);
 
             mSocket->wantRead();
-
-        }
-        else {
+        } else {
             ChannelBuffer outBuffer;
             outBuffer.resize_noinit(mRecvPacketBodyLeftLen);
 
             //ssize_t recvLen = outBuffer.capacity();
             //if (mRecvPacketBodyLeftLen < (ssize_t)outBuffer.capacity())
             //    recvLen = mRecvPacketBodyLeftLen;
-            
             auto packet_data = outBuffer.data();
-        
+
             ssize_t bodyLen;
             {
                 ScopedVmUnlock unlockBql;
-                bodyLen = android::base::socketRecv(mSocket->fd(),
-                                                packet_data,
-                                                outBuffer.size());
+                bodyLen = android::base::socketRecv(
+                    mSocket->fd(),
+                    packet_data,
+                    outBuffer.size());
             }
 
             if (bodyLen < 0) {
                 if (errno == EAGAIN || errno == EWOULDBLOCK) {
                     mSocket->wantRead();
                     return;
-                    }
-                else {
+                } else {
                     mSocket->dontWantRead();
                     mSocket.reset();
                     assert(0);
@@ -252,9 +285,16 @@ public:
 
             mRecvPacketBodyLeftLen -= bodyLen;
 
-            if (mRecvPacketBodyLeftLen > 0)
+            if (mRecvPacketBodyLeftLen > 0) {
+                assert(bodyLen >= (ssize_t)(outBuffer.size()));
                 outBuffer.resize_noinit(bodyLen);
-        
+            }
+
+            if (mDumpRcvFP) {
+                fwrite(packet_data, 1, bodyLen, mDumpRcvFP);
+                fflush(mDumpRcvFP);
+            }
+
             DD("read %d bytes data from socket (%d), write to render channel\n", (int)bodyLen, mSessionId);
             auto result = mChannel->tryWrite(std::move(outBuffer));
             if (result != IoResult::Ok) {
@@ -354,7 +394,8 @@ private:
 
     OpenGLESHostDataHandler* mDataHandlerPtr;
 
-    
+    FILE *mDumpSndFP = NULL;
+    FILE *mDumpRcvFP = NULL;
 };
 
 }  // namespace emulation
