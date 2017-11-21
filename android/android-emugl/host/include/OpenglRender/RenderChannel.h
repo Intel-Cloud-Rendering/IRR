@@ -107,6 +107,12 @@ public:
     // Once a channel is stopped, it cannot be re-started.
     virtual void stop() = 0;
 
+    // Set ID to identify current channel
+    virtual void setId(int id) = 0;
+
+    // Get ID to identify current channel
+    virtual int getId() = 0;
+
 protected:
     ~RenderChannel() = default;
 };

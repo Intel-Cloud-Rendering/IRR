@@ -69,7 +69,7 @@ public:
         
 		DDD("%s: create", __func__);
 
-        mChannel = renderer->createRenderChannel();
+        mChannel = renderer->createRenderChannel(0);
         if (!mChannel) {
             fprintf(stderr, "Failed to create an OpenGLES pipe channel!");
             return;

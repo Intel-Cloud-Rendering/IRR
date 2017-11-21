@@ -24,7 +24,7 @@
 
 class IOStream {
 protected:
-    explicit IOStream(size_t bufSize) : m_bufsize(bufSize) {}
+    explicit IOStream(size_t bufSize) : m_id(0), m_bufsize(bufSize) {}
 
     ~IOStream() {
         // NOTE: m_buf was owned by the child class thus we expect it to be
@@ -73,6 +73,22 @@ public:
         return stat;
     }
 
+    void setId(int id) {
+        m_id = id;
+    }
+
+    int getId() {
+        return m_id;
+    }
+
+    void enableDebug() {
+        m_debug = true;
+    }
+
+    void disableDebug() {
+        m_debug = false;
+    }
+
     virtual void* getDmaForReading(uint64_t guest_paddr) = 0;
     virtual void unlockDma(uint64_t guest_paddr) = 0;
 
@@ -80,6 +96,9 @@ protected:
     virtual void *allocBuffer(size_t minSize) = 0;
     virtual int commitBuffer(size_t size) = 0;
     virtual const unsigned char *readRaw(void *buf, size_t *inout_len) = 0;
+
+    int m_id;
+    bool m_debug;
 
 private:
     unsigned char* m_buf = nullptr;

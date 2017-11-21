@@ -944,10 +944,11 @@ int ApiGen::genDecoderImpl(const std::string &filename)
     fprintf(fp,
         "void %s(char *buf, int len, IOStream *stream) {\n",
         writeFileFuncName);
+
 #ifdef ENABLE_DUMP_BIN
     fprintf(fp,
         "\tchar fileName[512] = {0};\n"
-        "\tsprintf(fileName, \"%s_%%p.bin\", (void *)stream);\n"
+        "\tsprintf(fileName, \"%s_%%p_%%d.bin\", (void *)stream, stream->getId());\n"
         "\tFILE *binFile = fopen(fileName, \"a+\");\n"
         "\tassert(binFile != NULL);\n"
         "\tfwrite(buf, len, 1, binFile);\n"

@@ -69,7 +69,8 @@ public:
         }
         DDD("%s: create", __func__);
 
-        mChannel = renderer->createRenderChannel();
+        int peerPort = android::base::socketGetPeerPort(socket);
+        mChannel = renderer->createRenderChannel(peerPort);
         if (!mChannel) {
             fprintf(stderr, "Failed to create an OpenGLES pipe channel!");
             return;
@@ -106,7 +107,6 @@ public:
             size_t bsize = strlen(dump_dir) + 512;
             char* fname = new char[bsize];
 
-            int peerPort = android::base::socketGetPeerPort(socket);
             snprintf(fname, bsize, "%s/opengles_host_connection_%p_%d_snd", dump_dir, this, peerPort);
             mDumpSndFP= fopen(fname, "wb");
             if (!mDumpSndFP) {
@@ -348,6 +348,7 @@ public:
             //    return;
             //}
 */
+
             ssize_t sentLen = 0;
             while (1) {
                 ssize_t retBody;

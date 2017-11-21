@@ -108,8 +108,9 @@ void RendererImpl::stop() {
     mCleanupThread.wait();
 }
 
-RenderChannelPtr RendererImpl::createRenderChannel() {
+RenderChannelPtr RendererImpl::createRenderChannel(int id) {
     const auto channel = std::make_shared<RenderChannelImpl>();
+    channel->setId(id);
 
     std::unique_ptr<RenderThread> rt(RenderThread::create(
             shared_from_this(), channel));

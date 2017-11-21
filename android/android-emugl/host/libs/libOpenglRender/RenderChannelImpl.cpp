@@ -131,6 +131,14 @@ void RenderChannelImpl::stopFromHost() {
     notifyStateChangeLocked();
 }
 
+void RenderChannelImpl::setId(int id) {
+    mId = id;
+}
+
+int RenderChannelImpl::getId() {
+    return mId;
+}
+
 void RenderChannelImpl::updateStateLocked() {
     State state = RenderChannel::State::Empty;
 

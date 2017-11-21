@@ -71,6 +71,9 @@ public:
     // Close the channel from the host.
     void stopFromHost();
 
+    virtual void setId(int id);
+    virtual int getId();
+
 private:
     void updateStateLocked();
     void notifyStateChangeLocked();
@@ -84,6 +87,7 @@ private:
     State mWantedEvents = State::Empty;
     BufferQueue mFromGuest;
     BufferQueue mToGuest;
+    int mId = 0;
 };
 
 }  // namespace emugl

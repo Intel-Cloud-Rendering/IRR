@@ -41,7 +41,7 @@ public:
     void stop();
 
 public:
-    RenderChannelPtr createRenderChannel() final;
+    RenderChannelPtr createRenderChannel(int id) final;
     HardwareStrings getHardwareStrings() final;
     void setPostCallback(OnPostCallback onPost,
                                  void* context) final;

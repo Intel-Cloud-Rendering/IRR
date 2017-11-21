@@ -83,7 +83,7 @@ public:
     EmuglPipe(void* hwPipe, Service* service,
               const emugl::RendererPtr& renderer)
         : AndroidPipe(hwPipe, service) {
-        mChannel = renderer->createRenderChannel();
+        mChannel = renderer->createRenderChannel(0);
         if (!mChannel) {
             D("Failed to create an OpenGLES pipe channel!");
             return;
