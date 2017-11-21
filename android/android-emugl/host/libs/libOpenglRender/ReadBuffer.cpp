@@ -94,6 +94,60 @@ int ReadBuffer::getData(IOStream* stream, int minSize) {
     return readTotal;
 }
 
+// read from stream untill we have *exactly* size bytes in readbuffer.
+int ReadBuffer::getDataExactly(IOStream* stream, size_t size) {
+    assert(stream);
+    const size_t sizeToRead = size - m_validData;
+    const size_t freeTailSize = m_buf + m_size - (m_readPtr + m_validData);
+    if (freeTailSize < sizeToRead) {
+        // we need to adjust buffer to read data
+        if (freeTailSize + (m_readPtr - m_buf) >= sizeToRead) {
+            // There's some gap in the beginning, if we move the data over it
+            // that's going to be enough.
+            memmove(m_buf, m_readPtr, m_validData);
+        } else {
+            // Not enough space even with moving, reallocate.
+            // Note: make sure we can fit at least two of the requested packets
+            //  into the new buffer to minimize the reallocations and
+            //  memmove()-ing stuff around.
+            size_t new_size = std::max<size_t>(
+                    2 * sizeToRead + m_validData,
+                    2 * m_size);
+            if (new_size < m_size) {  // overflow check
+                new_size = INT_MAX;
+            }
+
+            const auto new_buf = (unsigned char*)malloc(new_size);
+            if (!new_buf) {
+                ERR("Failed to alloc %zu bytes for ReadBuffer\n", new_size);
+                return -1;
+            }
+
+            memcpy(new_buf, m_readPtr, m_validData);
+            free(m_buf);
+            m_buf = new_buf;
+            m_size = new_size;
+        }
+        // We can read more now, let's request it in case all data is ready
+        // for reading.
+        m_readPtr = m_buf;
+    }
+
+    // get fresh data into the buffer;
+    size_t readTotal = 0;
+    do {
+        const size_t readNow = stream->read(m_readPtr + m_validData,
+                                            sizeToRead - readTotal);
+        if (!readNow) {
+            return -1;
+        }
+        readTotal += readNow;
+        m_validData += readNow;
+    } while (readTotal < sizeToRead);
+
+    return readTotal;
+}
+
 void ReadBuffer::consume(size_t amount) {
     assert(amount <= m_validData);
     m_validData -= amount;

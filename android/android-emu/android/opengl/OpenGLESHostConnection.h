@@ -286,7 +286,7 @@ public:
             mRecvPacketBodyLeftLen -= bodyLen;
 
             if (mRecvPacketBodyLeftLen > 0) {
-                assert(bodyLen >= (ssize_t)(outBuffer.size()));
+                assert(bodyLen <= (ssize_t)(outBuffer.size()));
                 outBuffer.resize_noinit(bodyLen);
             }
 

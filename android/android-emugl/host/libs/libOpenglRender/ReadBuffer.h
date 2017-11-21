@@ -23,6 +23,7 @@ public:
     explicit ReadBuffer(size_t bufSize);
     ~ReadBuffer();
     int getData(IOStream *stream, int minSize); // get fresh data from the stream
+    int getDataExactly(IOStream *stream, size_t size); // get fresh data from the stream
     unsigned char *buf() { return m_readPtr; } // return the next read location
     size_t validData() { return m_validData; } // return the amount of valid data in readptr
     void consume(size_t amount); // notify that 'amount' data has been consumed;
