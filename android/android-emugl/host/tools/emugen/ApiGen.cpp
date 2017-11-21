@@ -932,6 +932,32 @@ int ApiGen::genDecoderImpl(const std::string &filename)
     fprintf(fp, "#include <stdio.h>\n\n");
     fprintf(fp, "typedef unsigned int tsize_t; // Target \"size_t\", which is 32-bit for now. It may or may not be the same as host's size_t when emugen is compiled.\n\n");
 
+    EntryPoint *e = &(*this)[0];
+    fprintf(fp,
+            "static inline bool isValidCode(int opCode){\n"
+            "    return ((opCode >= OP_%s) && (opCode < OP_last));\n"
+            "}\n",
+            e->name().c_str());
+
+    char writeFileFuncName[512] = {0};
+    sprintf(writeFileFuncName, "writeFile%s", m_basename.c_str());
+    fprintf(fp,
+        "void %s(char *buf, int len, IOStream *stream) {\n",
+        writeFileFuncName);
+#ifdef ENABLE_DUMP_BIN
+    fprintf(fp,
+        "\tchar fileName[512] = {0};\n"
+        "\tsprintf(fileName, \"%s_%%p.bin\", (void *)stream);\n"
+        "\tFILE *binFile = fopen(fileName, \"a+\");\n"
+        "\tassert(binFile != NULL);\n"
+        "\tfwrite(buf, len, 1, binFile);\n"
+        "\tfflush(binFile);\n"
+        "\tfclose(binFile);\n",
+        m_basename.c_str());
+#endif
+    fprintf(fp,
+        "}\n\n");
+
     // helper macros
     fprintf(fp,
             "#ifdef OPENGL_DEBUG_PRINTOUT\n"
@@ -981,6 +1007,9 @@ R"(        // Do this on every iteration, as some commands may change the checks
         const bool useChecksum = checksumSize > 0;
 )");
     }
+
+    fprintf(fp, "\t\tif (isValidCode(opcode)) %s((char*)ptr, packetLen, stream);\n", writeFileFuncName);
+
     fprintf(fp, "\t\tswitch(opcode) {\n");
 
     for (size_t f = 0; f < n; f++) {
@@ -1352,8 +1381,10 @@ R"(        // Do this on every iteration, as some commands may change the checks
                             "\t\t\t\tsize_t fakeIdBufOffset = totalTmpSize - toReadSize;\n"
                             "\t\t\t\ttoReadSize -= stream->read(fakeIdBuf + fakeIdBufOffset, toReadSize);\n"
                             "\t\t\t}\n"
+                            "\t\t\t%s(fakeIdBuf, totalTmpSize, stream);"
                             /* "\t\t\tfree(fakeIdBuf);\n" */
-                            "\n"
+                            "\n",
+                            writeFileFuncName
                             );
                     fprintf(fp,
                             "\t\t\tif (memcmp(fakeIdBuf, cmpBuf, totalTmpSize) != 0) assert(false);\n"
