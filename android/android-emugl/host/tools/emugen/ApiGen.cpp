@@ -1347,7 +1347,9 @@ R"(        // Do this on every iteration, as some commands may change the checks
                 if (totalTmpBuffExist) {
                     fprintf(fp,
                             "\t\t\ttotalTmpSize += checksumSize;\n"
-                            "\t\t\tunsigned char *tmpBuf = stream->alloc(totalTmpSize);\n");
+                            "\t\t\tunsigned char *tmpBuf = stream->alloc(totalTmpSize);\n"
+                            "\t\t\tassert(tmpBuf != nullptr);\n"
+                            "\t\t\tmemset(tmpBuf, 0, totalTmpSize);\n");
                 }
             }
 

@@ -29,13 +29,13 @@ using IoResult = RenderChannel::IoResult;
 ChannelStream::ChannelStream(std::shared_ptr<RenderChannelImpl> channel,
                              size_t bufSize)
     : IOStream(bufSize), mChannel(channel) {
-    mWriteBuffer.resize(bufSize);
+    mWriteBuffer.resize_noinit(bufSize);
     setId(channel->getId());
 }
 
 void* ChannelStream::allocBuffer(size_t minSize) {
     if (mWriteBuffer.size() < minSize) {
-        mWriteBuffer.resize(minSize);
+        mWriteBuffer.resize_noinit(minSize);
     }
     return mWriteBuffer.data();
 }
