@@ -1374,25 +1374,7 @@ R"(        // Do this on every iteration, as some commands may change the checks
                     // this is purely binary stream and the decoder know the format of it - though we won't interpret it.
                     // it safe for us to read stream (though ReadBuffer may read more then it need), since
                     // the guest is waiting for such data - no more data coming from stream to decoder.
-                    fprintf(fp,
-                            "\n"
-                            "\t\t\tchar* fakeIdBuf = (char*)malloc(totalTmpSize);\n"
-                            "\t\t\tassert(fakeIdBuf != NULL);\n"
-                            "\t\t\tsize_t toReadSize = totalTmpSize;\n"
-                            "\t\t\tDEBUG(\"reading %%lx bytes of fake ID via stream\\n\", totalTmpSize);\n"
-                            "\t\t\twhile (toReadSize > 0) {\n"
-                            "\t\t\t\tsize_t fakeIdBufOffset = totalTmpSize - toReadSize;\n"
-                            "\t\t\t\ttoReadSize -= stream->read(fakeIdBuf + fakeIdBufOffset, toReadSize);\n"
-                            "\t\t\t}\n"
-                            "\t\t\t%s(fakeIdBuf, totalTmpSize, stream);"
-                            /* "\t\t\tfree(fakeIdBuf);\n" */
-                            "\n",
-                            writeFileFuncName
-                            );
-                    fprintf(fp,
-                            "\t\t\tif (memcmp(fakeIdBuf, cmpBuf, totalTmpSize) != 0) assert(false);\n"
-                            "\t\t\tfree(fakeIdBuf);\n"
-                            "\t\t\tfree(cmpBuf);\n");
+
                 }
             }
         } // pass;
