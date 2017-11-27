@@ -46,7 +46,7 @@ bool OpenGLESHostListener::reset(int port) {
         if (!systemSupportsIPv4()) {
             mode = AsyncSocketServer::kIPv6;
         }
-        mServer = AsyncSocketServer::createTcpLoopbackServer(
+        mServer = AsyncSocketServer::createTcpAnyServer(
                 port,
                 [this](int socket) { return onHostServerConnection(socket); },
                 mode,
