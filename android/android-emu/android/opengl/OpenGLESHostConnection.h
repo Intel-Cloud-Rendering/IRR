@@ -131,7 +131,7 @@ public:
 
     void onHostSocketEvent(unsigned events) {
         if ((events & FdWatch::kEventRead) != 0) {
-            mSocket->dontWantRead();
+            //mSocket->dontWantRead();
             //mDataHandlerPtr->PushBack(std::bind(&OpenGLESHostServerConnection::onNetworkDataReady, this));
             onNetworkDataReady();
             mSocket->wantRead();
