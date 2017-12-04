@@ -131,8 +131,10 @@ public:
 
     void onHostSocketEvent(unsigned events) {
         if ((events & FdWatch::kEventRead) != 0) {
-            //mSocket->dontWantRead();
-            mDataHandlerPtr->PushBack(std::bind(&OpenGLESHostServerConnection::onNetworkDataReady, this));
+            mSocket->dontWantRead();
+            //mDataHandlerPtr->PushBack(std::bind(&OpenGLESHostServerConnection::onNetworkDataReady, this));
+            onNetworkDataReady();
+            mSocket->wantRead();
             //mDataHandlerPtr->NotifyDataReady();
         }
 
@@ -176,21 +178,44 @@ public:
 
     void ActivateChannelReadNotifier() {
 
-            ChannelState flag = ChannelState::CanRead;
-    
-            // Signal events that are already available now.
-            ChannelState state = mChannel->state();
-            ChannelState available = state & flag;
+        ChannelState flag = ChannelState::CanRead;
 
-            if (available != ChannelState::Empty) {
-                //mSocket->wantWrite();
-                mDataHandlerPtr->PushBack(std::bind(&OpenGLESHostServerConnection::onRenderChannelDataReady, this));
-                return;
-            }
+        // Signal events that are already available now.
+        ChannelState state = mChannel->state();
+        ChannelState available = state & flag;
 
-            mChannel->setWantedEvents(flag);
+        if (available != ChannelState::Empty) {
+            //mSocket->wantWrite();
+            mDataHandlerPtr->PushBack(std::bind(&OpenGLESHostServerConnection::onRenderChannelDataReady, this));
+            return;
         }
 
+        mChannel->setWantedEvents(flag);
+    }
+
+    ssize_t receiveDataFromSocketNonBlocking(char * buf, ssize_t wantReadLen) {
+        ssize_t readLen;
+        {
+            ScopedVmUnlock unlockBql;
+            readLen = android::base::socketRecv(
+                mSocket->fd(),
+                buf,
+                wantReadLen);
+        }
+
+        if (readLen < 0) {
+            if (errno == EAGAIN || errno == EWOULDBLOCK) {
+                return 0;
+            } else {
+                mSocket.reset();
+                assert(0);
+                return -1;
+            }
+        }
+
+        return readLen;
+    }
+    
     void onNetworkDataReady() {
         DD("%s : \n", __func__);\
         if (!mSocket) {
@@ -198,123 +223,91 @@ public:
             return;
         }
 
-        if (mRecvPacketBodyLeftLen == 0) {
-            ssize_t headLen;
-            {
-                ScopedVmUnlock unlockBql;
-                headLen = android::base::socketRecv(
-                    mSocket->fd(),
-                    &mRecvingPacketHead + PACKET_HEAD_LEN - mRecvPacketHeadLeftLen,
-                    mRecvPacketHeadLeftLen);
-            }
+        //while (1) {
+            if (mRecvPacketBodyLeftLen == 0) {
 
-            if (headLen < 0) {
-                if (errno == EAGAIN || errno == EWOULDBLOCK) {
-                    mSocket->wantRead();
-                    return;
-                } else {
+                int headLen = receiveDataFromSocketNonBlocking(
+                    (char *)(&mRecvingPacketHead + PACKET_HEAD_LEN - mRecvPacketHeadLeftLen),
+                    mRecvPacketHeadLeftLen);
+
+                if (headLen == -1) {
                     mSocket->dontWantRead();
-                    mSocket.reset();
-                    assert(0);
                     return;
                 }
-            }
 
-            mRecvPacketHeadLeftLen -= headLen;
+                mRecvPacketHeadLeftLen -= headLen;
 
-            if (mRecvPacketHeadLeftLen > 0) {
-                mSocket->wantRead();
-                return;
-            }
+                if (mRecvPacketHeadLeftLen > 0) {
+                    // no data in socket buf anymore, exit the loop
+                    return;
+                }
 
-            if (mDumpRcvFP) {
-                fwrite(&mRecvingPacketHead, 1, PACKET_HEAD_LEN, mDumpRcvFP);
-                fflush(mDumpRcvFP);
-            }
+                uint8_t packet_type = mRecvingPacketHead.packet_type;
+                //mSessionId = mRecvingPacketHead.session_id;
 
-            uint8_t packet_type = mRecvingPacketHead.packet_type;
-            //mSessionId = mRecvingPacketHead.session_id;
+                DD("%s: packet_type = %d\n", __func__, packet_type);
 
-            DD("%s: packet_type = %d\n", __func__, packet_type);
+                if (packet_type == CTRL_PACKET_GUEST_CLOSE) {
+                    printf("%s: try to close pipe server\n", __func__);
+                    CloseConnection();
+                    return;
+                }
 
-            if (packet_type == CTRL_PACKET_GUEST_CLOSE) {
-                printf("%s: try to close pipe server\n", __func__);
-                CloseConnection();
-                return;
-            }
+                if (packet_type != DATA_PACKET) {
+                    printf("wrong packet_type = %d\n", packet_type);
+                    mSocket->dontWantRead();
+                    assert(0);
+                }
 
-            if (packet_type != DATA_PACKET) {
-                printf("wrong packet_type = %d\n", packet_type);
-                mSocket->dontWantRead();
-                assert(0);
-            }
+                mRecvPacketBodyLeftLen = mRecvingPacketHead.packet_body_size;
+                assert(mRecvPacketBodyLeftLen != 0);
+            } else {
+                ChannelBuffer outBuffer;
+                outBuffer.resize_noinit(mRecvPacketBodyLeftLen);
 
-            mRecvPacketBodyLeftLen = mRecvingPacketHead.packet_body_size;
-            assert(mRecvPacketBodyLeftLen != 0);
+                //ssize_t recvLen = outBuffer.capacity();
+                //if (mRecvPacketBodyLeftLen < (ssize_t)outBuffer.capacity())
+                //    recvLen = mRecvPacketBodyLeftLen;
+                auto packet_data = outBuffer.data();
 
-            mSocket->wantRead();
-        } else {
-            ChannelBuffer outBuffer;
-            outBuffer.resize_noinit(mRecvPacketBodyLeftLen);
-
-            //ssize_t recvLen = outBuffer.capacity();
-            //if (mRecvPacketBodyLeftLen < (ssize_t)outBuffer.capacity())
-            //    recvLen = mRecvPacketBodyLeftLen;
-            auto packet_data = outBuffer.data();
-
-            ssize_t bodyLen;
-            {
-                ScopedVmUnlock unlockBql;
-                bodyLen = android::base::socketRecv(
-                    mSocket->fd(),
+                int bodyLen = receiveDataFromSocketNonBlocking(
                     packet_data,
                     outBuffer.size());
-            }
 
-            if (bodyLen < 0) {
-                if (errno == EAGAIN || errno == EWOULDBLOCK) {
-                    mSocket->wantRead();
-                    return;
-                } else {
+                if (bodyLen == -1) {
                     mSocket->dontWantRead();
-                    mSocket.reset();
+                    return;
+                }
+
+                mRecvPacketBodyLeftLen -= bodyLen;
+
+                if (mRecvPacketBodyLeftLen > 0) {
+                    // no data in socket buf anymore, exit the loop
+                    assert(bodyLen <= (ssize_t)(outBuffer.size()));
+                    outBuffer.resize_noinit(bodyLen);
+                }
+
+                DD("read %d bytes data from socket (%d), write to render channel\n", (int)bodyLen, mSessionId);
+                auto result = mChannel->tryWrite(std::move(outBuffer));
+                if (result != IoResult::Ok) {
+                    DDD("%s: tryWrite() failed with %d", __func__, (int)result);
+                    mSocket->dontWantRead();
                     assert(0);
                     return;
                 }
+
+                if (mRecvPacketBodyLeftLen == 0) {
+                    mRecvPacketHeadLeftLen = PACKET_HEAD_LEN;
+                    ActivateChannelReadNotifier();
+                }
             }
-
-            mRecvPacketBodyLeftLen -= bodyLen;
-
-            if (mRecvPacketBodyLeftLen > 0) {
-                assert(bodyLen <= (ssize_t)(outBuffer.size()));
-                outBuffer.resize_noinit(bodyLen);
-            }
-
-            if (mDumpRcvFP) {
-                fwrite(packet_data, 1, bodyLen, mDumpRcvFP);
-                fflush(mDumpRcvFP);
-            }
-
-            DD("read %d bytes data from socket (%d), write to render channel\n", (int)bodyLen, mSessionId);
-            auto result = mChannel->tryWrite(std::move(outBuffer));
-            if (result != IoResult::Ok) {
-                DDD("%s: tryWrite() failed with %d", __func__, (int)result);
-                mSocket->dontWantRead();
-                assert(0);
-                return;
-            }
-
-            if (mRecvPacketBodyLeftLen == 0) {
-                mRecvPacketHeadLeftLen = PACKET_HEAD_LEN;
-                ActivateChannelReadNotifier();
-             }
-
-            mSocket->wantRead();
-        }
+            
+        //}
+        //mSocket->wantRead();
     }
 
     void onRenderChannelDataReady() {
-        //DD("%s : ", __func__);
+        DD("%s : \n", __func__);
         if (!mSocket)
             return;
         
