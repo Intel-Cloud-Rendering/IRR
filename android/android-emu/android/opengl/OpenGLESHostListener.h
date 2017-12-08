@@ -14,14 +14,20 @@
 #include "android/base/threads/Thread.h"
 #include "android/base/async/AsyncSocketServer.h"
 #include "android/emulation/AdbTypes.h"
+#include "android/base/synchronization/Lock.h"
+
 #include "android/opengl/OpenGLESHostDataHandler.h"
-#include "android/opengl/OpenGLESHostConnection.h"
+
 #include <memory>
 #include <vector>
 
 
 namespace android {
 namespace opengl {
+
+using Lock = android::base::Lock;
+using AutoLock = android::base::AutoLock;
+
 
 // AdbHostListener implements the AdbHostAgent interface with a concrete
 // implementation that uses localhost TCP ports. Its full purpose is
@@ -58,7 +64,6 @@ namespace opengl {
 // NOTE: Everything should happen in the main loop thread.
 //
 
-
 class OpenGLESHostListener {
 public:
     // Constructor takes an option |adbClientPort| parameter specifying
@@ -93,15 +98,17 @@ public:
     // Return port this host server is currently bound to, or -1 if it is not.
     int port() const { return mServer.get() ? mServer->port() : -1; }
 
+    void addConnection(std::shared_ptr<OpenGLESHostServerConnection> connection);
+    void removeConnection(int fd);
+
 private:
     // Called from the AsyncSocketServer when a new connection from the
     // ADB host server happens. Return true on success, false otherwise.
     bool onHostServerConnection(int port);
 
-    //AdbGuestAgent* mGuestAgent = nullptr;
 
     std::unique_ptr<android::base::AsyncSocketServer> mServer;
-    std::list<std::shared_ptr<OpenGLESHostServerConnection> > mConnectionList;
+
     OpenGLESHostDataHandler mDataHandler;
 };
 

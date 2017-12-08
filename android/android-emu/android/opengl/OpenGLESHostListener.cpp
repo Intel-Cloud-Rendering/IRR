@@ -24,6 +24,8 @@
 
 namespace android {
 namespace opengl {
+    using Lock = android::base::Lock;
+    using AutoLock = android::base::AutoLock;
 
 static bool systemSupportsIPv4() {
     int socket = base::socketCreateTcp4();
@@ -79,10 +81,7 @@ bool OpenGLESHostListener::onHostServerConnection(int socket) {
     printf("found a guest connection\n");
     //mGuestAgent->onHostConnection(ScopedSocket(socket));
 
-    std::shared_ptr<OpenGLESHostServerConnection> connection = 
-        std::make_shared<OpenGLESHostServerConnection>(socket, &mDataHandler);
-
-    mConnectionList.push_back(connection);
+    mDataHandler.addConnection(socket);
     
     //start listening again
     mServer->startListening();
