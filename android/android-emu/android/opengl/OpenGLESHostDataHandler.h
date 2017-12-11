@@ -40,10 +40,10 @@ public:
 
             for (int i = 0; i < ret; i ++) {
                 if ((events[i].events & EPOLLERR) ||  
-                      (events[i].events & EPOLLHUP)) {  
-                      printf("epoll error\n");  
-                      close(events[i].data.fd);
-                      assert(0);
+                      (events[i].events & EPOLLHUP) ||
+                      (events[i].events & EPOLLRDHUP)) {  
+                      //printf("found a connection exited\n");  
+                      removeConnection(events[i].data.fd);
                       continue;  
                 } else if (events[i].events & EPOLLIN) {
                     AutoLock lock(mListLock);
@@ -58,6 +58,7 @@ public:
                     
                     if (!connection->onNetworkDataReady()) {
                         removeConnection(events[i].data.fd);
+                        //printf("connection count = %d-------------------\n", (int)mConnectionList.size());
                     }
                 } else if (events[i].events & EPOLLOUT) {
                     AutoLock lock(mListLock);
@@ -125,7 +126,7 @@ public:
         lock.unlock();
         
         struct epoll_event ev;
-        ev.events = EPOLLIN | EPOLLET;
+        ev.events = EPOLLIN | EPOLLET | EPOLLRDHUP;
         ev.data.fd = socket;
         ::epoll_ctl(mEpollFD, EPOLL_CTL_ADD, socket, &ev);
     }
@@ -138,9 +139,9 @@ public:
         ev.events = EPOLLIN;
         ev.data.fd = fd;
         if (askRead)
-            ev.events = EPOLLIN | EPOLLET;
+            ev.events = EPOLLIN | EPOLLET | EPOLLRDHUP;
         else
-            ev.events = EPOLLOUT;
+            ev.events = EPOLLOUT | EPOLLRDHUP;
 
         ::epoll_ctl(mEpollFD, EPOLL_CTL_MOD, fd, &ev);
     }

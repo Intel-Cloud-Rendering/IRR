@@ -145,6 +145,12 @@ ssize_t OpenGLESHostServerConnection::receiveDataFromSocketNonBlocking(char * bu
     return readLen;
 }
 
+void OpenGLESHostServerConnection::CloseConnection() {
+    android::base::socketClose(mFd);
+    mFd = -1;
+    mChannel->stop();
+}
+
 bool OpenGLESHostServerConnection::onNetworkDataReady() {
     //printf("%s : \n", __func__);
     if (mFd <= 0) {

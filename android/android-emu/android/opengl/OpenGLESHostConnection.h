@@ -62,10 +62,7 @@ public:
     // Called when an i/o event occurs on the render channel
     void onChannelHostEvent(ChannelState state);
 
-    void CloseConnection() {
-        mChannel->stop();
-    }
-
+    void CloseConnection();
     void ActivateChannelReadNotifier();
 
     ssize_t receiveDataFromSocketNonBlocking(char * buf, ssize_t wantReadLen);
