@@ -136,7 +136,6 @@ public:
             return;
         
         struct epoll_event ev;
-        ev.events = EPOLLIN;
         ev.data.fd = fd;
         if (askRead)
             ev.events = EPOLLIN | EPOLLET | EPOLLRDHUP;

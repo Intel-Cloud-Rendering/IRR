@@ -118,7 +118,7 @@ intptr_t RenderThread::main() {
         // was already in the buffer.
         assert(packetSize > (int)readBuf.validData());
 
-        const int stat = readBuf.getDataExactly(&stream, packetSize);
+        const int stat = readBuf.getData(&stream, packetSize);
         if (stat <= 0) {
             D("Warning: render thread could not read data from stream\n");
             break;
