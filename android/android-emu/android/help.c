@@ -1443,6 +1443,13 @@ help_cores(stralloc_t* out)
 
 #define help_skip_adb_auth NULL
 
+#define help_streaming    NULL
+#define help_res          NULL
+#define help_b            NULL
+#define help_url          NULL
+#define help_fr           NULL
+#define help_codec        NULL
+
 typedef struct {
     const char*  name;
     const char*  template;

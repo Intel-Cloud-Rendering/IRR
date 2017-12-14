@@ -28,6 +28,8 @@
 #include "android/multitouch-screen.h"
 #include "android/jpeg-compress.h"
 #include "android/gpu_frame.h"
+#include "android/streaming/utils.h"
+#include "cmdline-option.h"
 
 #include <cmath>
 #include <limits>
@@ -235,17 +237,8 @@ static void onFramebufferPosted(void*, int w, int h, const void* pixels) {
     static const int bytes_per_pixel = 3;
     static const int jpeg_quality = 50;
     static const int direction = 1;
-    static CMyDemux *myDemux = new CMyDemux(w, h, AV_PIX_FMT_RGBA);
-    static CTransCoder myTrans(dynamic_cast<CDemux*>(myDemux),
-                               "udp://localhost:12345");
-//                               "rtmp://centos72-cliu3x/myapp/test.flv");
-    static bool run_once = false;
 
-    myDemux->sendPacket(pixels, w * h *4);
-    if (!run_once) {
-        myTrans.start();
-        run_once = true;
-    }
+    fresh_screen(w, h, pixels);
     if (sGlobals->socket) {
         // JPEG-compress the contents of the window.
         const uint8_t* fb = static_cast<const uint8_t*>(pixels);
@@ -376,10 +369,13 @@ void android_emuctl_client_init(void) {
         jpeg_compressor_create(
             sizeof(FramebufferPacketHeader),
             4096);
-    gpu_frame_set_post_callback(
-        reinterpret_cast<Looper*>(sGlobals->looper),
-        nullptr,
-        onFramebufferPosted);
+    if (android_cmdLineOptions->streaming) {
+        gpu_frame_set_post_callback(
+            reinterpret_cast<Looper*>(sGlobals->looper),
+            nullptr,
+            onFramebufferPosted);
+        register_stream_publishment();
+    }
 }
 
 void android_emuctl_client_connect(int port) {
@@ -414,4 +410,3 @@ void android_emuctl_client_disconnect(void) {
 void android_emuctl_client_setsensors(const QAndroidSensorsAgent* agent) {
     sGlobals->sensors = agent;
 }
-
