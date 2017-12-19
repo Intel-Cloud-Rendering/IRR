@@ -161,7 +161,7 @@ bool OpenGLESHostServerConnection::onNetworkDataReady() {
         if (mRecvPacketBodyLeftLen == 0) {
 
             int headLen = receiveDataFromSocketNonBlocking(
-                (char *)(&mRecvingPacketHead + PACKET_HEAD_LEN - mRecvPacketHeadLeftLen),
+                ((char *)&mRecvingPacketHead + PACKET_HEAD_LEN - mRecvPacketHeadLeftLen),
                 mRecvPacketHeadLeftLen);
 
             if (headLen == -1) {
