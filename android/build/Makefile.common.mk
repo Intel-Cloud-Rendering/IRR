@@ -20,6 +20,7 @@ include $(LOCAL_PATH)/android/third_party/libANGLEtranslation.mk
 include $(LOCAL_PATH)/android/third_party/Protobuf.mk
 include $(LOCAL_PATH)/android/third_party/libffmpeg.mk
 include $(LOCAL_PATH)/android/third_party/libx264.mk
+include $(LOCAL_PATH)/android/third_party/libtrans.mk
 
 ifeq (true,$(BUILD_BENCHMARKS))
 include $(LOCAL_PATH)/android/third_party/regex-win32/sources.mk
@@ -240,3 +241,10 @@ include $(EMUGL_SRCDIR)/Android.mk
 ifdef QEMU2_TOP_DIR
 include $(QEMU2_TOP_DIR)/android-qemu2-glue/build/Makefile.qemu2.mk
 endif
+
+##############################################################################
+##############################################################################
+###
+###  Intel Remote Renderer
+###
+include $(QEMU2_TOP_DIR)/irr/Makefile.irr.mk

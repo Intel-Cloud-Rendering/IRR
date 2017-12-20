@@ -33,7 +33,7 @@
 #include "android/utils/system.h"
 #include "android/utils/bufprint.h"
 #include "android/version.h"
-
+#include "android/emuctl-client.h"
 
 #include <stdbool.h>
 
@@ -405,6 +405,8 @@ bool android_emulation_setup(const AndroidConsoleAgents* agents) {
 
     /* initilize fingperprint here */
     android_hw_fingerprint_init();
+
+    android_emuctl_client_init();
 
     return true;
 }

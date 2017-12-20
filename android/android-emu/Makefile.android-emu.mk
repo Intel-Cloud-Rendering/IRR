@@ -220,6 +220,8 @@ LOCAL_C_INCLUDES := \
     $(LIBEXT4_UTILS_INCLUDES) \
     $(LIBPNG_INCLUDES) \
     $(ZLIB_INCLUDES) \
+    $(LIBTRANS_INCLUDES) \
+    $(FFMPEG_INCLUDES) \
     /usr/include \
 
 
@@ -360,7 +362,7 @@ LOCAL_SRC_FILES := \
     android/opengl/OpenglEsPipeServer.cpp \
     android/OpenGLESHostServer.cpp \
     android/opengl/OpenGLESHostListener.cpp \
-    android/opengl/OpenGLESHostConnection.cpp \
+	android/opengl/OpenGLESHostConnection.cpp \
     android/opengles.cpp \
     android/openssl-support.cpp \
     android/process_setup.cpp \
@@ -446,6 +448,8 @@ ANDROID_EMU_STATIC_LIBRARIES := \
     emulator-libjpeg \
     emulator-libpng \
     emulator-libwebp \
+    emulator-libtrans \
+    $(FFMPEG_STATIC_LIBRARIES) \
     emulator-zlib \
     $(METRICS_PROTO_STATIC_LIBRARIES) \
     $(LIBMMAN_WIN32_STATIC_LIBRARIES) \
@@ -455,6 +459,7 @@ ANDROID_EMU_LDLIBS := \
     $(ANDROID_EMU_BASE_LDLIBS) \
     $(LIBCURL_LDLIBS) \
     $(BREAKPAD_CLIENT_LDLIBS) \
+    $(LIBTRANS_LDLIBS) \
 
 ifeq ($(BUILD_TARGET_OS),windows)
 # For capCreateCaptureWindow used in camera-capture-windows.cpp
