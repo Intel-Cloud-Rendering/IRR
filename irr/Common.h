@@ -4,6 +4,7 @@
 #ifndef __COMMON_H__
 #define __COMMON_H__
 
+#define IRR_DEBUG_LEVEL 3
 
 namespace irr {
 

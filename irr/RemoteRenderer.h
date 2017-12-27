@@ -7,7 +7,6 @@
 
 extern "C" {
 
-#define IRR_DEBUG_LEVEL 3
 
 namespace irr {
 

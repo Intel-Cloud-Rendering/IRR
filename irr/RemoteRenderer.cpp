@@ -6,6 +6,7 @@
 #include <cstdio>
 #include <cassert>
 
+#include "android/cmdline-option.h"
 #include "android/base/async/ThreadLooper.h"
 #include "android/base/sockets/SocketUtils.h"
 #include "android/base/sockets/ScopedSocket.h"
@@ -35,11 +36,32 @@ void SignalWatchDeleter::operator()(android::base::Looper::FdWatch *watch) const
    delete watch;
 }
 
-static int parse_options(int argc, char** argv)
+static int parse_options(int* p_argc, char*** p_argv, AndroidOptions *opts)
 {
+    D("argc=%d", *p_argc);
+
+    if (android_parse_options(p_argc, p_argv, opts) < 0){
+       fprintf(stderr, "Error during options parsing\n");
+       return -1;
+    }
+
+    android_cmdLineOptions = opts;
+
+    if (android_cmdLineOptions->streaming)
+        D("streaming flag(%d) is %s", android_cmdLineOptions->streaming,
+                android_cmdLineOptions->streaming ? "set":"unset");
+    if (android_cmdLineOptions->url)
+        D("streaming to %s", android_cmdLineOptions->url);
+    if (android_cmdLineOptions->b)
+        D("streaming with bit rate %s", android_cmdLineOptions->b);
+    if (android_cmdLineOptions->codec)
+        D("streaming with codec %s", android_cmdLineOptions->codec);
+    if (android_cmdLineOptions->fr)
+        D("streaming with frame rate %s", android_cmdLineOptions->fr);
+    if (android_cmdLineOptions->res)
+        D("streaming with output resolution %s", android_cmdLineOptions->res);
 
     // hard code initialize value, need a parse function here
-    //getenv("render_server_port")
     sConfig->hw_lcd_width = atoi(getenv("irr_lcd_width"));
     sConfig->hw_lcd_height = atoi(getenv("irr_lcd_height"));
     if ((0 == sConfig->hw_lcd_width) || (0 == sConfig->hw_lcd_height)){
@@ -140,6 +162,7 @@ extern "C" int main(int argc, char** argv)
     int count = 0;
     int event_flag = 0;
     ScopedSignalWatch sig_watch;
+    AndroidOptions opts[1];
 
     D("Hello, this is an intel remote renderer!\n");
 
@@ -147,7 +170,11 @@ extern "C" int main(int argc, char** argv)
     //
     // parse input options
     //
-    parse_options(argc, argv);
+    if (parse_options(&argc, &argv, opts) < 0 ){
+        fprintf(stderr, "Failed to initialize GLES emulation.\n");
+        ret = -1;
+        goto Exit;
+    }
 
     //
     // Initializing signal handling
@@ -166,7 +193,7 @@ extern "C" int main(int argc, char** argv)
     //
     // A.1) initialize GLES emulation
     if (android_initOpenglesEmulation() != 0) {
-        printf("Failed to initialize GLES emulation.\n");
+        fprintf(stderr, "Failed to initialize GLES emulation.\n");
         ret = -1;
         goto Exit;
     }
@@ -177,7 +204,7 @@ extern "C" int main(int argc, char** argv)
                                       sConfig->is_phone_api,
                                       sConfig->api_level)
                                       != 0){
-        printf("Failed to start GLES renderer.\n");
+        fprintf(stderr, "Failed to start GLES renderer.\n");
         ret = -1;
         goto Exit;
     }
@@ -185,12 +212,14 @@ extern "C" int main(int argc, char** argv)
     //
     // Initilize encoder
     //
-    dump_frame_dir = getenv("RENDERER_FRAME_DUMP_DIR");
-    if (dump_frame_dir){
-        android_setPostCallback(on_post_callback, &sOnPostCntxt);
+    if (opts->streaming){
+        android_emuctl_client_init();
     }
     else{
-        android_emuctl_client_init();
+        dump_frame_dir = getenv("RENDERER_FRAME_DUMP_DIR");
+        if (dump_frame_dir){
+            android_setPostCallback(on_post_callback, &sOnPostCntxt);
+        }
     }
 
     //
