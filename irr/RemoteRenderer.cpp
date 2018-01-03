@@ -14,6 +14,7 @@
 #include "android/opengles.h"
 #include "android/OpenGLESHostServer.h"
 #include "RemoteRenderer.h"
+#include "android/streaming/utils.h"
 #include "Dump.h"
 
 struct SignalWatchDeleter {
@@ -155,6 +156,16 @@ static void on_post_callback(void* context, int width,
     return;
 }
 
+static void on_post_callback2(void* context, int width,
+                           int height, int ydir,
+                           int format, int type,
+                           unsigned char* pixels)
+{
+    // Simply added here FB copy callback for ffmpeg encoding
+    fresh_screen(width, height, pixels);
+    return;
+}
+
 extern "C" int main(int argc, char** argv)
 {
     int ret = 0;
@@ -213,7 +224,7 @@ extern "C" int main(int argc, char** argv)
     // Initilize encoder
     //
     if (opts->streaming){
-        android_emuctl_client_init();
+        android_setPostCallback(on_post_callback2, &sOnPostCntxt);
     }
     else{
         dump_frame_dir = getenv("RENDERER_FRAME_DUMP_DIR");
@@ -242,9 +253,10 @@ extern "C" int main(int argc, char** argv)
     }while(1);
 
     //
-    // TODO: need to enhance and handle real threads return process here!!!
+    // TODO: need to enhance and handle real error/threads return process here!!!
     //
     android_opengles_server_undo_init();
+    unregister_stream_publishment();
     sleep(1);
 
     exit(EXIT_SUCCESS);

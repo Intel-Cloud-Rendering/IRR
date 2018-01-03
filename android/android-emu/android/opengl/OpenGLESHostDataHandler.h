@@ -126,6 +126,7 @@ public:
         lock.unlock();
         
         struct epoll_event ev;
+        memset(&ev, 0, sizeof(ev));
         ev.events = EPOLLIN | EPOLLET | EPOLLRDHUP;
         ev.data.fd = socket;
         ::epoll_ctl(mEpollFD, EPOLL_CTL_ADD, socket, &ev);
@@ -136,6 +137,7 @@ public:
             return;
         
         struct epoll_event ev;
+        memset(&ev, 0, sizeof(ev));
         ev.data.fd = fd;
         if (askRead)
             ev.events = EPOLLIN | EPOLLET | EPOLLRDHUP;

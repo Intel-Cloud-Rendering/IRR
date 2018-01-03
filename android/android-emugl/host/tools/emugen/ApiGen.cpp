@@ -1357,24 +1357,12 @@ R"(        // Do this on every iteration, as some commands may change the checks
                 // send back out pointers data as well as retval
                 if (totalTmpBuffExist) {
                     fprintf(fp,
-                            "\n"
-                            "\t\t\tchar* cmpBuf = (char*)malloc(totalTmpSize);\n"
-                            "\t\t\tassert(cmpBuf != NULL);\n"
-                            /* "\t\t\tfree(fakeIdBuf);\n" */
-                           );
-                    fprintf(fp,
                             "\t\t\tif (useChecksum) {\n"
                             "\t\t\t\tChecksumCalculatorThreadInfo::writeChecksum(checksumCalc, "
                             "&tmpBuf[0], totalTmpSize - checksumSize, "
                             "&tmpBuf[totalTmpSize - checksumSize], checksumSize);\n"
                             "\t\t\t}\n"
-                            "\t\t\tmemcpy(cmpBuf, tmpBuf, totalTmpSize);\n"
                             "\t\t\tstream->flush();\n");
-                    // pull the "fake ID" which is sent from instance.
-                    // this is purely binary stream and the decoder know the format of it - though we won't interpret it.
-                    // it safe for us to read stream (though ReadBuffer may read more then it need), since
-                    // the guest is waiting for such data - no more data coming from stream to decoder.
-
                 }
             }
         } // pass;

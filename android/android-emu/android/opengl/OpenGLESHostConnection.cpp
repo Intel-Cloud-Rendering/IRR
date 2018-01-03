@@ -222,8 +222,10 @@ bool OpenGLESHostServerConnection::onNetworkDataReady() {
             //    (int)bodyLen, mSessionId, mTotalDataSize);
             auto result = mChannel->tryWrite(std::move(outBuffer));
             if (result != IoResult::Ok) {
-                DDD("%s: tryWrite() failed with %d", __func__, (int)result);
-                assert(0);
+                fprintf(stderr, "%s: tryWrite() failed with %d, please check reset needs\n", __func__, (int)result);
+                // this assert is triggerred once XIO error 11 occurred,
+                // so temporarily comment it out
+                //assert(0);
                 return false;
             }
 
