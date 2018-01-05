@@ -930,6 +930,7 @@ int ApiGen::genDecoderImpl(const std::string &filename)
     fprintf(fp, "#include \"ProtocolUtils.h\"\n\n");
     fprintf(fp, "#include \"ChecksumCalculatorThreadInfo.h\"\n\n");
     fprintf(fp, "#include <stdio.h>\n\n");
+    fprintf(fp, "#include \"RenderLog.h\"\n\n");
     fprintf(fp, "typedef unsigned int tsize_t; // Target \"size_t\", which is 32-bit for now. It may or may not be the same as host's size_t when emugen is compiled.\n\n");
 
     // helper macros
@@ -939,7 +940,7 @@ int ApiGen::genDecoderImpl(const std::string &filename)
             //"#else\n"
             //"#  define DEBUG(...)  ((void)0)\n"
             //"#endif\n\n");
-            "#define DEBUG printf\n"
+            "#define DEBUG irr_log_info\n"
             "\n");
 
     fprintf(fp,

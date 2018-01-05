@@ -5,7 +5,13 @@ I. Build
 3. Add -L{BOOST_PATH}/stage/lib/ to LIB_PATH in Makefile
 3. make
 
-II Run
+II. Run
 
 1. ./run.sh or ./run-debug.sh
-2. run emulator instance
+
+III. Code
+
+1. You can turn on/off macros of following
+   a. DEBUG_LOG	       in src/RenderLog.h
+   b. DUMP_RAW_VIDEO   in src/RenderServer.h
+   c. PRINT_STAT       in src/RenderServer.h

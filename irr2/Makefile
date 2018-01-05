@@ -17,7 +17,7 @@ CC:=g++
 CPPFLAGS:=-std=c++11 -g
 INC_PATH:=-I${INC} -I${INC}/OpenglRender -I${COMM_SRC} -I${INTER_SRC} -I${OGLRD_SRC} -I${SRC} -I${OGL_CODEC_COMM_SRC} -I${SPEC_SRC}/GLESv1_dec -I${SPEC_SRC}/GLESv2_dec -I${SPEC_SRC}/renderControl_dec
 LIB_PATH:=-L${HOME_DIR}/boost_1_65_1/stage/lib -L${HOME_DIR}/lib64
-LIBS:=-lboost_system -lboost_thread -lpthread -ldl -lX11
+LIBS:=-lboost_system -lboost_thread -lpthread -ldl -lX11 -lboost_timer -lboost_chrono -lrt
 
 .PHONY: all
 all: dec bin_folder ${BIN}/RenderServer clean_intermediate

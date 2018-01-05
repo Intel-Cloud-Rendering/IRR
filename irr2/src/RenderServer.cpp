@@ -4,7 +4,15 @@
 #include "RendererImpl.h"
 #include <memory>
 #include <unistd.h>
+#ifdef DUMP_RAW_VIDEO
 #include <fstream>
+#endif
+#ifdef PRINT_STAT
+#include <boost/timer/timer.hpp>
+using boost::timer::cpu_timer;
+using boost::timer::cpu_times;
+using boost::timer::nanosecond_type;
+#endif
 
 using namespace irr;
 
@@ -39,24 +47,35 @@ void RenderServer::init() {
     irr_log_err("failed to initialize renderer");
     return;
   }
-#ifdef DUMP_TO_FILE
   render_impl->setPostCallback(on_post_callback, nullptr);
-#endif
   m_renderer = render_impl;
 }
 
-#ifdef DUMP_TO_FILE
+
 void RenderServer::on_post_callback(void *context, int width, int height,
                                     int ydir, int format, int type,
                                     unsigned char*pixels) {
-  dump_to_files(width, height, ydir, format, type, pixels); 
+#ifdef PRINT_STAT
+  static cpu_timer timer;
+  static size_t count = 1;
+  cpu_times const elapsed_times(timer.elapsed());
+  nanosecond_type const elapsed(elapsed_times.system + elapsed_times.user);
+  if (elapsed) {
+    unsigned long millisec = elapsed / 1000000;
+    irr_log_stat("%ld fps", count * 1000 / millisec);
+  }
+  count ++;
+#endif
+#ifdef DUMP_RAW_VIDEO
+  dump_to_files(width, height, ydir, format, type, pixels);
+#endif
 }
 
+#ifdef DUMP_RAW_VIDEO
 void RenderServer::dump_to_files(int width, int height,
                                  int ydir, int format, int type,
                                  unsigned char*pixels) {
   static std::ofstream dump_file("./dump/video.argb", std::ios::out);
   dump_file.write((const char *)pixels, width * height * 4);
 }
-
 #endif

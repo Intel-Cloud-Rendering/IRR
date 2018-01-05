@@ -4,7 +4,8 @@
 #include "RenderSession.h"
 #include "Renderer.h"
 
-#define DUMP_TO_FILE 1
+//#define DUMP_RAW_VIDEO 1
+#define PRINT_STAT 1
 
 namespace irr {
 
@@ -16,10 +17,10 @@ namespace irr {
  protected:
     virtual std::shared_ptr<AsioConnection> create_connection();
  private:
-#ifdef DUMP_TO_FILE
+#ifdef DUMP_RAW_VIDEO
     static void dump_to_files(int, int, int, int, int, unsigned char*);
-    static void on_post_callback(void *, int, int, int, int, int, unsigned char*);
 #endif
+    static void on_post_callback(void *, int, int, int, int, int, unsigned char*);
     emugl::RendererPtr m_renderer;
   };
 }

@@ -50,7 +50,7 @@ void RenderReceiver::on_read_head(const boost::system::error_code& ec,
                                           boost::asio::placeholders::bytes_transferred));
     }
   } else {
-    irr_log_info("error");
+    irr_log_info("read closed");
   }
 }
 
@@ -86,7 +86,7 @@ void RenderReceiver::on_read_body(const boost::system::error_code& ec,
     }
 
   } else {
-    irr_log_info("error");
+    irr_log_info("read closed");
   }
 }
 

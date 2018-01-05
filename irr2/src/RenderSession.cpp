@@ -22,7 +22,9 @@ void RenderSession::handle_terminate() {
   m_handler.terminate();
   m_sender.terminate();
   m_handler.join();
+  irr_log_info("handler thread joined");
   m_sender.join();
+  irr_log_info("sender thread joined");
 }
 
 void RenderSession::handle_process() {

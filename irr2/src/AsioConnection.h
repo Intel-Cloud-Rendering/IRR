@@ -28,6 +28,9 @@ namespace irr {
     }
 
     void terminate() {
+      m_io_service.post([this] () {
+          m_socket.close();
+        });
       handle_terminate();
     }
 
