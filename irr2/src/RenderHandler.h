@@ -11,7 +11,7 @@ namespace irr {
 
   class RenderHandler : public RenderThread {
  public:
-    RenderHandler(std::shared_ptr<RenderChannel> channel);
+    RenderHandler(RenderChannel& channel);
     RenderHandler(const RenderHandler&) = delete;
     RenderHandler(RenderHandler&&);
     RenderHandler& operator=(const RenderHandler&) = delete;
@@ -22,7 +22,7 @@ namespace irr {
                      IOStream *, ChecksumCalculator *);
     void terminate();
  private:
-    std::shared_ptr<RenderChannel> m_channel;
+    RenderChannel& m_channel;
     std::shared_ptr<char> m_left_cmd_buf;
     size_t m_left_cmd_buf_sz;
     bool m_terminate;

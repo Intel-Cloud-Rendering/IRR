@@ -11,7 +11,7 @@ namespace irr {
 
   class RenderSender : public RenderThread {
  public:
-    RenderSender(std::shared_ptr<tcp::socket> socket, std::shared_ptr<RenderChannel> channel);
+    RenderSender(tcp::socket&, RenderChannel&);
     RenderSender(const RenderSender&) = delete;
     RenderSender(RenderSender&&);
     RenderSender& operator=(const RenderSender&) = delete;
@@ -20,8 +20,8 @@ namespace irr {
     virtual void process();
     void terminate();
  private:
-    std::shared_ptr<RenderChannel> m_channel;
-    std::shared_ptr<tcp::socket> m_socket;
+    RenderChannel& m_channel;
+    tcp::socket& m_socket;
     bool m_terminate;
   };
 }

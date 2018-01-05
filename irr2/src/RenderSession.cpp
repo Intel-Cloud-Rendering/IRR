@@ -4,21 +4,31 @@
 
 using namespace irr;
 
-RenderSession::RenderSession(std::shared_ptr<tcp::socket> socket)
-    : m_channel(std::make_shared<RenderChannel>()),
-      m_receiver(socket, m_channel),
+RenderSession::RenderSession()
+    : m_channel(),
+      m_receiver(m_socket, m_channel),
       m_handler(m_channel),
-      m_sender(socket, m_channel) {
-  m_handler.start();
-  m_sender.start();
+      m_sender(m_socket, m_channel) {
 }
 
 RenderSession::RenderSession(RenderSession&& other)
-    : m_channel(std::move(other.m_channel)),
+    : m_channel(other.m_channel),
       m_receiver(other.m_receiver),
       m_handler(std::move(other.m_handler)),
       m_sender(std::move(other.m_sender)) {
-  other.m_channel = nullptr;
+}
+
+void RenderSession::handle_terminate() {
+  m_handler.terminate();
+  m_sender.terminate();
+  m_handler.join();
+  m_sender.join();
+}
+
+void RenderSession::handle_process() {
+  m_sender.start();
+  m_handler.start();
+  m_receiver.receive();
 }
 
 RenderSession::~RenderSession() {

@@ -12,7 +12,7 @@ namespace irr {
   class RenderChannel {
  public:
     RenderChannel();
-    RenderChannel(const RenderChannel&) = delete;
+    RenderChannel(const RenderChannel&);
     RenderChannel(RenderChannel&&) = delete;
     RenderChannel& operator=(const RenderChannel&) = delete;
     RenderChannel& operator=(RenderChannel&&) = delete;

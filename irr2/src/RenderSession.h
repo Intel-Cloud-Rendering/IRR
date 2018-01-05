@@ -2,6 +2,7 @@
 #define RENDER_SESSION_H
 #include <boost/asio.hpp>
 #include <memory>
+#include "AsioConnection.h"
 #include "RenderReceiver.h"
 #include "RenderChannel.h"
 #include "RenderHandler.h"
@@ -10,30 +11,26 @@
 using boost::asio::ip::tcp;
 
 /*
- * ----------> [receiver] -----------> 
+ * ----------> [receiver] ----------->
  *   <socket>              <channel>    [handler]
- * <----------  [sender]  <----------- 
+ * <----------  [sender]  <-----------
  */
 
 namespace irr {
 
-  class RenderSession {
+  class RenderSession : public AsioConnection {
  public:
-    RenderSession(std::shared_ptr<tcp::socket> socket);
+    RenderSession();
     RenderSession(const RenderSession&) = delete;
     RenderSession(RenderSession&&);
     RenderSession& operator=(const RenderSession&) = delete;
     RenderSession& operator=(RenderSession&&) = delete;
     ~RenderSession();
-    void terminate() {
-      m_handler.terminate();
-      m_sender.terminate();
-    }
-    void join_all() {
-      m_handler.join();
-    }
+    virtual void handle_terminate();
+    virtual void handle_process();
+
  private:
-    std::shared_ptr<RenderChannel> m_channel;
+    RenderChannel m_channel;
     RenderReceiver m_receiver;
     RenderHandler m_handler;
     RenderSender m_sender;

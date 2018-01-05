@@ -4,11 +4,11 @@
 
 using namespace irr;
 
-RenderReceiver::RenderReceiver(std::shared_ptr<tcp::socket> socket,
-                               std::shared_ptr<RenderChannel> channel)
+RenderReceiver::RenderReceiver(tcp::socket& socket, RenderChannel& channel)
     : m_socket(socket),
-      m_channel(channel) {
-  receive();
+      m_channel(channel),
+      m_body_buf(nullptr),
+      m_body_buf_transferred(0) {
 }
 
 RenderReceiver::RenderReceiver(const RenderReceiver& other)
@@ -21,8 +21,6 @@ RenderReceiver::RenderReceiver(RenderReceiver&& other)
     : m_socket(other.m_socket),
       m_channel(other.m_channel) {
   std::memcpy(m_data, other.m_data, max_length);
-  m_socket = nullptr;
-  m_channel = nullptr;
 }
 
 RenderReceiver::~RenderReceiver() {
@@ -30,7 +28,7 @@ RenderReceiver::~RenderReceiver() {
 }
 
 void RenderReceiver::receive() {
-  boost::asio::async_read(*m_socket, boost::asio::buffer(m_data, PACKET_HEAD_LEN),
+  boost::asio::async_read(m_socket, boost::asio::buffer(m_data, PACKET_HEAD_LEN),
                           boost::bind(&RenderReceiver::on_read_head, this,
                                       boost::asio::placeholders::error,
                                       boost::asio::placeholders::bytes_transferred));
@@ -42,9 +40,11 @@ void RenderReceiver::on_read_head(const boost::system::error_code& ec,
   if (!ec) {
     GLCmdPacketHead *head = (GLCmdPacketHead *)m_data;
     irr_log_info("type = %d, size = %d", head->packet_type, head->packet_body_size);
-    irr_assert(head->packet_body_size <= max_length);
-    if (head->packet_body_size) {
-      boost::asio::async_read(*m_socket, boost::asio::buffer(m_data, head->packet_body_size),
+    m_body_buf = m_channel.newInBuffer(head->packet_body_size);
+    m_body_buf_transferred = 0;
+    size_t to_transfer = head->packet_body_size > max_length ? max_length : head->packet_body_size;
+    if (to_transfer) {
+      boost::asio::async_read(m_socket, boost::asio::buffer(m_data, to_transfer),
                               boost::bind(&RenderReceiver::on_read_body, this,
                                           boost::asio::placeholders::error,
                                           boost::asio::placeholders::bytes_transferred));
@@ -58,15 +58,33 @@ void RenderReceiver::on_read_body(const boost::system::error_code& ec,
                             size_t bytes_transferred) {
   if (!ec) {
     irr_log_info("Read %d bytes", bytes_transferred);
-    //dump_data_raw(m_data, bytes_transferred);
-  
-    InBuffer *in = m_channel->newInBuffer(m_data, bytes_transferred);
-    m_channel->writeIn(in);
+    irr_assert(m_body_buf != nullptr);
+    std::memcpy(m_body_buf->data() + m_body_buf_transferred, m_data, bytes_transferred);
+    m_body_buf_transferred += bytes_transferred;
 
-    boost::asio::async_read(*m_socket, boost::asio::buffer(m_data, PACKET_HEAD_LEN),
-                            boost::bind(&RenderReceiver::on_read_head, this,
-                                        boost::asio::placeholders::error,
-                                        boost::asio::placeholders::bytes_transferred));
+    /* body all transferred */
+    if (m_body_buf_transferred == m_body_buf->length()) {
+      m_channel.writeIn(m_body_buf);
+      m_body_buf = nullptr;
+      m_body_buf_transferred = 0;
+      boost::asio::async_read(m_socket, boost::asio::buffer(m_data, PACKET_HEAD_LEN),
+                              boost::bind(&RenderReceiver::on_read_head, this,
+                                          boost::asio::placeholders::error,
+                                          boost::asio::placeholders::bytes_transferred));
+    } /* body not yet transferred */
+    else if (m_body_buf_transferred < m_body_buf->length()) {
+      size_t not_transferred = m_body_buf->length() - m_body_buf_transferred;
+      size_t to_transfer = not_transferred > max_length ? max_length : not_transferred;
+      irr_log_info("not yet transferred %d bytes to transfer", to_transfer);
+      boost::asio::async_read(m_socket, boost::asio::buffer(m_data, to_transfer),
+                              boost::bind(&RenderReceiver::on_read_body, this,
+                                          boost::asio::placeholders::error,
+                                          boost::asio::placeholders::bytes_transferred));
+    } /* body over transferred */
+    else {
+      irr_assert(0);
+    }
+
   } else {
     irr_log_info("error");
   }

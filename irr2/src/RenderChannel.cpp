@@ -11,6 +11,10 @@ RenderChannel::~RenderChannel() {
   outBufferPool::purge_memory();
 }
 
+RenderChannel::RenderChannel(const RenderChannel& other) {
+}
+
+
 InBuffer *RenderChannel::newInBuffer(const size_t len) {
   void *buf = inBufferPool::malloc();
   InBuffer *in = new (buf) InBuffer(len);

@@ -27,7 +27,7 @@
  */
 class IOStream {
 public:
-  explicit IOStream(std::shared_ptr<irr::RenderChannel> channel)
+  explicit IOStream(irr::RenderChannel& channel)
     : m_channel(channel),
       m_out(nullptr) {
   }
@@ -36,7 +36,7 @@ public:
 
   unsigned char* alloc(size_t len) {
     irr_assert(m_out == nullptr);
-    m_out = m_channel->newOutBuffer(len);
+    m_out = m_channel.newOutBuffer(len);
     return (unsigned char *)m_out->data();
   }
 
@@ -44,7 +44,7 @@ public:
     int len = 0;
     irr_assert(m_out != nullptr);
     len = m_out->length();
-    m_channel->writeOut(m_out);
+    m_channel.writeOut(m_out);
     m_out = nullptr;
     return len;
   }
@@ -69,5 +69,5 @@ public:
 private:
   int m_id;
   irr::OutBuffer *m_out;
-  std::shared_ptr<irr::RenderChannel> m_channel;
+  irr::RenderChannel& m_channel;
 };

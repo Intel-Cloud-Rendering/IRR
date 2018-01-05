@@ -16,12 +16,11 @@ OBJ_FILES:=${addprefix ${OBJ}/, ${notdir ${CPP_FILES:.cpp=.cpp.o}}}
 CC:=g++
 CPPFLAGS:=-std=c++11 -g
 INC_PATH:=-I${INC} -I${INC}/OpenglRender -I${COMM_SRC} -I${INTER_SRC} -I${OGLRD_SRC} -I${SRC} -I${OGL_CODEC_COMM_SRC} -I${SPEC_SRC}/GLESv1_dec -I${SPEC_SRC}/GLESv2_dec -I${SPEC_SRC}/renderControl_dec
-LIB_PATH:=-L${HOME_DIR}/../render/boost_1_65_1/stage/lib -L${HOME_DIR}/lib64
+LIB_PATH:=-L${HOME_DIR}/boost_1_65_1/stage/lib -L${HOME_DIR}/lib64
 LIBS:=-lboost_system -lboost_thread -lpthread -ldl -lX11
 
 .PHONY: all
-#all: dec bin_folder ${BIN}/RenderServer clean_intermediate
-all: dec bin_folder ${BIN}/RenderServer
+all: dec bin_folder ${BIN}/RenderServer clean_intermediate
 
 .PHONY: dec
 dec: gles1_dec gles2_dec renderControl_dec
@@ -56,7 +55,6 @@ ${BIN}/RdChanTest: obj_folder bin_folder ${OBJ}/RdChanTest.cpp.o ${OBJ}/RenderCh
 	@${CC} ${OBJ}/RdChanTest.cpp.o ${OBJ}/RenderChannel.cpp.o ${OBJ}/ExtendableSmallBuffer.cpp.o -o $@ ${LIB_PATH} ${LIBS}
 
 ${BIN}/RenderServer: obj_folder bin_folder ${OBJ_FILES}
-	@echo ${CPP_FILES}
 	@${CC} ${OBJ_FILES} -o $@ ${LIB_PATH} ${LIBS}
 
 ${OBJ}/%.cpp.o: ${SRC}/%.cpp
@@ -107,6 +105,7 @@ ${OBJ}/%.cpp.o: ${TEST_SRC}/%.cpp
 .PHONY: clean_intermediate
 clean_intermediate:
 	@rm -r ${OBJ} | true
+	@rm -r ${INTER_SRC} | true
 
 .PHONY: clean
 clean: clean_intermediate

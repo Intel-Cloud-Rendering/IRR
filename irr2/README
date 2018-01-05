@@ -1,0 +1,11 @@
+I. Build
+
+1. Download boost from http://www.boost.org/. I use 1.65.1.
+2. Setup LD_LIBRARY_PATH to {BOOST_PATH}/stage/lib/. You can modify env.sh.
+3. Add -L{BOOST_PATH}/stage/lib/ to LIB_PATH in Makefile
+3. make
+
+II Run
+
+1. ./run.sh or ./run-debug.sh
+2. run emulator instance

@@ -4,6 +4,7 @@
 #include "RendererImpl.h"
 #include <memory>
 #include <unistd.h>
+#include <fstream>
 
 using namespace irr;
 
@@ -15,20 +16,9 @@ RenderServer::~RenderServer() {
   irr_log_info("Deconstruct render server");
 }
 
-void RenderServer::handle_accept() {
-  irr_log_info("create render session");
-  sessions.emplace_back(m_socket);
-}
-
-void RenderServer::handle_terminate() {
-  for (std::vector<RenderSession>::iterator it = sessions.begin();
-       it != sessions.end(); it++) {
-    it->terminate();
-  }
-  for (std::vector<RenderSession>::iterator it = sessions.begin();
-       it != sessions.end(); it++) {
-    it->join_all();
-  }
+std::shared_ptr<AsioConnection> RenderServer::create_connection() {
+  std::shared_ptr<RenderSession> session = std::make_shared<RenderSession>();
+  return std::static_pointer_cast<AsioConnection>(session);
 }
 
 void RenderServer::init() {
@@ -44,11 +34,29 @@ void RenderServer::init() {
     irr_log_err("failed to init gles2 dispatch");
     return;
   }
-  
   std::shared_ptr<emugl::RendererImpl> render_impl = std::make_shared<emugl::RendererImpl>();
   if (!render_impl->initialize(1080, 1920, true)) {
     irr_log_err("failed to initialize renderer");
     return;
   }
+#ifdef DUMP_TO_FILE
+  render_impl->setPostCallback(on_post_callback, nullptr);
+#endif
   m_renderer = render_impl;
 }
+
+#ifdef DUMP_TO_FILE
+void RenderServer::on_post_callback(void *context, int width, int height,
+                                    int ydir, int format, int type,
+                                    unsigned char*pixels) {
+  dump_to_files(width, height, ydir, format, type, pixels); 
+}
+
+void RenderServer::dump_to_files(int width, int height,
+                                 int ydir, int format, int type,
+                                 unsigned char*pixels) {
+  static std::ofstream dump_file("./dump/video.argb", std::ios::out);
+  dump_file.write((const char *)pixels, width * height * 4);
+}
+
+#endif

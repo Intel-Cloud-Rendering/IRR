@@ -8,7 +8,7 @@
 
 using namespace irr;
 
-RenderHandler::RenderHandler(std::shared_ptr<RenderChannel> channel)
+RenderHandler::RenderHandler(RenderChannel& channel)
     : m_channel(channel),
       m_terminate(false),
       m_left_cmd_buf(nullptr),
@@ -18,12 +18,11 @@ RenderHandler::RenderHandler(std::shared_ptr<RenderChannel> channel)
 }
 
 RenderHandler::RenderHandler(RenderHandler&& other)
-    : m_channel(std::move(other.m_channel)),
+    : m_channel(other.m_channel),
       m_terminate(other.m_terminate),
       m_left_cmd_buf(other.m_left_cmd_buf),
       m_left_cmd_buf_sz(other.m_left_cmd_buf_sz),
       m_cmd_count(other.m_cmd_count) {
-  other.m_channel = nullptr;
   other.m_left_cmd_buf = nullptr;
 }
 
@@ -34,8 +33,8 @@ void RenderHandler::terminate() {
   m_terminate = true;
   /* create a dummy in buffer *
    * to awake process */
-  InBuffer *in = m_channel->newInBuffer(1);
-  m_channel->writeIn(in);
+  InBuffer *in = m_channel.newInBuffer(1);
+  m_channel.writeIn(in);
 }
 
 size_t RenderHandler::do_decode(char *data, size_t total, RenderThreadInfo *info,
@@ -93,15 +92,17 @@ void RenderHandler::process() {
   initRenderControlContext(&tInfo.m_rcDec);
 
   InBuffer *in;
-  m_channel->ReadIn(in);
+  m_channel.ReadIn(in);
   irr_assert(in->length() == sizeof(uint32_t));
+  irr_log_info("handler received data");
   dump_data_raw(in->data(), in->length());
-  m_channel->deleteInBuffer(in);
+  m_channel.deleteInBuffer(in);
   in = nullptr;
 
   size_t left = 0;
   while (!m_terminate) {
-    m_channel->ReadIn(in);
+    m_channel.ReadIn(in);
+    irr_log_info("handler received data");
     dump_data_raw(in->data(), in->length());
 
     /* some data left from last command processing */
@@ -134,7 +135,7 @@ void RenderHandler::process() {
       left = do_decode(in->data(), in->length(), &tInfo, &io_stream, &checksumCalc);
     }
 
-    m_channel->deleteInBuffer(in);
+    m_channel.deleteInBuffer(in);
     in = nullptr;
   }
 
