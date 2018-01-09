@@ -14,10 +14,11 @@ public:
         m_Info.m_pCodecPars->format     = format;
         m_Info.m_pCodecPars->width      = w;
         m_Info.m_pCodecPars->height     = h;
-        m_Info.m_rFrameRate             = (AVRational) {25, 1};
+        m_Info.m_rFrameRate             = (AVRational) {30, 1};
         m_Info.m_rTimeBase              = AV_TIME_BASE_Q;
+        m_nStartTime                    = av_gettime_relative();
+        m_nNextPts                      = 0;
         av_init_packet(&m_Pkt);
-        m_nStartTime = av_gettime_relative();
     }
 
     ~CMyDemux() {
@@ -31,31 +32,28 @@ public:
     }
 
     int readPacket(AVPacket *avpkt) {
-        android::base::AutoLock mutex(mLock);
-        int ret = av_packet_ref(avpkt, &m_Pkt);
+        int ret;
 
-        while (av_gettime_relative() - m_nStartTime < m_Pkt.pts)
+        while (av_gettime_relative() - m_nStartTime < m_nNextPts)
             av_usleep(1000);
 
-        m_Pkt.dts += av_rescale_q(1, av_inv_q(m_Info.m_rFrameRate), m_Info.m_rTimeBase);
-        m_Pkt.pts  = m_Pkt.dts;
+        android::base::AutoLock mutex(mLock);
+
+        m_Pkt.pts  = m_Pkt.dts = m_nNextPts;
+        ret = av_packet_ref(avpkt, &m_Pkt);
+
+        m_nNextPts += av_rescale_q(1, av_inv_q(m_Info.m_rFrameRate), m_Info.m_rTimeBase);
 
         return ret;
     }
 
     int sendPacket(const void *data, size_t len) {
-        int64_t pre_pts = m_Pkt.pts;
         android::base::AutoLock mutex(mLock);
 
         av_packet_unref(&m_Pkt);
-        if (pre_pts == AV_NOPTS_VALUE)
-            pre_pts = av_gettime_relative() - m_nStartTime;
-
         m_Pkt.buf  = av_buffer_alloc(len);
         m_Pkt.data = m_Pkt.buf->data;
         m_Pkt.size = len;
-        m_Pkt.pts  = m_Pkt.dts = pre_pts
-                + av_rescale_q(1, av_inv_q(m_Info.m_rFrameRate), m_Info.m_rTimeBase);
         memcpy(m_Pkt.data, data, len);
 
         return 0;
@@ -65,8 +63,8 @@ private:
     mutable android::base::Lock mLock;
     CStreamInfo                 m_Info;
     AVPacket                    m_Pkt;
-    int                         m_nPts;
     int64_t                     m_nStartTime;
+    int64_t                     m_nNextPts;
 };
 
 static CMyDemux    *myDemux = nullptr;
@@ -91,7 +89,7 @@ int fresh_screen(int w, int h, const void *pixels) {
 
     if (!myTrans) {
         if (android_cmdLineOptions->url)
-            myTrans = new CTransCoder(dynamic_cast<CDemux*>(myDemux), android_cmdLineOptions->url);
+            myTrans = new CTransCoder(dynamic_cast<CDemux*>(myDemux), android_cmdLineOptions->url, "h264");
         if (!myTrans)
             return -2;
         myTrans->setOutputProp("b", android_cmdLineOptions->b ? android_cmdLineOptions->b : "2M");  ///< Bitrate
@@ -100,7 +98,9 @@ int fresh_screen(int w, int h, const void *pixels) {
         myTrans->setOutputProp("r", android_cmdLineOptions->fr ? android_cmdLineOptions->fr : "25");  ///< Framerate
         if (android_cmdLineOptions->res)
             myTrans->setOutputProp("s", android_cmdLineOptions->res); ///< Resolution
+        myTrans->setOutputProp("buffer_size", "2632");
 
+        //av_log_set_level(AV_LOG_DEBUG);
         ret = myTrans->start();
     }
 
