@@ -1,7 +1,7 @@
 #include <signal.h>
 #include <sys/signalfd.h>
 #include <unistd.h>
-
+#include <X11/Xlib.h>
 
 #include <cstdio>
 #include <cassert>
@@ -199,6 +199,7 @@ extern "C" int main(int argc, char** argv)
     D("Get signal watch fd:%d", sig_watch->fd());
     sig_watch->wantRead();
 
+    XInitThreads();
     //
     // A) Initializing all components
     //
