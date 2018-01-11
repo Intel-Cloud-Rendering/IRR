@@ -77,6 +77,9 @@ public:
     // displayed. This is relatively slow but allows one to capture the
     // output.
     void setPostCallback(emugl::Renderer::OnPostCallback onPost, void* onPostContext);
+    void setIrrCallback(emugl::Renderer::RequestBufferCallback reqBuffer,
+                        emugl::Renderer::OnPostCallback onPost,
+                        void *onPostContext);
 
     // Start displaying the emulated framebuffer using a sub-window of a
     // parent |window| id. |wx|, |wy|, |ww| and |wh| are the position

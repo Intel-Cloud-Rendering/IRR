@@ -168,6 +168,12 @@ void RendererImpl::setPostCallback(RendererImpl::OnPostCallback onPost,
     mRenderWindow->setPostCallback(onPost, context);
 }
 
+void RendererImpl::setIrrCallback(RequestBufferCallback reqBuffer,
+                                  OnPostCallback onPost,
+                                  void* onPostContext) {
+    mRenderWindow->setIrrCallback(reqBuffer, onPost, onPostContext);
+}
+
 bool RendererImpl::showOpenGLSubwindow(FBNativeWindowType window,
                                        int wx,
                                        int wy,

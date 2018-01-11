@@ -138,6 +138,9 @@ public:
     // is updated. This can be relatively slow with host-based GPU emulation,
     // so only do this when you need to.
     void setPostCallback(emugl::Renderer::OnPostCallback onPost, void* onPostContext);
+    void setIrrCallback(emugl::Renderer::RequestBufferCallback reqBuffer,
+                        emugl::Renderer::OnPostCallback onPost,
+                        void *onPostContext);
 
     // Retrieve the GL strings of the underlying EGL/GLES implementation.
     // On return, |*vendor|, |*renderer| and |*version| will point to strings
@@ -413,5 +416,9 @@ private:
 
     // Flag set when emulator is shutting down.
     bool m_shuttingDown = false;
+
+    emugl::Renderer::OnPostCallback m_onPostIrr = nullptr;
+    emugl::Renderer::RequestBufferCallback m_reqBufIrr = nullptr;
+    void *m_cbContext = nullptr;
 };
 #endif

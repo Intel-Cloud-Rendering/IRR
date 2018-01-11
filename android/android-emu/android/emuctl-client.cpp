@@ -39,66 +39,6 @@
 #else
 #include <netinet/in.h>
 #endif
-extern "C" {
-#include "libavutil/time.h"
-}
-#include "CTransCoder.h"
-
-class CMyDemux : public CDemux {
-public:
-    CMyDemux(int w, int h, int format) {
-        m_Info.m_pCodecPars->codec_type = AVMEDIA_TYPE_VIDEO;
-        m_Info.m_pCodecPars->codec_id   = AV_CODEC_ID_RAWVIDEO;
-        m_Info.m_pCodecPars->format     = format;
-        m_Info.m_pCodecPars->width      = w;
-        m_Info.m_pCodecPars->height     = h;
-        m_Info.m_rFrameRate             = (AVRational) {25, 1};
-        m_Info.m_rTimeBase              = AV_TIME_BASE_Q;
-        av_init_packet(&m_Pkt);
-        m_nStartTime = av_gettime_relative();
-    }
-
-    ~CMyDemux() {
-        av_packet_unref(&m_Pkt);
-    }
-
-    int getNumStreams() { return 1;}
-
-    CStreamInfo* getStreamInfo(int strIdx) {
-        return &m_Info;
-    }
-
-    int readPacket(AVPacket *avpkt) {
-        android::base::AutoLock mutex(mLock);
-        int ret = av_packet_ref(avpkt, &m_Pkt);
-
-        while (av_gettime_relative() - m_nStartTime < m_Pkt.pts)
-            av_usleep(1000);
-
-        m_Pkt.dts += av_rescale_q(1, av_inv_q(m_Info.m_rFrameRate), m_Info.m_rTimeBase);
-        m_Pkt.pts  = m_Pkt.dts;
-
-        return ret;
-    }
-
-    int sendPacket(const void *data, size_t len) {
-        android::base::AutoLock mutex(mLock);
-        av_packet_unref(&m_Pkt);
-        m_Pkt.buf  = av_buffer_alloc(len);
-        m_Pkt.data = m_Pkt.buf->data;
-        memcpy(m_Pkt.data, data, len);
-        m_Pkt.size = len;
-        m_Pkt.pts  = m_Pkt.dts = av_gettime_relative() - m_nStartTime;
-        return 0;
-    }
-
-private:
-    mutable android::base::Lock mLock;
-    CStreamInfo                 m_Info;
-    AVPacket                    m_Pkt;
-    int                         m_nPts;
-    int64_t                     m_nStartTime;
-};
 
 enum PacketType {
     PACKET_TYPE_SENSOR_DATA_ACCELEROMETER = (0x01),
@@ -237,7 +177,28 @@ static void onFramebufferPosted(void*, int w, int h, const void* pixels) {
     static const int bytes_per_pixel = 3;
     static const int jpeg_quality = 50;
     static const int direction = 1;
+    static bool bStreaming = false;
 
+    if (!bStreaming) {
+        IrrStreamInfo info = { 0 };
+        info.in.w         = w;
+        info.in.h         = h;
+        info.in.framerate = 30;
+
+        if (android_cmdLineOptions->res) {
+            fprintf(stderr, "res = %s\n", android_cmdLineOptions->res);
+            sscanf(android_cmdLineOptions->res, "%dx%d", &info.out.w, &info.out.h);
+        }
+        if (android_cmdLineOptions->fr)
+            info.out.framerate = strtol(android_cmdLineOptions->fr, nullptr, 10);
+        if (android_cmdLineOptions->b)
+            info.bitrate = strtol(android_cmdLineOptions->b, nullptr, 10);
+        info.url   = android_cmdLineOptions->url;
+        info.codec = android_cmdLineOptions->codec;
+
+        register_stream_publishment(&info);
+        bStreaming = true;
+    }
     fresh_screen(w, h, pixels);
     if (sGlobals->socket) {
         // JPEG-compress the contents of the window.
@@ -374,7 +335,6 @@ void android_emuctl_client_init(void) {
             reinterpret_cast<Looper*>(sGlobals->looper),
             nullptr,
             onFramebufferPosted);
-        register_stream_publishment();
     }
 }
 

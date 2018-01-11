@@ -92,9 +92,14 @@ private:
     CTransCoder& operator=(const CTransCoder& orig);
     void interrupt();
     bool allStreamFound();
-    int process_input();
-    int decode_video(int strIdx);
-    int do_output(bool flush);
+    int processInput();
+    int newInputStream(int strIdx);
+    int decode(int strIdx);
+    int doOutput(bool flush);
+    const char* getInOptVal(const char *short_name, const char *long_name,
+                            const char *default_value = nullptr);
+    const char* getOutOptVal(const char *short_name, const char *long_name,
+                            const char *default_value = nullptr);
 
 private:
     CDemux                   *m_pDemux;

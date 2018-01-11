@@ -171,6 +171,14 @@ android_setPostCallback(OnPostFunc onPost, void* onPostContext)
     }
 }
 
+void android_setIrrCallback(RequestBuffer reqBuffer,
+                            OnPostFunc onPost,
+                            void* onPostContext) {
+    if (sRenderer) {
+        sRenderer->setIrrCallback(reqBuffer, onPost, onPostContext);
+    }
+}
+
 static char* strdupBaseString(const char* src) {
     const char* begin = strchr(src, '(');
     if (!begin) {

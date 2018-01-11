@@ -77,7 +77,11 @@ public:
                                     int format,
                                     int type,
                                     unsigned char* pixels);
+    using RequestBufferCallback = void *(*)(void* context, int size);
     virtual void setPostCallback(OnPostCallback onPost, void* context) = 0;
+    virtual void setIrrCallback(RequestBufferCallback reqBuffer,
+                        OnPostCallback onPost,
+                        void *onPostContext) = 0;
 
     // showOpenGLSubwindow -
     //     Create or modify a native subwindow which is a child of 'window'

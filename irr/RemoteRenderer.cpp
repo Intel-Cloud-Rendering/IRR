@@ -166,6 +166,11 @@ static void on_post_callback2(void* context, int width,
     return;
 }
 
+static void *reqBuffer(void *context, int size)
+{
+    return irr_get_buffer(size);
+}
+
 extern "C" int main(int argc, char** argv)
 {
     int ret = 0;
@@ -225,7 +230,24 @@ extern "C" int main(int argc, char** argv)
     // Initilize encoder
     //
     if (opts->streaming){
-        android_setPostCallback(on_post_callback2, &sOnPostCntxt);
+        IrrStreamInfo info = { 0 };
+        info.in.w         = sConfig->hw_lcd_width;
+        info.in.h         = sConfig->hw_lcd_height;
+        info.in.framerate = 30;
+
+        if (opts->res) {
+            fprintf(stderr, "res = %s\n", opts->res);
+            sscanf(opts->res, "%dx%d", &info.out.w, &info.out.h);
+        }
+        if (opts->fr)
+            info.out.framerate = strtol(opts->fr, nullptr, 10);
+        if (opts->b)
+            info.bitrate = strtol(opts->b, nullptr, 10);
+        info.url   = opts->url;
+        info.codec = opts->codec;
+
+        register_stream_publishment(&info);
+        android_setIrrCallback(reqBuffer, on_post_callback2, &sOnPostCntxt);
     }
     else{
         dump_frame_dir = getenv("RENDERER_FRAME_DUMP_DIR");

@@ -478,6 +478,16 @@ void FrameBuffer::setPostCallback(emugl::Renderer::OnPostCallback onPost, void* 
     }
 }
 
+void FrameBuffer::setIrrCallback(emugl::Renderer::RequestBufferCallback reqBuffer,
+                                 emugl::Renderer::OnPostCallback onPost,
+                                 void *onPostContext)
+{
+    emugl::Mutex::AutoLock mutex(m_lock);
+    m_onPostIrr = onPost;
+    m_reqBufIrr = reqBuffer;
+    m_cbContext = onPostContext;
+}
+
 static void subWindowRepaint(void* param) {
     auto fb = static_cast<FrameBuffer*>(param);
     fb->repost();
@@ -1298,6 +1308,18 @@ bool FrameBuffer::post(HandleType p_colorbuffer, bool needLockAndBind)
                  GL_RGBA,
                  GL_UNSIGNED_BYTE,
                  m_fbImage);
+    }
+
+    if (m_onPostIrr && m_reqBufIrr) {
+        void *buf = m_reqBufIrr(m_cbContext, 4 * m_framebufferWidth * m_framebufferHeight);
+        (*c).second.cb->readback((unsigned char*)buf);
+        m_onPostIrr(m_onPostContext,
+                    m_framebufferWidth,
+                    m_framebufferHeight,
+                    -1,
+                    GL_RGBA,
+                    GL_UNSIGNED_BYTE,
+                    (unsigned char*)buf);
     }
 
 EXIT:

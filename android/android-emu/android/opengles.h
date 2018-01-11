@@ -41,7 +41,9 @@ int android_startOpenglesRenderer(int width, int height, bool isPhoneApi, int gu
 /* See the description in render_api.h. */
 typedef void (*OnPostFunc)(void* context, int width, int height, int ydir,
                            int format, int type, unsigned char* pixels);
+typedef void *(*RequestBuffer)(void* context, int size);
 void android_setPostCallback(OnPostFunc onPost, void* onPostContext);
+void android_setIrrCallback(RequestBuffer reqBuffer, OnPostFunc onPost, void* onPostContext);
 
 /* Retrieve the Vendor/Renderer/Version strings describing the underlying GL
  * implementation. The call only works while the renderer is started.

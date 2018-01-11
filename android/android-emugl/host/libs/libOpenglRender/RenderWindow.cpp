@@ -61,6 +61,7 @@ enum Command {
     CMD_SET_TRANSLATION,
     CMD_REPAINT,
     CMD_FINALIZE,
+    CMD_SET_IRR_CALLBACK,
 };
 
 }  // namespace
@@ -101,6 +102,13 @@ struct RenderWindowMessage {
             float px;
             float py;
         } trans;
+
+        // CMD_SET_IRR_CALLBACK
+        struct {
+            emugl::Renderer::OnPostCallback on_post;
+            emugl::Renderer::RequestBufferCallback req_buf;
+            void* cb_context;
+        } set_irr_callback;
 
         // CMD_SET_ROTATION
         float rotation;
@@ -197,6 +205,15 @@ struct RenderWindowMessage {
                     fb->repost();
                     result = true;
                 }
+                break;
+
+            case CMD_SET_IRR_CALLBACK:
+                D("CMD_SET_IRR_CALLBACK\n");
+                fb = FrameBuffer::getFB();
+                fb->setIrrCallback(msg.set_irr_callback.req_buf,
+                                   msg.set_irr_callback.on_post,
+                                   msg.set_irr_callback.cb_context);
+                result = true;
                 break;
 
             default:
@@ -368,6 +385,19 @@ void RenderWindow::setPostCallback(emugl::Renderer::OnPostCallback onPost, void*
     msg.cmd = CMD_SET_POST_CALLBACK;
     msg.set_post_callback.on_post = onPost;
     msg.set_post_callback.on_post_context = onPostContext;
+    (void) processMessage(msg);
+    D("Exiting\n");
+}
+
+void RenderWindow::setIrrCallback(emugl::Renderer::RequestBufferCallback reqBuffer,
+                    emugl::Renderer::OnPostCallback onPost,
+                    void *onPostContext) {
+    D("Entering\n");
+    RenderWindowMessage msg = {};
+    msg.cmd = CMD_SET_IRR_CALLBACK;
+    msg.set_irr_callback.req_buf    = reqBuffer;
+    msg.set_irr_callback.on_post    = onPost;
+    msg.set_irr_callback.cb_context = onPostContext;
     (void) processMessage(msg);
     D("Exiting\n");
 }

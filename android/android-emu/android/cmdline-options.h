@@ -177,7 +177,7 @@ OPT_FLAG(skip_adb_auth, "Skip adb authentication dialogue")
 
 OPT_FLAG(streaming, "Enable stream publishing")
 OPT_PARAM(res, "<wxh>", "Resolution")
-OPT_PARAM(b, "<num[K/M/G]>", "Bitrate")
+OPT_PARAM(b, "<num>", "Bitrate")
 OPT_PARAM(url, "<URL>", "Publish URL")
 OPT_PARAM(fr, "<r>", "Framerate")
 OPT_PARAM(codec, "<codec>", "Encoding codec")
