@@ -10,14 +10,34 @@ COMM_SRC:=${SRC}/common
 OGL_CODEC_COMM_SRC:=${SRC}/common/OpenglCodecCommon
 OGLRD_SRC:=${SRC}/openglRender
 TEST_SRC:=${SRC}/test
+STREAM_SRC:=${HOME_DIR}/../android/android-emu/android/streaming
+
+EGL_INC:=
+
+FFMPEG_PATH:=${HOME_DIR}/../../../prebuilts/android-emulator-build/common/ffmpeg_qsv_331/linux-x86_64
+FFMPEG_INC:=-I${FFMPEG_PATH}/include/
+FFMPEG_LIB_PATH:=-L${FFMPEG_PATH}/lib/
+FFMPEG_LIBS:=-lavdevice -lavfilter -lavformat -lavcodec -lavutil -lswresample -lswscale -lva -lva-drm -lva-x11 -lz
+
+LIBTRANS_PATH:=${HOME_DIR}/../../../prebuilts/android-emulator-build/common/libtrans/linux-x86_64
+LIBTRANS_INC:=-I${LIBTRANS_PATH}/include
+LIBTRANS_LIB_PATH:=-L${LIBTRANS_PATH}/lib
+LIBTRANS_LIBS:=-ltrans
+
+MFX_PATH:=${HOME_DIR}/../../../prebuilts/android-emulator-build/common/mfx/linux-x86_64
+MFX_INC:=-I${MFX_PATH}/include
+MFX_LIB_PATH:=-L${MFX_PATH}/lib
+MFX_LIBS:=-lmfx
+
 #CPP_FILES:=${wildcard ${SRC}/*.cpp ${INTER_SRC}/*.cpp ${COMM_SRC}/*.cpp ${OGLRD_SRC}/*.cpp ${OGL_CODEC_COMM_SRC}/*.cpp}
-CPP_FILES:=${wildcard ${SRC}/*.cpp ${SRC}/openglRender/*.cpp ${SRC}/openglesDispatch/*.cpp ${INTER_SRC}/*.cpp ${COMM_SRC}/*/*.cpp ${COMM_SRC}/*/*/*.cpp ${COMM_SRC}/*/*/*/*.cpp}
+CPP_FILES:=${wildcard ${SRC}/android/*.cpp ${SRC}/*.cpp ${STREAM_SRC}/*.cpp ${SRC}/openglRender/*.cpp ${SRC}/openglesDispatch/*.cpp ${INTER_SRC}/*.cpp ${COMM_SRC}/*/*.cpp ${COMM_SRC}/*/*/*.cpp ${COMM_SRC}/*/*/*/*.cpp}
+#CPP_FILES:=$(shell find ${SRC} -type d \( -path ${SPEC_SRC} -prune -o -path ${TEST_SRC} \) -prune -o -name "*.cpp" -print)
 OBJ_FILES:=${addprefix ${OBJ}/, ${notdir ${CPP_FILES:.cpp=.cpp.o}}}
 CC:=g++
 CPPFLAGS:=-std=c++11 -g
-INC_PATH:=-I${INC} -I${INC}/OpenglRender -I${COMM_SRC} -I${INTER_SRC} -I${OGLRD_SRC} -I${SRC} -I${OGL_CODEC_COMM_SRC} -I${SPEC_SRC}/GLESv1_dec -I${SPEC_SRC}/GLESv2_dec -I${SPEC_SRC}/renderControl_dec
-LIB_PATH:=-L${HOME_DIR}/boost_1_65_1/stage/lib -L${HOME_DIR}/lib64
-LIBS:=-lboost_system -lboost_thread -lpthread -ldl -lX11 -lboost_timer -lboost_chrono -lrt
+INC_PATH:=-I${STREAM_SRC} -I${EGL_INC} -I${INC} -I${INC}/OpenglRender -I${COMM_SRC} -I${INTER_SRC} -I${OGLRD_SRC} -I${SRC} -I${OGL_CODEC_COMM_SRC} -I${EGL_INC} -I${SPEC_SRC}/GLESv1_dec -I${SPEC_SRC}/GLESv2_dec -I${SPEC_SRC}/renderControl_dec
+LIB_PATH:=${MFX_LIB_PATH} ${FFMPEG_LIB_PATH} ${LIBTRANS_LIB_PATH} -L${HOME_DIR}/boost_1_65_1/stage/lib -L${HOME_DIR}/lib64
+LIBS:=${LIBTRANS_LIBS} ${FFMPEG_LIBS} ${MFX_LIBS} -lboost_system -lboost_thread -lpthread -ldl -lX11 -lboost_timer -lboost_chrono -lrt
 
 .PHONY: all
 all: dec bin_folder ${BIN}/RenderServer clean_intermediate
@@ -58,6 +78,12 @@ ${BIN}/RenderServer: obj_folder bin_folder ${OBJ_FILES}
 	@${CC} ${OBJ_FILES} -o $@ ${LIB_PATH} ${LIBS}
 
 ${OBJ}/%.cpp.o: ${SRC}/%.cpp
+	@${CC} ${CPPFLAGS} -c $^ -o $@ ${INC_PATH}
+
+${OBJ}/%.cpp.o: ${STREAM_SRC}/%.cpp
+	@${CC} ${CPPFLAGS} -c $^ -o $@ ${FFMPEG_INC} ${LIBTRANS_INC} ${MFX_INC} ${INC_PATH}
+
+${OBJ}/%.cpp.o:${SRC}/android/%.cpp
 	@${CC} ${CPPFLAGS} -c $^ -o $@ ${INC_PATH}
 
 ${OBJ}/%.cpp.o: ${INTER_SRC}/%.cpp

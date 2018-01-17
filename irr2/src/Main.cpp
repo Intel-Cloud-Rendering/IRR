@@ -1,5 +1,6 @@
 #include "RenderServer.h"
 #include "RenderLog.h"
+#include "android/cmdline-option.h"
 #include <signal.h>
 
 using namespace irr;
@@ -19,9 +20,11 @@ int main(int argc, char* argv[])
   signal(SIGINT, sigint_handler);
   try
   {
-    if (argc != 2)
+    AndroidOptions opt;
+    android_cmdLineOptions = &opt;
+    if ((argc < 2) || (android_parse_options(argc, argv, &opt) != 0))
     {
-      irr_log_err("Usage: async_tcp_echo_server <port>\n");
+      irr_log_err("Usage: async_tcp_echo_server <port> [-<option> <option_value>]\n");
       return 1;
     }
 

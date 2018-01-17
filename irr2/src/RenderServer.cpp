@@ -2,6 +2,7 @@
 #include "RenderServer.h"
 #include "RenderLog.h"
 #include "RendererImpl.h"
+#include "utils.h"
 #include <memory>
 #include <unistd.h>
 #ifdef DUMP_RAW_VIDEO
@@ -69,6 +70,7 @@ void RenderServer::on_post_callback(void *context, int width, int height,
 #ifdef DUMP_RAW_VIDEO
   dump_to_files(width, height, ydir, format, type, pixels);
 #endif
+  fresh_screen(width, height, pixels);
 }
 
 #ifdef DUMP_RAW_VIDEO
