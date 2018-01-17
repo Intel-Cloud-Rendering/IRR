@@ -5,6 +5,7 @@
 #include "utils.h"
 #include <memory>
 #include <unistd.h>
+#include <X11/Xlib.h>
 #ifdef DUMP_RAW_VIDEO
 #include <fstream>
 #endif
@@ -31,6 +32,8 @@ std::shared_ptr<AsioConnection> RenderServer::create_connection() {
 }
 
 void RenderServer::init() {
+  XInitThreads();
+
   if (!init_egl_dispatch()) {
     irr_log_err("failed to init egl dispatch");
     return;

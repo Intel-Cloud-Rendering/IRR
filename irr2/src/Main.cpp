@@ -39,7 +39,7 @@ int main(int argc, char* argv[])
   }
   catch (std::exception& e)
   {
-    irr_log_err("Exception: ", e.what());
+    irr_log_err("Exception: %s", e.what());
   }
 
   return 0;
