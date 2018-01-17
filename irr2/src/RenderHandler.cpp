@@ -43,6 +43,10 @@ size_t RenderHandler::do_decode(char *data, size_t total, RenderThreadInfo *info
   size_t left = total;
   size_t last = 0;
   while (left > 0) {
+    if (left < CMD_HEADER_BUF_SIZE) {
+      std::memcpy(m_cmd_header_buf, buf, left);
+      return left;
+    }
     size_t cmdSz = *(const int32_t*)(buf + 4);
     m_cmd_count++;
     irr_log_info("left = %d, command size = %d, command count = %d", left, cmdSz, m_cmd_count);
@@ -58,21 +62,21 @@ size_t RenderHandler::do_decode(char *data, size_t total, RenderThreadInfo *info
       m_left_cmd_buf_sz = cmdSz;
       return left;
     }
-    
+
     FrameBuffer::getFB()->lockContextStructureRead();
     last = info->m_glDec.decode(buf, cmdSz,
                                 io_stream, checksum);
     irr_assert(last == 0 || last == cmdSz);
-          
+
     last = info->m_gl2Dec.decode(buf, cmdSz,
                                  io_stream, checksum);
     FrameBuffer::getFB()->unlockContextStructureRead();
     irr_assert(last == 0 || last == cmdSz);
-        
+
     last = info->m_rcDec.decode(buf, cmdSz,
                                 io_stream, checksum);
     irr_assert(last == 0 || last == cmdSz);
-    
+
     buf += cmdSz;
     left -= cmdSz;
   }
@@ -107,6 +111,25 @@ void RenderHandler::process() {
 
     /* some data left from last command processing */
     if (left) {
+      if (left < CMD_HEADER_BUF_SIZE) { // small buffer used, copy left data FROM small_buffer TO left_cmd_buf
+        if (left + in->length() >= CMD_HEADER_BUF_SIZE) {
+          std::memcpy(m_cmd_header_buf + left, in->data(), CMD_HEADER_BUF_SIZE-left);
+          size_t cmdSz = *(const int32_t*)(m_cmd_header_buf + 4);
+          irr_log_err("MM left = %d, command size = %d, command count = %d", left, cmdSz, m_cmd_count);
+
+          assert(m_left_cmd_buf == nullptr);
+          m_left_cmd_buf = std::shared_ptr<char>(new char[cmdSz], std::default_delete<char[]>());
+
+          std::memcpy(m_left_cmd_buf.get(), m_cmd_header_buf, left);
+          m_left_cmd_buf_sz = cmdSz;
+        } else {
+          std::memcpy(m_cmd_header_buf + left, in->data(), in->length());
+          left += in->length();
+          m_channel.deleteInBuffer(in);
+          in = nullptr;
+          continue;
+        }
+      }
       /* not enough data to fill next command */
       if (left + in->length() < m_left_cmd_buf_sz) {
         std::memcpy(m_left_cmd_buf.get() + left, in->data(), in->length());

@@ -9,6 +9,8 @@
 
 namespace irr {
 
+#define CMD_HEADER_BUF_SIZE 8
+
   class RenderHandler : public RenderThread {
  public:
     RenderHandler(RenderChannel& channel);
@@ -24,6 +26,7 @@ namespace irr {
  private:
     RenderChannel& m_channel;
     std::shared_ptr<char> m_left_cmd_buf;
+    char m_cmd_header_buf[CMD_HEADER_BUF_SIZE];
     size_t m_left_cmd_buf_sz;
     bool m_terminate;
     size_t m_cmd_count;
