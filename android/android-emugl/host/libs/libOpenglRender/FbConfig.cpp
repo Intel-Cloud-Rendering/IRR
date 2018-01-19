@@ -87,6 +87,14 @@ bool isCompatibleHostConfig(EGLConfig config, EGLDisplay display) {
         return false;
     }
 
+    // Filter out configs that do not support XWindow
+    EGLint visualId = 0;
+    s_egl.eglGetConfigAttrib(
+            display, config, EGL_NATIVE_VISUAL_ID, &visualId);
+    if (!visualId) {
+        return;
+    }
+
     return true;
 }
 

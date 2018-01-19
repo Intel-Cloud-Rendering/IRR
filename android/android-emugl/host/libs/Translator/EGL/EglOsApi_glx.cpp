@@ -156,6 +156,12 @@ void pixelFormatToConfig(EGLNativeDisplayType dpy,
 
     EXIT_IF_FALSE(glXGetFBConfigAttrib(
             dpy, frmt, GLX_VISUAL_ID, &info.native_visual_id));
+    // filter out configuration that does not Xwindow to work around
+    // BadWindow check in dri3's drawable update on renderbuffer
+    // created by glxCreatePbuffer
+    if (!info.native_visual_id) {
+        return;
+    }
 
     //supported surfaces types
     info.surface_type = 0;
