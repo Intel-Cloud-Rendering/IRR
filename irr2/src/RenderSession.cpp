@@ -6,7 +6,7 @@ using namespace irr;
 
 RenderSession::RenderSession()
     : m_channel(),
-      m_receiver(m_socket, m_channel),
+      m_receiver(m_socket, m_channel, m_is_terminated),
       m_handler(m_channel),
       m_sender(m_socket, m_channel) {
 }

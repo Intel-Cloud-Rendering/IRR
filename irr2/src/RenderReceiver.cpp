@@ -4,22 +4,25 @@
 
 using namespace irr;
 
-RenderReceiver::RenderReceiver(tcp::socket& socket, RenderChannel& channel)
+RenderReceiver::RenderReceiver(tcp::socket& socket, RenderChannel& channel, bool& termed)
     : m_socket(socket),
       m_channel(channel),
+      m_is_terminated(termed),
       m_body_buf(nullptr),
       m_body_buf_transferred(0) {
 }
 
 RenderReceiver::RenderReceiver(const RenderReceiver& other)
     :m_socket(other.m_socket),
-     m_channel(other.m_channel) {
+     m_channel(other.m_channel),
+     m_is_terminated(other.m_is_terminated) {
   std::memcpy(m_data, other.m_data, max_length);
 }
 
 RenderReceiver::RenderReceiver(RenderReceiver&& other)
     : m_socket(other.m_socket),
-      m_channel(other.m_channel) {
+      m_channel(other.m_channel),
+      m_is_terminated(other.m_is_terminated) {
   std::memcpy(m_data, other.m_data, max_length);
 }
 
@@ -51,6 +54,7 @@ void RenderReceiver::on_read_head(const boost::system::error_code& ec,
     }
   } else {
     irr_log_info("read closed");
+    m_is_terminated = true;
   }
 }
 
@@ -87,6 +91,7 @@ void RenderReceiver::on_read_body(const boost::system::error_code& ec,
 
   } else {
     irr_log_info("read closed");
+    m_is_terminated = true;
   }
 }
 
@@ -122,7 +127,7 @@ void RenderReceiver::on_read(const boost::system::error_code& ec,
     } else {
       read_body(m_data, bytes_transferred);
     }
-    
+
     m_socket->async_read_some(boost::asio::buffer(m_data, max_length),
                               boost::bind(&RenderReceiver::on_read, this,
                                           boost::asio::placeholders::error,

@@ -17,8 +17,8 @@ void AsioServer::run() {
 }
 
 void AsioServer::terminate() {
-  for (std::vector<std::shared_ptr<AsioConnection>>::iterator it = connections.begin();
-       it != connections.end(); it++) {
+  for (std::vector<std::shared_ptr<AsioConnection>>::iterator it = m_connections.begin();
+       it != m_connections.end(); it++) {
     (*it)->terminate();
   }
 }
@@ -28,7 +28,7 @@ void AsioServer::handle_accept(std::shared_ptr<AsioConnection> connection,
   if (!error) {
     irr_log_info("accepted");
     connection->start();
-    connections.push_back(connection);
+    m_connections.push_back(connection);
     do_accept();
   }
 }
@@ -37,4 +37,11 @@ void AsioServer::do_accept() {
   m_acceptor.async_accept(connection->socket(),
                           boost::bind(&AsioServer::handle_accept, this,
                                       connection, boost::asio::placeholders::error));
+
+  for (std::vector<std::shared_ptr<AsioConnection>>::iterator it = m_connections.begin();
+       it != m_connections.end(); it++) {
+    if ((*it)->is_terminated()) {
+      (*it)->terminate();
+    }
+  }
 }

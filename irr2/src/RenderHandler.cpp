@@ -14,7 +14,7 @@ RenderHandler::RenderHandler(RenderChannel& channel)
       m_left_cmd_buf(nullptr),
       m_left_cmd_buf_sz(0),
       m_cmd_count(0) {
-  
+
 }
 
 RenderHandler::RenderHandler(RenderHandler&& other)
@@ -27,6 +27,7 @@ RenderHandler::RenderHandler(RenderHandler&& other)
 }
 
 RenderHandler::~RenderHandler() {
+  m_left_cmd_buf = nullptr;
 }
 
 void RenderHandler::terminate() {

@@ -13,10 +13,10 @@ namespace irr {
   }GLCmdPacketHead;
 
   const unsigned PACKET_HEAD_LEN = sizeof(GLCmdPacketHead);
-  
+
   class RenderReceiver {
  public:
-    RenderReceiver(tcp::socket&, RenderChannel&);
+    RenderReceiver(tcp::socket&, RenderChannel&, bool&);
     RenderReceiver(const RenderReceiver&);
     RenderReceiver(RenderReceiver&&);
     RenderReceiver& operator=(const RenderReceiver&) = delete;
@@ -26,6 +26,7 @@ namespace irr {
  private:
     tcp::socket& m_socket;
     RenderChannel& m_channel;
+    bool& m_is_terminated;
     InBuffer *m_body_buf;
     size_t m_body_buf_transferred;
     enum {

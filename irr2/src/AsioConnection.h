@@ -12,7 +12,8 @@ namespace irr {
  public:
     AsioConnection()
       : m_io_service(),
-        m_socket(m_io_service) {
+        m_socket(m_io_service),
+        m_is_terminated(false) {
     }
 
     tcp::socket& socket() {
@@ -34,7 +35,12 @@ namespace irr {
       handle_terminate();
     }
 
+    bool is_terminated() {
+      return m_is_terminated;
+    }
+
  protected:
+    bool m_is_terminated;
     boost::asio::io_service m_io_service;
     tcp::socket m_socket;
   };

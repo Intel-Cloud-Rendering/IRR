@@ -21,7 +21,7 @@ namespace irr {
                        const boost::system::error_code&);
     short m_port;
     tcp::acceptor m_acceptor;
-    std::vector<std::shared_ptr<AsioConnection>> connections;
+    std::vector<std::shared_ptr<AsioConnection>> m_connections;
   };
 }
 
