@@ -116,7 +116,7 @@ void RenderHandler::process() {
         if (left + in->length() >= CMD_HEADER_BUF_SIZE) {
           std::memcpy(m_cmd_header_buf + left, in->data(), CMD_HEADER_BUF_SIZE-left);
           size_t cmdSz = *(const int32_t*)(m_cmd_header_buf + 4);
-          irr_log_err("MM left = %d, command size = %d, command count = %d", left, cmdSz, m_cmd_count);
+          irr_log_info("MM left = %d, command size = %d, command count = %d", left, cmdSz, m_cmd_count);
 
           assert(m_left_cmd_buf == nullptr);
           m_left_cmd_buf = std::shared_ptr<char>(new char[cmdSz], std::default_delete<char[]>());
