@@ -92,7 +92,7 @@ bool isCompatibleHostConfig(EGLConfig config, EGLDisplay display) {
     s_egl.eglGetConfigAttrib(
             display, config, EGL_NATIVE_VISUAL_ID, &visualId);
     if (!visualId) {
-        return;
+        return false;
     }
 
     return true;
