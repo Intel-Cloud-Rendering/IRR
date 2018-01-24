@@ -1,13 +1,14 @@
 HOME_DIR:=${PWD}/../../..
-SRC:=${PWD}
+SRC:=${HOME_DIR}/../android/android-emugl/host/tools/emugen
 BIN:=${HOME_DIR}/bin
 OBJ:=${HOME_DIR}/obj/emugen
 #CPP_FILES:=${wildcard ${SRC}/*.cpp}
 CPP_FILES:=${SRC}/ApiGen.cpp ${SRC}/EntryPoint.cpp ${SRC}/main.cpp ${SRC}/Parser.cpp ${SRC}/strUtils.cpp ${SRC}/TypeFactory.cpp 
 OBJ_FILES:=${addprefix ${OBJ}/, ${notdir ${CPP_FILES:.cpp=.cpp.o}}}
 CC:=g++
-CPPFLAGS:=-std=c++11
-INC_PATH:=
+DEFS:=-DIRR2
+CPPFLAGS:=-std=c++11 ${DEFS}
+INC_PATH:=-I${HOME_DIR}/src/tools/emugen/
 LIB_PATH:=
 LIBS:=
 

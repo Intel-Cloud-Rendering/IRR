@@ -18,23 +18,31 @@
 
 #include "DispatchTables.h"
 #include "FbConfig.h"
+#ifndef IRR2
 #include "FenceSync.h"
+#endif
 #include "FrameBuffer.h"
 #include "GLESVersionDetector.h"
 #include "RenderContext.h"
 #include "RenderThreadInfo.h"
+#ifndef IRR2
 #include "SyncThread.h"
+#endif
 #include "ChecksumCalculatorThreadInfo.h"
 #include "OpenGLESDispatch/EGLDispatch.h"
 
+#ifndef IRR2
 #include "android/utils/debug.h"
+#endif
 #include "android/base/StringView.h"
+#ifndef IRR2
 #include "emugl/common/feature_control.h"
-#include "emugl/common/lazy_instance.h"
 #include "emugl/common/sync_device.h"
 #include "emugl/common/dma_device.h"
 #include "emugl/common/misc.h"
 #include "emugl/common/thread.h"
+#endif
+#include "emugl/common/lazy_instance.h"
 #include "math.h"
 
 #include <atomic>
@@ -91,8 +99,11 @@ public:
         // in many situations
         // (switching camera sides, exiting benchmark apps, etc)
         // So, we put GrallocSync under the feature control.
+#ifndef IRR2
         mEnabled = emugl_feature_is_enabled(android::featurecontrol::GrallocSync);
-
+#else
+        mEnabled = false;
+#endif
         // There are two potential tricky situations to handle:
         // a. Multiple users of gralloc buffers that all want to
         // call gralloc_lock. This is obeserved to happen on older APIs
@@ -171,9 +182,11 @@ static void rcTriggerWait(uint64_t glsync_ptr,
 
 static GLint rcGetRendererVersion()
 {
+#ifndef IRR2
     emugl_sync_register_trigger_wait(rcTriggerWait);
 
     sGrallocSync.ptr();
+#endif
     return rendererVersion;
 }
 
@@ -217,12 +230,16 @@ static EGLint rcQueryEGLString(EGLenum name, void* buffer, EGLint bufferSize)
 }
 
 static bool shouldEnableAsyncSwap() {
+#ifndef IRR2
     bool isPhoneApi;
     emugl::getAvdInfo(&isPhoneApi, NULL);
     return emugl_feature_is_enabled(android::featurecontrol::GLAsyncSwap) &&
            emugl_sync_device_exists() &&
            isPhoneApi &&
            sizeof(void*) == 8;
+#else
+    return false;
+#endif
 }
 
 android::base::StringView maxVersionToFeatureString(GLESDispatchMaxVersion version) {
@@ -260,6 +277,7 @@ static EGLint rcGetGLString(EGLenum name, void* buffer, EGLint bufferSize)
         }
     }
 
+#ifndef IRR2
     // We add the maximum supported GL protocol number into GL_EXTENSIONS
     bool isChecksumEnabled =
         emugl_feature_is_enabled(android::featurecontrol::GLPipeChecksum);
@@ -268,12 +286,17 @@ static EGLint rcGetGLString(EGLenum name, void* buffer, EGLint bufferSize)
         emugl_feature_is_enabled(android::featurecontrol::GLDMA);
     bool glesDynamicVersionEnabled =
         emugl_feature_is_enabled(android::featurecontrol::GLESDynamicVersion);
+#else
+    /* IRR-ADD - hard coded */
+    bool isChecksumEnabled = true;
+#endif
 
     if (isChecksumEnabled && name == GL_EXTENSIONS) {
         glStr += ChecksumCalculatorThreadInfo::getMaxVersionString();
         glStr += " ";
     }
 
+#ifndef IRR2
     if (asyncSwapEnabled && name == GL_EXTENSIONS) {
         glStr += kAsyncSwapStr;
         glStr += " ";
@@ -295,6 +318,7 @@ static EGLint rcGetGLString(EGLenum name, void* buffer, EGLint bufferSize)
             glStr += "GL_OES_vertex_array_object ";
         }
     }
+#endif
 
     int nextBufferSize = glStr.size() + 1;
 
@@ -389,7 +413,9 @@ static uint32_t rcCreateContext(uint32_t config,
 
 static void rcDestroyContext(uint32_t context)
 {
+#ifndef IRR2
     SyncThread::destroySyncThread();
+#endif
 
     FrameBuffer *fb = FrameBuffer::getFB();
     if (!fb) {
@@ -676,6 +702,7 @@ static void rcSelectChecksumHelper(uint32_t protocol, uint32_t reserved) {
 static void rcTriggerWait(uint64_t eglsync_ptr,
                           uint64_t thread_ptr,
                           uint64_t timeline) {
+#ifndef IRR2
     FenceSync* fenceSync = (FenceSync*)(uintptr_t)eglsync_ptr;
     EGLSYNC_DPRINT("eglsync=0x%llx "
                    "fenceSync=%p "
@@ -685,6 +712,9 @@ static void rcTriggerWait(uint64_t eglsync_ptr,
     SyncThread* syncThread =
         reinterpret_cast<SyncThread*>(thread_ptr);
     syncThread->triggerWait(fenceSync, timeline);
+#else
+    assert(0);
+#endif
 }
 
 // |rcCreateSyncKHR| implements the guest's
@@ -700,6 +730,7 @@ static void rcCreateSyncKHR(EGLenum type,
                             int destroy_when_signaled,
                             uint64_t* eglsync_out,
                             uint64_t* syncthread_out) {
+#ifndef IRR2
     EGLSYNC_DPRINT("type=0x%x num_attribs=%d",
             type, num_attribs);
 
@@ -720,6 +751,9 @@ static void rcCreateSyncKHR(EGLenum type,
         *eglsync_out = res;
         EGLSYNC_DPRINT("send out eglsync 0x%llx", res);
     }
+#else
+    assert(0);
+#endif
 }
 
 // |rcClientWaitSyncKHR| implements |eglClientWaitSyncKHR|
@@ -729,6 +763,7 @@ static void rcCreateSyncKHR(EGLenum type,
 static EGLint rcClientWaitSyncKHR(uint64_t handle,
                                   EGLint flags,
                                   uint64_t timeout) {
+#ifndef IRR2
     RenderThreadInfo *tInfo = RenderThreadInfo::get();
     FrameBuffer *fb = FrameBuffer::getFB();
 
@@ -757,12 +792,20 @@ static EGLint rcClientWaitSyncKHR(uint64_t handle,
     }
 
     return fenceSync->wait(timeout);
+#else
+    assert(0);
+    return 0;
+#endif
 }
 
 static int rcDestroySyncKHR(uint64_t handle) {
+#ifndef IRR2
     FenceSync* fenceSync = (FenceSync*)(uintptr_t)handle;
     assert(fenceSync);
     fenceSync->decRef();
+#else
+    assert(0);
+#endif
     return 0;
 }
 

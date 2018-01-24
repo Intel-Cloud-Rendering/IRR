@@ -21,7 +21,9 @@
 #include "GLESv1Decoder.h"
 #include "GLESv2Decoder.h"
 #include "renderControl_dec.h"
+#ifndef IRR2
 #include "SyncThread.h"
+#endif
 
 #include <set>
 
@@ -60,8 +62,10 @@ struct RenderThreadInfo {
     // all the window surfaces that are created by this render thread
     WindowSurfaceSet                m_windowSet;
 
+#ifndef IRR2
     // Sync timeline info + sync thread pointer
     std::unique_ptr<SyncThread>     syncThread;
+#endif
 
     // The unique id of owner guest process of this render thread
     uint64_t                        m_puid = 0;

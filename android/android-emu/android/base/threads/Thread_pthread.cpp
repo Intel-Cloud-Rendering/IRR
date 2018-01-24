@@ -14,7 +14,9 @@
 
 #include "android/base/threads/Thread.h"
 
+#ifndef IRR2
 #include "android/base/Log.h"
+#endif
 #include "android/base/threads/ThreadStore.h"
 
 #include <assert.h>
@@ -145,7 +147,9 @@ void* Thread::thread_main(void *arg) {
         if ((self->mFlags & ThreadFlags::Detach) != ThreadFlags::NoFlags) {
             if (pthread_detach(pthread_self())) {
                 // This only means a slow memory leak, so use VERBOSE.
+#ifndef IRR2
                 LOG(VERBOSE) << "Failed to set thread to detach mode";
+#endif
             }
         }
 

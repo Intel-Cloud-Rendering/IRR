@@ -28,8 +28,13 @@
 #include <string>
 #include <utility>
 
+#ifndef IRR2
 #define ERR(...)  fprintf(stderr, __VA_ARGS__)
 #define V(...)  VERBOSE_PRINT(gles,__VA_ARGS__)
+#else
+#define ERR(...)
+#define V(...)
+#endif
 #define MAX_FACTOR_POWER 4
 
 static const char kCommonShaderSource[] =

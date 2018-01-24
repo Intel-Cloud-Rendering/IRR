@@ -16,7 +16,9 @@
 
 #include "ChecksumCalculatorThreadInfo.h"
 
+#ifndef IRR2
 #include "emugl/common/crash_reporter.h"
+#endif
 #include "emugl/common/lazy_instance.h"
 #include "emugl/common/thread_store.h"
 
@@ -90,6 +92,10 @@ void ChecksumCalculatorThreadInfo::validOrDie(ChecksumCalculator* calc,
                                               size_t checksumLen,
                                               const char* message) {
     if (!validate(calc, buf, bufLen, checksum, checksumLen)) {
+#ifndef IRR2
         emugl_crash_reporter(message);
+#else
+        assert(0);
+#endif
     }
 }

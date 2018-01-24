@@ -15,15 +15,18 @@
 
 #include "RendererImpl.h"
 
+#ifndef IRR2
 #include "emugl/common/crash_reporter.h"
 #include "emugl/common/dma_device.h"
 #include "emugl/common/feature_control.h"
 #include "emugl/common/logging.h"
 #include "emugl/common/misc.h"
 #include "emugl/common/sync_device.h"
+#endif
 
 namespace emugl {
 
+#ifndef IRR2
 void RenderLibImpl::setAvdInfo(bool phone, int api) {
     emugl::setAvdInfo(phone, api);
 }
@@ -63,6 +66,7 @@ void RenderLibImpl::setDmaOps(emugl_dma_ops ops) {
     set_emugl_dma_invalidate_host_mappings(ops.invalidate_host_mappings);
     set_emugl_dma_unlock(ops.unlock);
 }
+#endif
 
 RendererPtr RenderLibImpl::initRenderer(int width, int height,
                                         bool useSubWindow) {

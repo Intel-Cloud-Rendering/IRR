@@ -13,9 +13,11 @@
 // limitations under the License.
 #include "RendererImpl.h"
 
+#ifndef IRR2
 #include "RenderChannelImpl.h"
 
 #include "emugl/common/logging.h"
+#endif
 #include "ErrorLog.h"
 #include "FrameBuffer.h"
 
@@ -23,6 +25,10 @@
 #include <utility>
 
 #include <assert.h>
+
+#ifdef IRR2
+#define GL_LOG
+#endif
 
 namespace emugl {
 
@@ -85,29 +91,36 @@ bool RendererImpl::initialize(int width, int height, bool useSubWindow) {
 }
 
 void RendererImpl::stop() {
+#ifndef IRR2
     android::base::AutoLock lock(mThreadVectorLock);
     mStopped = true;
     auto threads = std::move(mThreads);
     lock.unlock();
+#endif
 
     if (const auto fb = FrameBuffer::getFB()) {
         fb->setShuttingDown();
     }
+#ifndef IRR2
     for (const auto& t : threads) {
         if (const auto channel = t.second.lock()) {
             channel->stopFromHost();
         }
     }
+#endif
     // We're stopping the renderer, so there's no need to clean up resources
     // of some pending processes: we'll destroy everything soon.
     mCleanupProcessIds.stop();
 
+#ifndef IRR2
     for (const auto& t : threads) {
         t.first->wait();
     }
+#endif
     mCleanupThread.wait();
 }
 
+#ifndef IRR2
 RenderChannelPtr RendererImpl::createRenderChannel(int id) {
     const auto channel = std::make_shared<RenderChannelImpl>();
     channel->setId(id);
@@ -145,6 +158,7 @@ RenderChannelPtr RendererImpl::createRenderChannel(int id) {
 
     return channel;
 }
+#endif
 
 RendererImpl::HardwareStrings RendererImpl::getHardwareStrings() {
     assert(mRenderWindow);

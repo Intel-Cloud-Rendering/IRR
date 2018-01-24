@@ -29,6 +29,10 @@
 #include <stdio.h>
 #include <string.h>
 
+#ifdef IRR2
+#define ERR printf
+#endif
+
 namespace {
 
 // Lazily create and bind a framebuffer object to the current host context.

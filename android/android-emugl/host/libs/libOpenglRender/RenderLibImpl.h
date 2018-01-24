@@ -25,6 +25,7 @@ class RenderLibImpl final : public RenderLib {
 public:
     RenderLibImpl() = default;
 
+#ifndef IRR2
     virtual void setAvdInfo(bool phone, int api) override;
     virtual void setLogger(emugl_logger_struct logger) override;
     virtual void setCrashReporter(emugl_crash_reporter_t reporter) override;
@@ -37,6 +38,7 @@ public:
                                emugl_sync_device_exists_t) override;
 
     virtual void setDmaOps(emugl_dma_ops) override;
+#endif
 
     virtual RendererPtr initRenderer(int width,
                                      int height,

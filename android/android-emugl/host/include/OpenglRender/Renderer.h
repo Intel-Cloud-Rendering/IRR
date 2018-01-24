@@ -31,7 +31,9 @@ public:
     // This call instantiates a new object that waits for the serialized data
     // from the guest, deserializes it, executes the passed GL commands and
     // returns the results back.
+#ifndef IRR2
     virtual RenderChannelPtr createRenderChannel(int id) = 0;
+#endif
 
     // getHardwareStrings - describe the GPU hardware and driver.
     // The underlying GL's vendor/renderer/version strings are returned to the

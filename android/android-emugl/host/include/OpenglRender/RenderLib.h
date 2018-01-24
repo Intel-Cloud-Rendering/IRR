@@ -16,7 +16,9 @@
 #include <memory>
 
 #include "OpenglRender/Renderer.h"
+#ifndef IRR2
 #include "OpenglRender/render_api_types.h"
+#endif
 
 namespace emugl {
 
@@ -27,6 +29,7 @@ class RenderLib {
 public:
     virtual ~RenderLib() = default;
 
+#ifndef IRR2
     // Tell emugl the API version of the system image
     virtual void setAvdInfo(bool phone, int api) = 0;
     virtual void setLogger(emugl_logger_struct logger) = 0;
@@ -42,6 +45,7 @@ public:
     // Sets the function use to read from the guest
     // physically contiguous DMA region at particular offsets.
     virtual void setDmaOps(emugl_dma_ops) = 0;
+#endif
 
     // initRenderer - initialize the OpenGL renderer object.
     //

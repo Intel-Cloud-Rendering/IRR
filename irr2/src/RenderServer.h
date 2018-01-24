@@ -2,7 +2,7 @@
 #define RENDER_SERVER_H
 #include "AsioServer.h"
 #include "RenderSession.h"
-#include "Renderer.h"
+#include "OpenglRender/Renderer.h"
 
 //#define DUMP_RAW_VIDEO 1
 #define PRINT_STAT 1

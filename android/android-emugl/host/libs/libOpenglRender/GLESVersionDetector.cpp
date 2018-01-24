@@ -18,7 +18,9 @@
 
 #include "DispatchTables.h"
 
+#ifndef IRR2
 #include "emugl/common/feature_control.h"
+#endif
 
 #include <algorithm>
 
@@ -30,6 +32,7 @@ GLESDispatchMaxVersion calcMaxVersionFromDispatch() {
     // which matches the return type of gles2_dispatch_get_max_version,
     // and allows us to scale back if the underlying host machine
     // doesn't actually suppport a particular GLES version.
+#ifndef IRR2
     if (!emugl_feature_is_enabled(android::featurecontrol::GLESDynamicVersion))
         return GLES_DISPATCH_MAX_VERSION_2;
 
@@ -42,6 +45,7 @@ GLESDispatchMaxVersion calcMaxVersionFromDispatch() {
     } else {
         return underlying_gles2_lib_max;
     }
+#endif
 
     return GLES_DISPATCH_MAX_VERSION_2;
 }

@@ -14,7 +14,9 @@
 
 #include "RenderWindow.h"
 
+#ifndef IRR2
 #include "emugl/common/logging.h"
+#endif
 #include "emugl/common/message_channel.h"
 #include "emugl/common/mutex.h"
 #include "emugl/common/thread.h"
@@ -126,8 +128,10 @@ struct RenderWindowMessage {
         switch (msg.cmd) {
             case CMD_INITIALIZE:
                 D("CMD_INITIALIZE w=%d h=%d\n", msg.init.width, msg.init.height);
+#ifndef IRR2
                 GL_LOG("RenderWindow: CMD_INITIALIZE w=%d h=%d",
                        msg.init.width, msg.init.height);
+#endif
                 result = FrameBuffer::initialize(msg.init.width,
                                                  msg.init.height,
                                                  msg.init.useSubWindow);

@@ -25,10 +25,18 @@
 
 #include "android/base/memory/ScopedPtr.h"
 #include "android/base/system/System.h"
+#ifndef IRR2
 #include "emugl/common/logging.h"
+#endif
 
 #include <stdio.h>
 #include <string.h>
+
+#ifdef IRR2
+#define GL_LOG
+#define ERR printf
+#define DBG printf
+#endif
 
 namespace {
 

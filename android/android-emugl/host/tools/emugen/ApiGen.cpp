@@ -14,7 +14,11 @@
 * limitations under the License.
 */
 #include "ApiGen.h"
+#ifdef IRR2
+#include "utils/EnumFlags.h"
+#else
 #include "android/base/EnumFlags.h"
+#endif
 #include "EntryPoint.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -329,7 +333,11 @@ int ApiGen::genEncoderHeader(const std::string &filename)
     fprintf(fp, "\n#ifndef GUARD_%s\n", classname.c_str());
     fprintf(fp, "#define GUARD_%s\n\n", classname.c_str());
 
+#ifndef IRR2
     fprintf(fp, "#include \"IOStream.h\"\n");
+#else
+    fprintf(fp, "#include \"override/IOStream.h\"\n");
+#endif
     fprintf(fp, "#include \"ChecksumCalculator.h\"\n");
     fprintf(fp, "#include \"%s_%s_context.h\"\n\n\n", m_basename.c_str(), sideString(CLIENT_SIDE));
 
@@ -848,10 +856,18 @@ int ApiGen::genDecoderHeader(const std::string &filename)
     fprintf(fp, "\n#ifndef GUARD_%s\n", classname.c_str());
     fprintf(fp, "#define GUARD_%s\n\n", classname.c_str());
 
+#ifdef IRR2
+    fprintf(fp, "#include \"override/IOStream.h\"\n");
+#else
     fprintf(fp, "#include \"OpenglRender/IOStream.h\"\n");
+#endif
     fprintf(fp, "#include \"ChecksumCalculator.h\"\n");
     fprintf(fp, "#include \"%s_%s_context.h\"\n\n\n", m_basename.c_str(), sideString(SERVER_SIDE));
+#ifdef IRR2
+    //fprintf(fp, "#include \"emugl/common/logging.h\"\n");
+#else
     fprintf(fp, "#include \"emugl/common/logging.h\"\n");
+#endif
 #if INSTRUMENT_TIMING_HOST
     fprintf(fp, "#include \"time.h\"\n");
 #endif
@@ -930,6 +946,9 @@ int ApiGen::genDecoderImpl(const std::string &filename)
     fprintf(fp, "#include \"ProtocolUtils.h\"\n\n");
     fprintf(fp, "#include \"ChecksumCalculatorThreadInfo.h\"\n\n");
     fprintf(fp, "#include <stdio.h>\n\n");
+#ifdef IRR2
+    fprintf(fp, "#include \"RenderLog.h\"\n\n");
+#endif
     fprintf(fp, "typedef unsigned int tsize_t; // Target \"size_t\", which is 32-bit for now. It may or may not be the same as host's size_t when emugen is compiled.\n\n");
 
     EntryPoint *e = &(*this)[0];
@@ -960,12 +979,23 @@ int ApiGen::genDecoderImpl(const std::string &filename)
         "}\n\n");
 
     // helper macros
+#ifdef IRR2
+    fprintf(fp,
+            //"#ifdef OPENGL_DEBUG_PRINTOUT\n"
+            //"#  define DEBUG(...) do { if (emugl_cxt_logger) { emugl_cxt_logger(__VA_ARGS__); } } while(0)\n"
+            //"#else\n"
+            //"#  define DEBUG(...)  ((void)0)\n"
+            //"#endif\n\n");
+            "#define DEBUG irr_log_info\n"
+            "\n");
+#else
     fprintf(fp,
             "#ifdef OPENGL_DEBUG_PRINTOUT\n"
             "#  define DEBUG(...) do { if (emugl_cxt_logger) { emugl_cxt_logger(__VA_ARGS__); } } while(0)\n"
             "#else\n"
             "#  define DEBUG(...)  ((void)0)\n"
             "#endif\n\n");
+#endif
 
     fprintf(fp,
 #if DECODER_CHECK_GL_ERRORS

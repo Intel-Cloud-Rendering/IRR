@@ -4,7 +4,7 @@
 #include "RenderChannel.h"
 #include "RenderThread.h"
 #include "RenderThreadInfo.h"
-#include "IOStream.h"
+#include "override/IOStream.h"
 #include "ChecksumCalculatorThreadInfo.h"
 
 namespace irr {

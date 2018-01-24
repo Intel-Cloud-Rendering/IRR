@@ -41,7 +41,9 @@ public:
     void stop();
 
 public:
+#ifndef IRR2
     RenderChannelPtr createRenderChannel(int id) final;
+#endif
     HardwareStrings getHardwareStrings() final;
     void setPostCallback(OnPostCallback onPost,
                                  void* context) final;
@@ -70,10 +72,12 @@ private:
 
     android::base::Lock mThreadVectorLock;
 
+#ifndef IRR2
     using ThreadWithChannel = std::pair<std::unique_ptr<RenderThread>,
                                         std::weak_ptr<RenderChannelImpl>>;
 
     std::vector<ThreadWithChannel> mThreads;
+#endif
     bool mStopped = false;
 
     // A message channel and a cleanup thread for GL resources of finished
