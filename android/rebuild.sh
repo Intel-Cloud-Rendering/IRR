@@ -17,6 +17,9 @@ EMUDIR=$(realpath ${PROGDIR}/../../../)
 MINGW=
 NO_TESTS=
 OUT_DIR=objs
+RELEASE_NAME=intel-cloud-rendering_ubuntu-16.04
+SYMBOL_NAME=${RELEASE_NAME}_sym
+BUILD_RELEASE_PACKAGE=
 
 for OPT; do
     case $OPT in
@@ -47,6 +50,9 @@ for OPT; do
         --emudir=*)
             EMUDIR=${OPT##--emudir=}
             ;;
+        --with-package)
+            BUILD_RELEASE_PACKAGE=true
+            ;;
     esac
 done
 
@@ -70,6 +76,32 @@ log () {
     if [ "$VERBOSE" -gt 1 ]; then
         printf "%s\n" "$*"
     fi
+}
+
+today=`date '+%Y%m%d%H%M%S'` || panic "Force quit"
+
+build_install_package() {
+    mkdir -p $OUT_DIR/$RELEASE_NAME/bin || panic "Force quit"
+    mkdir -p $OUT_DIR/$RELEASE_NAME/lib64 || panic "Force quit"
+    cp $OUT_DIR/intel_remote_renderer $OUT_DIR/$RELEASE_NAME/bin/ || panic "Force quit"
+    cp $OUT_DIR/build/intermediates64/lib64OpenglRender/lib64OpenglRender.so $OUT_DIR/$RELEASE_NAME/lib64/ || panic "Force quit"
+    cp $OUT_DIR/build/intermediates64/lib64EGL_translator/lib64EGL_translator.so $OUT_DIR/$RELEASE_NAME/lib64/ || panic "Force quit"
+    cp $OUT_DIR/build/intermediates64/lib64GLES_CM_translator/lib64GLES_CM_translator.so $OUT_DIR/$RELEASE_NAME/lib64/ || panic "Force quit"
+    cp $OUT_DIR/build/intermediates64/lib64GLES_V2_translator/lib64GLES_V2_translator.so $OUT_DIR/$RELEASE_NAME/lib64/ || panic "Force quit"
+    cp irr/scripts/run.sh $OUT_DIR/$RELEASE_NAME/bin/ || panic "Force quit"
+    cp irr/scripts/install.sh $OUT_DIR/$RELEASE_NAME/ || panic "Force quit"
+    cd $OUT_DIR && tar czf ${RELEASE_NAME}_${today}.tgz $RELEASE_NAME && cd ..
+}
+
+build_sym_package() {
+    mkdir -p $OUT_DIR/$SYMBOL_NAME/bin || panic "Force quit"
+    mkdir -p $OUT_DIR/$SYMBOL_NAME/lib64 || panic "Force quit"
+    cp $OUT_DIR/build/symbols/intel_remote_renderer.sym $OUT_DIR/$SYMBOL_NAME/bin/ || panic "Force quit"
+    cp $OUT_DIR/build/symbols/lib64/lib64OpenglRender.so.sym $OUT_DIR/$SYMBOL_NAME/lib64/ || panic "Force quit"
+    cp $OUT_DIR/build/symbols/lib64/lib64EGL_translator.so.sym $OUT_DIR/$SYMBOL_NAME/lib64/ || panic "Force quit"
+    cp $OUT_DIR/build/symbols/lib64/lib64GLES_CM_translator.so.sym $OUT_DIR/$SYMBOL_NAME/lib64/ || panic "Force quit"
+    cp $OUT_DIR/build/symbols/lib64/lib64GLES_V2_translator.so.sym $OUT_DIR/$SYMBOL_NAME/lib64/ || panic "Force quit"
+    cd $OUT_DIR && tar czf ${SYMBOL_NAME}_${today}.tgz $SYMBOL_NAME && cd ..
 }
 
 HOST_OS=$(uname -s)
@@ -148,6 +180,16 @@ fi
 echo "Building sources."
 run make -j$HOST_NUM_CPUS BUILD_OBJS_DIR="$OUT_DIR" ||
     panic "Could not build sources, please run 'make' to see why."
+
+if [ -n "$BUILD_RELEASE_PACKAGE" ]; then
+    echo "Building release package."
+    build_install_package ||
+        panic "Build release package failed."
+
+    echo "Building release symbol package."
+    build_sym_package ||
+        panic "Build release symbol package failed."
+fi
 
 RUN_32BIT_TESTS=
 RUN_64BIT_TESTS=true
