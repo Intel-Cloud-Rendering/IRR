@@ -42,12 +42,12 @@ set_env(){
 set_env $1
 
 ulimit -c unlimited
-if [ ! "$#" -eq 1 ]; then
+if [ "$#" -eq 1 ]; then
 ## without pushing stream
     ./intel_remote_renderer
 else
 ## with pushing stream
-    ./intel_remote_renderer -streaming -url $2 -fr 25
+    ./intel_remote_renderer -streaming -lowpower -url $2 -fr 25
 fi
 
 

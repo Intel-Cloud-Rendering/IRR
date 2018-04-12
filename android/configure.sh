@@ -333,6 +333,8 @@ for opt do
   ;;
   --lto) OPTION_LTO=true
   ;;
+  --with-package)
+  ;;
   *)
     echo "unknown option '$opt', use --help"
     exit 1
