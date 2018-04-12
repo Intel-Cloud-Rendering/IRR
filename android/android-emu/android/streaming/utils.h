@@ -12,12 +12,13 @@ struct IrrStreamInfo {
     const char *codec;      ///< Encoder codec, e.x. h264_qsv; may be null
     const char *format;     ///< Mux format, e.x. flv; null as auto
     const char *url;        ///< Output url.
+    int low_power;          ///< Enable low-power mode, default not.
 
     /* In/Out options*/
     struct {
         int w;
         int h;
-        int framerate;  
+        int framerate;
     } in, out;
 };
 

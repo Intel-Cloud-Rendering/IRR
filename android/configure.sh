@@ -634,6 +634,8 @@ probe_prebuilts_dir "libmfx" LIBMFX_PREBUILTS_DIR common/mfx
 
 probe_prebuilts_dir "libffmpeg_qsv_331" FFMPEG_QSV_331_PREBUILTS_DIR common/ffmpeg_qsv_331
 
+probe_prebuilts_dir "libffmpeg_irr" FFMPEG_IRR_PREBUILTS_DIR common/ffmpeg_irr
+
 # create the objs directory that is going to contain all generated files
 # including the configuration ones
 #
@@ -1067,6 +1069,7 @@ echo "X264_PREBUILTS_DIR := $X264_PREBUILTS_DIR" >> $config_mk
 echo "LIBTRANS_PREBUILTS_DIR := $LIBTRANS_PREBUILTS_DIR" >> $config_mk
 echo "LIBMFX_PREBUILTS_DIR := $LIBMFX_PREBUILTS_DIR" >> $config_mk
 echo "FFMPEG_QSV_331_PREBUILTS_DIR := $FFMPEG_QSV_331_PREBUILTS_DIR" >> $config_mk
+echo "FFMPEG_IRR_PREBUILTS_DIR := $FFMPEG_IRR_PREBUILTS_DIR" >> $config_mk
 
 if [ $OPTION_DEBUG = "yes" ] ; then
     echo "BUILD_DEBUG := true" >> $config_mk

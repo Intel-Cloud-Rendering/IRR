@@ -221,7 +221,7 @@ LOCAL_C_INCLUDES := \
     $(LIBPNG_INCLUDES) \
     $(ZLIB_INCLUDES) \
     $(LIBTRANS_INCLUDES) \
-    $(FFMPEG_QSV_331_INCLUDES) \
+    $(FFMPEG_IRR_INCLUDES) \
     /usr/include \
 
 
@@ -450,7 +450,8 @@ ANDROID_EMU_STATIC_LIBRARIES := \
     emulator-libpng \
     emulator-libwebp \
     emulator-libtrans \
-    $(FFMPEG_QSV_331_STATIC_LIBRARIES) \
+    $(FFMPEG_IRR_STATIC_LIBRARIES) \
+    $(LIBX264_STATIC_LIBRARIES) \
     emulator-libmfx \
     emulator-zlib \
     $(METRICS_PROTO_STATIC_LIBRARIES) \
@@ -461,7 +462,7 @@ ANDROID_EMU_LDLIBS := \
     $(ANDROID_EMU_BASE_LDLIBS) \
     $(LIBCURL_LDLIBS) \
     $(BREAKPAD_CLIENT_LDLIBS) \
-    $(FFMPEG_QSV_331_LDLIBS) \
+    $(FFMPEG_IRR_LDLIBS) \
 
 ifeq ($(BUILD_TARGET_OS),windows)
 # For capCreateCaptureWindow used in camera-capture-windows.cpp

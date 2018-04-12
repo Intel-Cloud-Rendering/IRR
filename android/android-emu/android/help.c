@@ -1449,6 +1449,7 @@ help_cores(stralloc_t* out)
 #define help_url          NULL
 #define help_fr           NULL
 #define help_codec        NULL
+#define help_lowpower     NULL
 
 typedef struct {
     const char*  name;

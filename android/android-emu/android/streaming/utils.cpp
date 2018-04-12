@@ -123,17 +123,20 @@ public:
     m_pTrans->setOutputProp(name, buf); \
 }
 
-        if (!param->bitrate)
-            param->bitrate = 2000000;
-        SETOPTINT("b", param->bitrate);///< Bitrate
+        //if (!param->bitrate)
+        //    param->bitrate = 2000000;
+        //SETOPTINT("b", param->bitrate);///< Bitrate
 
         if (param->codec)
             m_pTrans->setOutputProp("c", param->codec); ///< Codec
         else
-            m_pTrans->setOutputProp("c", "h264_qsv");
+            m_pTrans->setOutputProp("c", "h264_vaapi");
 
         if (param->out.framerate)
             SETOPTINT("r", param->out.framerate); ///< Framerate
+
+        if (param->low_power)
+            m_pTrans->setOutputProp("low_power", "1");
 
         if (param->out.w && param->out.h) {
             char buf[32];

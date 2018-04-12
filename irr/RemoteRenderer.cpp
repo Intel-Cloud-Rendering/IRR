@@ -256,6 +256,10 @@ extern "C" int main(int argc, char** argv)
             info.bitrate = strtol(opts->b, nullptr, 10);
         info.url   = opts->url;
         info.codec = opts->codec;
+        if (opts->lowpower) {
+            fprintf(stderr, "Low power enabled.\n");
+            info.low_power = 1;
+        }
 
         register_stream_publishment(&info);
         android_setIrrCallback(reqBuffer, on_post_callback2, &sOnPostCntxt);

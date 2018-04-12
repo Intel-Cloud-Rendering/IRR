@@ -1,0 +1,14 @@
+prefix=/home/media/cliu3x/emulator/external/irr/rrndr-prebuilts/ffmpeg_irr/linux-x86_64
+exec_prefix=${prefix}
+libdir=/home/media/cliu3x/emulator/external/irr/rrndr-prebuilts/ffmpeg_irr/linux-x86_64/lib
+includedir=/home/media/cliu3x/emulator/external/irr/rrndr-prebuilts/ffmpeg_irr/linux-x86_64/include
+
+Name: libavfilter
+Description: FFmpeg audio/video filtering library
+Version: 6.107.100
+Requires: libswscale >= 4.8.100, libavformat >= 57.83.100, libavcodec >= 57.107.100, libswresample >= 2.9.100, libavutil >= 55.78.100
+Requires.private: 
+Conflicts:
+Libs: -L${libdir}  -lavfilter -lva -lva-x11 -lX11 -lva -lva-drm -lva -lxcb -lasound -lx264 -lpthread -lm -ldl -lm -ldl -lz -pthread -pthread -lrt
+Libs.private: 
+Cflags: -I${includedir}

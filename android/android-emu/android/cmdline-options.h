@@ -181,6 +181,7 @@ OPT_PARAM(b, "<num>", "Bitrate")
 OPT_PARAM(url, "<URL>", "Publish URL")
 OPT_PARAM(fr, "<r>", "Framerate")
 OPT_PARAM(codec, "<codec>", "Encoding codec")
+OPT_FLAG(lowpower, "Enable low power mode")
 
 #undef CFG_FLAG
 #undef CFG_PARAM
