@@ -83,11 +83,13 @@ today=`date '+%Y%m%d%H%M%S'` || panic "Force quit"
 build_install_package() {
     mkdir -p $OUT_DIR/$RELEASE_NAME/bin || panic "Force quit"
     mkdir -p $OUT_DIR/$RELEASE_NAME/lib64 || panic "Force quit"
+    mkdir -p $OUT_DIR/$RELEASE_NAME/lib || panic "Force quit"
     cp $OUT_DIR/intel_remote_renderer $OUT_DIR/$RELEASE_NAME/bin/ || panic "Force quit"
     cp $OUT_DIR/build/intermediates64/lib64OpenglRender/lib64OpenglRender.so $OUT_DIR/$RELEASE_NAME/lib64/ || panic "Force quit"
     cp $OUT_DIR/build/intermediates64/lib64EGL_translator/lib64EGL_translator.so $OUT_DIR/$RELEASE_NAME/lib64/ || panic "Force quit"
     cp $OUT_DIR/build/intermediates64/lib64GLES_CM_translator/lib64GLES_CM_translator.so $OUT_DIR/$RELEASE_NAME/lib64/ || panic "Force quit"
     cp $OUT_DIR/build/intermediates64/lib64GLES_V2_translator/lib64GLES_V2_translator.so $OUT_DIR/$RELEASE_NAME/lib64/ || panic "Force quit"
+    cp $OUT_DIR/lib/advancedFeatures.ini $OUT_DIR/$RELEASE_NAME/lib/ || panic "Force quit"
     cp irr/scripts/run.sh $OUT_DIR/$RELEASE_NAME/bin/ || panic "Force quit"
     cp irr/scripts/install.sh $OUT_DIR/$RELEASE_NAME/ || panic "Force quit"
     cd $OUT_DIR && tar czf ${RELEASE_NAME}_${today}.tgz $RELEASE_NAME && cd ..

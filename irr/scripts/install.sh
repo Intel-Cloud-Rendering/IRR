@@ -62,10 +62,14 @@ fi
 if [ ! -d "$TO_PATH/lib64" ]; then
     try_command mkdir -p "$TO_PATH/lib64"
 fi
+if [ ! -d "$TO_PATH/lib" ]; then
+    try_command mkdir -p "$TO_PATH/lib"
+fi
 
 ## copy executable and library
 try_command cp $FROM_PATH/bin/* $TO_PATH/bin/
 try_command cp $FROM_PATH/lib64/* $TO_PATH/lib64/
+try_command cp $FROM_PATH/lib/advancedFeatures.ini $TO_PATH/lib/
 
 echo "Install Successfully!"
 

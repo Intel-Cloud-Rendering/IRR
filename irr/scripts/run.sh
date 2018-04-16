@@ -28,6 +28,7 @@ set_env(){
     export irr_lcd_height=960 #1280
     export LIBVA_DRIVERS_PATH=/usr/lib/dri     ## Check if iHD_drv_video.so is here, otherwise change to the right path
     export LIBVA_DRIVER_NAME=iHD
+    export ANDROID_EMULATOR_LAUNCHER_DIR=$irr_root
 
     # list out exported env variables
     echo "DISPLAY=$DISPLAY"
