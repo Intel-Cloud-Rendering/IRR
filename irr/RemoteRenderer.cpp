@@ -70,20 +70,18 @@ static int parse_options(int* p_argc, char*** p_argv, AndroidOptions *opts)
         D("streaming with codec %s", android_cmdLineOptions->codec);
     if (android_cmdLineOptions->fr)
         D("streaming with frame rate %s", android_cmdLineOptions->fr);
-    if (android_cmdLineOptions->res)
-        D("streaming with output resolution %s", android_cmdLineOptions->res);
-
-    // hard code initialize value, need a parse function here
-    sConfig->hw_lcd_width = atoi(getenv("irr_lcd_width"));
-    sConfig->hw_lcd_height = atoi(getenv("irr_lcd_height"));
-    if ((0 == sConfig->hw_lcd_width) || (0 == sConfig->hw_lcd_height)){
-        fprintf(stderr, "Warning: invalid lcd width=%d or height=%d, force to 1080p\n",
-                sConfig->hw_lcd_width, sConfig->hw_lcd_height);
-        sConfig->hw_lcd_width = 1920;
-        sConfig->hw_lcd_height = 1080;
+    if (android_cmdLineOptions->res) {
+        D("rendering and streaming with resolution %s", android_cmdLineOptions->res);
+        sscanf(android_cmdLineOptions->res, "%dx%d", &sConfig->hw_lcd_width, &sConfig->hw_lcd_height);
     }
-    sConfig->is_phone_api = true;
-    sConfig->api_level = 1;
+    else{
+        sConfig->hw_lcd_width = 576;
+        sConfig->hw_lcd_height = 960;
+        fprintf(stderr, "Warning: streaming resolution not set, using default 576x960 \n");
+    }
+
+    sConfig->is_phone_api = true; // TODO: not used for now
+    sConfig->api_level = 27; // just follow the API level used in image creation in avd
 
     return 0;
 }
@@ -190,6 +188,7 @@ extern "C" int main(int argc, char** argv)
     int event_flag = 0;
     ScopedSignalWatch sig_watch;
     AndroidOptions opts[1];
+    char *render_port = NULL;
 
     D("Hello, this is an intel remote renderer!\n");
 
@@ -274,7 +273,14 @@ extern "C" int main(int argc, char** argv)
     //
     // Initialize server side opengles socket listener and connection
     //
-    android_opengles_server_init(atoi(getenv("render_server_port")));
+    render_port = getenv("render_server_port"); // TODO: add command option for this setting
+    if (render_port != NULL){
+        android_opengles_server_init(atoi(render_port));
+    }
+    else{
+        fprintf(stderr, "render server port is not set in environment variable.\n");
+        goto Exit;
+    }
 
     //
     // Mainloop

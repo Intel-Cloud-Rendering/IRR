@@ -54,6 +54,7 @@ public:
 
 protected:
     FILE* getFP(void) const { return m_fp;}
+    Dump(Dump &dp) = delete;
 
 private:
     const char* m_dump_env;

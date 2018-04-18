@@ -185,6 +185,10 @@ static void onFramebufferPosted(void*, int w, int h, const void* pixels) {
         info.in.h         = h;
         info.in.framerate = 30;
 
+        // TODO: Fix me, this option is designed for video output resolution,
+        // but used by rendering resolution configuration for now.
+        // For dynamic video output resolution setting, need to figure out other
+        // option and enable it in FFmpeg.
         if (android_cmdLineOptions->res) {
             fprintf(stderr, "res = %s\n", android_cmdLineOptions->res);
             sscanf(android_cmdLineOptions->res, "%dx%d", &info.out.w, &info.out.h);

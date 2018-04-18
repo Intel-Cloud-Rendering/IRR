@@ -174,8 +174,6 @@ int FbConfigList::chooseConfig(const EGLint* attribs,
         return 0;
     }
 
-    EGLConfig* matchedConfigs = new EGLConfig[numHostConfigs];
-
     // If EGL_SURFACE_TYPE appears in |attribs|, the value passed to
     // eglChooseConfig should be forced to EGL_PBUFFER_BIT because that's
     // what it used by the current implementation, exclusively. This forces
@@ -205,6 +203,7 @@ int FbConfigList::chooseConfig(const EGLint* attribs,
     }
 
     EGLint* newAttribs = NULL;
+    EGLConfig* matchedConfigs = new EGLConfig[numHostConfigs];
 
     int apiLevel;
     emugl::getAvdInfo(NULL, &apiLevel);

@@ -191,6 +191,7 @@ static int report_console(const char* proto_port, int console_port) {
             if (s < 0) {
                 derror("could not bind unix socket on '%s': %s", proto_port + 5,
                        errno_str);
+                free(path);
                 return -1;
             }
         } else {
@@ -204,6 +205,7 @@ static int report_console(const char* proto_port, int console_port) {
             if (s < 0) {
                 derror("could not connect to unix socket on '%s': %s", path,
                        errno_str);
+                free(path);
                 return -1;
             }
         }
@@ -308,11 +310,14 @@ bool android_emulation_setup(const AndroidConsoleAgents* agents) {
 
     const char* render_client = getenv("render_client");
     const char* render_server = getenv("render_server");
+    const char* render_server_port = getenv("render_server_port");
     if ((render_client != NULL) && atoi(render_client) == 1) {
         android_init_opengles_client_pipe();
-    } else if ((render_server != NULL) && atoi(render_server) == 1) {
+    } else if ((render_server != NULL)
+            && atoi(render_server) == 1
+            && (render_server_port != NULL)) {
         //android_init_opengles_server_pipe();
-        android_opengles_server_init(atoi(getenv("render_server_port")));
+        android_opengles_server_init(atoi(render_server_port));
     } else {
         android_init_opengles_pipe();
     }

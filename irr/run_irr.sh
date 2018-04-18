@@ -34,8 +34,6 @@ set_env(){
     export render_server_port=23432
 #    export RENDERER_FRAME_DUMP_DIR=$irr_root/tmp
     export SHOW_FPS_STATS=true
-    export irr_lcd_width=720
-    export irr_lcd_height=1280
 
     # list out exported env variables
     echo "DISPLAY=$DISPLAY"
@@ -46,8 +44,6 @@ set_env(){
     echo "render_server_port=$render_server_port"
     echo "RENDERER_FRAME_DUMP_DIR=$RENDERER_FRAME_DUMP_DIR"
     echo "SHOW_FPS_STATS=$SHOW_FPS_STATS"
-    echo "intel remote renderer lcd width=$irr_lcd_width"
-    echo "intel remote renderer lcd height=$irr_lcd_height"
     glxinfo|egrep "version|render"
 }
 
@@ -122,7 +118,7 @@ dbg_irr(){
 run_irr(){
   set_env;
   ulimit -c unlimited
-  ./objs/intel_remote_renderer -streaming -url udp://localhost:12345 -fr 25 -b 2M
+  ./objs/intel_remote_renderer -res 576x960 -streaming -url udp://localhost:12345 -fr 25 -b 2M
 }
 
 # memory check
@@ -131,13 +127,13 @@ memory_check(){
 #  valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes --verbose \
   valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes \
       --log-file=$external_root/tmp/vg-mc-out.txt \
-      $irr_root/objs/intel_remote_renderer -streaming -url udp://localhost:12345 -fr 25 -b 2M
+      $irr_root/objs/intel_remote_renderer -res 576x960 -streaming -url udp://localhost:12345 -fr 25 -b 2M
 }
 
 # profiling
 amp(){
   . $vtune_root/amplxe-vars.sh 
-  amplxe-cl -collect ./qemu-irr/objs/intel_remote_renderer -streaming -url udp://localhost:12345 -fr 20 -b 2M
+  amplxe-cl -collect ./qemu-irr/objs/intel_remote_renderer -res 576x960 -streaming -url udp://localhost:12345 -fr 20 -b 2M
 }
 
 ampg(){

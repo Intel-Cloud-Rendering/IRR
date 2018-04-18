@@ -24,8 +24,6 @@ set_env(){
     export LD_LIBRARY_PATH=$irr_root/lib64     ## Add library path here, if the depending lib is not in default search route.
     export render_server_port=$1
     export SHOW_FPS_STATS=true
-    export irr_lcd_width=576 #720
-    export irr_lcd_height=960 #1280
     export LIBVA_DRIVERS_PATH=/usr/lib/dri     ## Check if iHD_drv_video.so is here, otherwise change to the right path
     export LIBVA_DRIVER_NAME=iHD
     export ANDROID_EMULATOR_LAUNCHER_DIR=$irr_root
@@ -45,10 +43,10 @@ set_env $1
 ulimit -c unlimited
 if [ "$#" -eq 1 ]; then
 ## without pushing stream
-    ./intel_remote_renderer
+    ./intel_remote_renderer -res 576x960
 else
 ## with pushing stream
-    ./intel_remote_renderer -streaming -lowpower -url $2 -fr 25
+    ./intel_remote_renderer -res 576x960 -streaming -lowpower -url $2 -fr 25
 fi
 
 

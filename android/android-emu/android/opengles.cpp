@@ -201,6 +201,9 @@ static char* strdupBaseString(const char* src) {
 
     char* result;
     result = (char*)malloc(len + 1);
+    if (!result){
+        return NULL;
+    }
     memcpy(result, begin, len);
     result[len] = '\0';
     return result;
