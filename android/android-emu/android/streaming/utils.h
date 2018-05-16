@@ -13,6 +13,7 @@ struct IrrStreamInfo {
     const char *format;     ///< Mux format, e.x. flv; null as auto
     const char *url;        ///< Output url.
     int low_power;          ///< Enable low-power mode, default not.
+    const char *exp_vid_param; ///< Extra encoding/muxer parameters passed to libtrans/FFmpeg
 
     /* In/Out options*/
     struct {

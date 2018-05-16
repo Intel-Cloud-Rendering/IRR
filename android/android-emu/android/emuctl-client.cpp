@@ -199,6 +199,7 @@ static void onFramebufferPosted(void*, int w, int h, const void* pixels) {
             info.bitrate = strtol(android_cmdLineOptions->b, nullptr, 10);
         info.url   = android_cmdLineOptions->url;
         info.codec = android_cmdLineOptions->codec;
+        info.exp_vid_param = android_cmdLineOptions->exp_vid_param;
 
         register_stream_publishment(&info);
         bStreaming = true;

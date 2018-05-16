@@ -259,6 +259,7 @@ extern "C" int main(int argc, char** argv)
             fprintf(stderr, "Low power enabled.\n");
             info.low_power = 1;
         }
+        info.exp_vid_param = opts->exp_vid_param;
 
         register_stream_publishment(&info);
         android_setIrrCallback(reqBuffer, on_post_callback2, &sOnPostCntxt);

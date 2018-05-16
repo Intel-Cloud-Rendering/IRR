@@ -9,6 +9,8 @@ ANDROID_BEGIN_HEADER
 #include "libavutil/imgutils.h"
 ANDROID_END_HEADER
 
+using namespace std;
+
 class IrrVideoDemux : public CDemux {
 public:
     IrrVideoDemux(int w, int h, int format, int framerate) {
@@ -146,6 +148,30 @@ public:
 
         if (param->gop_size)
             SETOPTINT("g", param->gop_size); ///< GOP size
+
+        if (param->exp_vid_param) {
+            string expar = param->exp_vid_param;
+            do {
+                string kv;
+                string::size_type nSep = expar.find_first_of(':');
+                if (nSep == string::npos) {
+                    kv = expar;
+                    expar.resize(0);
+                } else {
+                    kv = expar.substr(0, nSep);
+                    expar.erase(0, nSep + 1);
+                }
+
+                string::size_type nKvsep = kv.find_first_of('=');
+                if (nKvsep == string::npos)
+                    av_log(nullptr, AV_LOG_WARNING, "%s is not a key-value pair.\n", kv.c_str());
+                else {
+                    av_log(nullptr, AV_LOG_DEBUG, "Find '=' at kv[%lu], key = '%s', value='%s'\n",
+                           nKvsep, kv.substr(0, nKvsep).c_str(), kv.substr(nKvsep + 1).c_str());
+                    m_pTrans->setOutputProp(kv.substr(0, nKvsep).c_str(), kv.substr(nKvsep + 1).c_str());
+                }
+            } while (expar.size());
+        }
 
         return m_pTrans->start();
     }

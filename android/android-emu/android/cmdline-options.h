@@ -182,6 +182,7 @@ OPT_PARAM(url, "<URL>", "Publish URL")
 OPT_PARAM(fr, "<r>", "Framerate")
 OPT_PARAM(codec, "<codec>", "Encoding codec")
 OPT_FLAG(lowpower, "Enable low power mode")
+OPT_PARAM(exp_vid_param, "<param>", "expandable streaming params seperated by '=:', i.e 'g=120:maxrate=1M'")
 
 #undef CFG_FLAG
 #undef CFG_PARAM
