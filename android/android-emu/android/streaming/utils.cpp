@@ -13,17 +13,18 @@ using namespace std;
 
 class IrrVideoDemux : public CDemux {
 public:
-    IrrVideoDemux(int w, int h, int format, int framerate) {
+    IrrVideoDemux(int w, int h, int format, float framerate) {
         m_Info.m_pCodecPars->codec_type = AVMEDIA_TYPE_VIDEO;
         m_Info.m_pCodecPars->codec_id   = AV_CODEC_ID_RAWVIDEO;
         m_Info.m_pCodecPars->format     = format;
         m_Info.m_pCodecPars->width      = w;
         m_Info.m_pCodecPars->height     = h;
-        m_Info.m_rFrameRate             = (AVRational) {framerate, 1};
+        m_Info.m_rFrameRate             = av_d2q(framerate, 1024);
         m_Info.m_rTimeBase              = AV_TIME_BASE_Q;
         m_nStartTime                    = av_gettime_relative();
         m_nNextPts                      = 0;
-        av_init_packet(&m_Pkt);
+        av_new_packet(&m_Pkt,
+                      av_image_get_buffer_size(AVPixelFormat(format), w, h, 32));
     }
 
     ~IrrVideoDemux() {
@@ -71,53 +72,51 @@ private:
 
 class IrrStreamer {
 public:
-    IrrStreamer() {
-        m_nMaxPkts = 5;
-        m_nCurPkts = 0;
-        m_pDemux   = nullptr;
-        m_pTrans   = nullptr;
-        m_pPool    = nullptr;
-        m_nPixfmt  = AV_PIX_FMT_RGBA;
+    IrrStreamer(int w, int h, float framerate) {
+        m_nPixfmt    = AV_PIX_FMT_RGBA;
+        m_nMaxPkts   = 5;
+        m_nCurPkts   = 0;
+        m_pTrans     = nullptr;
+        m_pDemux     = nullptr;
+        m_pPool      = nullptr;
+        m_nWidth     = w;
+        m_nHeight    = h;
+        m_fFramerate = framerate;
+        m_nFrameSize = av_image_get_buffer_size(m_nPixfmt, w, h, 32);
+        m_pPool      = av_buffer_pool_init2(m_nFrameSize, this, m_BufAlloc, nullptr);
     }
 
     ~IrrStreamer() {
         stop();
+        av_buffer_pool_uninit(&m_pPool);
     }
 
     int start(IrrStreamInfo *param) {
-        int size;
-        void *data;
+        android::base::AutoLock mutex(mLock);
 
         if (!param || !param->url) {
             av_log(nullptr, AV_LOG_ERROR, "No destination specified.\n");
             return AVERROR(EINVAL);
         }
 
-        size       = av_image_get_buffer_size(m_nPixfmt, param->in.w, param->in.h, 32);
-        m_pDemux   = new IrrVideoDemux(param->in.w, param->in.h, m_nPixfmt, param->in.framerate);
+        if (m_pTrans) {
+            av_log(nullptr, AV_LOG_ERROR, "Already running.\n");
+            return AVERROR(EINVAL);
+        }
+
+        m_pDemux = new IrrVideoDemux(m_nWidth, m_nHeight, m_nPixfmt, m_fFramerate);
+        if (!m_pDemux) {
+            av_log(nullptr, AV_LOG_ERROR, "Fail to create Demux : Out of memory.\n");
+            return AVERROR(ENOMEM);
+        }
+
         m_pTrans   = new CTransCoder(m_pDemux, param->url);
-        if (!m_pTrans || !m_pDemux) {
+        if (!m_pTrans) {
             av_log(nullptr, AV_LOG_ERROR, "Out of memory.\n");
+            delete m_pDemux;
+            m_pDemux = nullptr;
             return AVERROR(ENOMEM);
         }
-
-        m_pPool = av_buffer_pool_init2(size, this, m_BufAlloc, nullptr);
-        if (!m_pPool) {
-            av_log(nullptr, AV_LOG_ERROR, "Out of memory.\n");
-            return AVERROR(ENOMEM);
-        }
-
-        /*
-         * Make a fake packet here, which is a black frame.
-         * Aim to make libtrans work.
-         */
-        data = getBuffer();
-        if (!data) {
-            av_log(nullptr, AV_LOG_ERROR, "fail to query a buffer.\n");
-            return AVERROR(ENOMEM);
-        }
-
-        write(data, size);
 
 #define SETOPTINT(name, val) { \
     char buf[32]; \
@@ -134,17 +133,14 @@ public:
         else
             m_pTrans->setOutputProp("c", "h264_vaapi");
 
-        if (param->out.framerate)
-            SETOPTINT("r", param->out.framerate); ///< Framerate
+        if (param->framerate)
+            m_pTrans->setOutputProp("r", param->framerate); ///< Framerate
 
         if (param->low_power)
             m_pTrans->setOutputProp("low_power", "1");
 
-        if (param->out.w && param->out.h) {
-            char buf[32];
-            snprintf(buf, sizeof(buf), "%dx%d", param->out.w, param->out.h);
-            m_pTrans->setOutputProp("s", buf);
-        }
+        if (param->res)
+            m_pTrans->setOutputProp("s", param->res);
 
         if (param->gop_size)
             SETOPTINT("g", param->gop_size); ///< GOP size
@@ -177,19 +173,19 @@ public:
     }
 
     void stop() {
+        android::base::AutoLock mutex(mLock);
         delete m_pTrans;
         m_pTrans = nullptr;
+        ///< Demux will be released by CTransCoder's deconstuctor.
+        m_pDemux = nullptr;
         m_mPkts.clear();
-        av_buffer_pool_uninit(&m_pPool);
     }
 
     int write(const void *data, int size) {
+        android::base::AutoLock mutex(mLock);
         auto it = m_mPkts.find(data);
 
-        if (!m_pTrans)
-            return AVERROR(EINVAL);
-
-        if (it != m_mPkts.end()) {
+        if (it != m_mPkts.end() && m_pDemux) {
             AVPacket pkt;
 
             av_init_packet(&pkt);
@@ -199,7 +195,12 @@ public:
             pkt.stream_index = 0;
             m_mPkts.erase(it);
             return m_pDemux->sendPacket(&pkt);
-        }
+        } else if (it != m_mPkts.end()) {
+            av_buffer_unref(&it->second);
+            m_mPkts.erase(it);
+            return 0;
+        } else if (!m_pDemux)
+            return 0;
 
         /*
          * Corresponding buffer is not found.
@@ -236,7 +237,11 @@ private:
     int            m_nMaxPkts;   ///< Max number of cached frames
     int            m_nCurPkts;
     AVPixelFormat  m_nPixfmt;
+    size_t         m_nFrameSize;
+    int            m_nWidth, m_nHeight;
+    float          m_fFramerate;
     std::map<const void*, AVBufferRef *> m_mPkts;
+    mutable android::base::Lock mLock;
 
     static AVBufferRef* m_BufAlloc(void *opaque, int size) {
         IrrStreamer *pThis = static_cast<IrrStreamer*> (opaque);
@@ -249,21 +254,47 @@ private:
     }
 };
 
-static IrrStreamer streamer;
+static std::unique_ptr<IrrStreamer> pStreamer = nullptr;
 
-int register_stream_publishment(struct IrrStreamInfo *param) {
-    streamer.stop();
-    return streamer.start(param);
+void register_stream_publishment(int w, int h, float framerate) {
+    pStreamer.reset(new IrrStreamer(w, h, framerate));
 }
 
 int fresh_screen(int w, int h, const void *pixels) {
-    return streamer.write(pixels, w * h * 4);
+    if (!pStreamer.get())
+        return -EINVAL;
+
+    return pStreamer->write(pixels, w * h * 4);
 }
 
 void unregister_stream_publishment() {
-    streamer.stop();
+    if (!pStreamer.get())
+        return;
+
+    pStreamer = nullptr;
 }
 
 void *irr_get_buffer(int size) {
-    return streamer.getBuffer();
+    static std::unique_ptr<uint8_t> pBuffer = nullptr;
+
+    if (!pStreamer.get()) {
+        if (!pBuffer.get()) {
+            pBuffer.reset(new uint8_t[size]);
+        }
+        return nullptr;
+    }
+
+    return pStreamer->getBuffer();
+}
+
+int irr_stream_start(struct IrrStreamInfo *stream_info) {
+    if (!pStreamer.get())
+        return -EINVAL;
+
+    return pStreamer->start(stream_info);
+}
+
+void irr_stream_stop() {
+    if (pStreamer.get())
+        pStreamer->stop();
 }

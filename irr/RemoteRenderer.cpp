@@ -27,6 +27,7 @@
 #include "RemoteRenderer.h"
 #include "android/streaming/utils.h"
 #include "Dump.h"
+#include "rpc-thrift/IrrRpcMaintainer.h"
 
 struct SignalWatchDeleter {
     void operator()(android::base::Looper::FdWatch *watch) const;
@@ -180,18 +181,25 @@ static void *reqBuffer(void *context, int size)
     return irr_get_buffer(size);
 }
 
+static void rpc_callback(void* opaque, int fd, unsigned events)
+{
+    IrrRpcMaintainer *rpc = reinterpret_cast<IrrRpcMaintainer *> (opaque);
+
+    rpc->serve();
+}
+
 extern "C" int main(int argc, char** argv)
 {
     int ret = 0;
     char* dump_frame_dir = NULL;
-    int count = 0;
     int event_flag = 0;
     ScopedSignalWatch sig_watch;
     AndroidOptions opts[1];
     char *render_port = NULL;
+    android::base::Looper::FdWatch *thrift_watch = NULL;
+    IrrRpcMaintainer *rpc_mt = NULL;
 
     D("Hello, this is an intel remote renderer!\n");
-
 
     //
     // parse input options
@@ -239,30 +247,27 @@ extern "C" int main(int argc, char** argv)
     //
     // Initilize encoder
     //
+    android_setIrrCallback(reqBuffer, on_post_callback2, &sOnPostCntxt);
+    register_stream_publishment(sConfig->hw_lcd_width, sConfig->hw_lcd_height, 30.f);
+
     if (opts->streaming){
         IrrStreamInfo info = { 0 };
-        info.in.w         = sConfig->hw_lcd_width;
-        info.in.h         = sConfig->hw_lcd_height;
-        info.in.framerate = 30;
-
-        if (opts->res) {
-            fprintf(stderr, "res = %s\n", opts->res);
-            sscanf(opts->res, "%dx%d", &info.out.w, &info.out.h);
-        }
         if (opts->fr)
-            info.out.framerate = strtol(opts->fr, nullptr, 10);
+            info.framerate = opts->fr;
+
         if (opts->b)
             info.bitrate = strtol(opts->b, nullptr, 10);
+
         info.url   = opts->url;
         info.codec = opts->codec;
+
         if (opts->lowpower) {
             fprintf(stderr, "Low power enabled.\n");
             info.low_power = 1;
         }
         info.exp_vid_param = opts->exp_vid_param;
 
-        register_stream_publishment(&info);
-        android_setIrrCallback(reqBuffer, on_post_callback2, &sOnPostCntxt);
+        irr_stream_start(&info);
     }
     else{
         dump_frame_dir = getenv("RENDERER_FRAME_DUMP_DIR");
@@ -284,6 +289,32 @@ extern "C" int main(int argc, char** argv)
     }
 
     //
+    // Initialize RPC listener
+    //
+    if (opts->rpc_serv_port) {
+        try {
+            rpc_mt = new IrrRpcMaintainer(atoi(opts->rpc_serv_port));
+            if (!rpc_mt) {
+                fprintf(stderr, "Fail to create a RPC listener: OOM.\n");
+                goto Exit;
+            } else {
+                D("Starting RPC(thrift) on port %s.", opts->rpc_serv_port);
+
+                thrift_watch = android::base::ThreadLooper::get()->createFdWatch(rpc_mt->getFD(),
+                                                                                 rpc_callback, rpc_mt);
+                if (!thrift_watch) {
+                    fprintf(stderr, "Fail to create a RPC fd watcher: OOM\n");
+                    goto Exit;
+                } else
+                    thrift_watch->wantRead();
+            }
+        } catch (apache::thrift::transport::TTransportException &ttx) {
+            fprintf(stderr, "Fail to create a RPC listener: %s\n", ttx.what());
+            goto Exit;
+        }
+    }
+
+    //
     // Mainloop
     //
     do{
@@ -294,7 +325,6 @@ extern "C" int main(int argc, char** argv)
             break;
         }
         android::base::ThreadLooper::get()->run();
-
     }while(1);
 
     //
@@ -302,6 +332,9 @@ extern "C" int main(int argc, char** argv)
     //
     android_opengles_server_undo_init();
     unregister_stream_publishment();
+    if (thrift_watch) delete thrift_watch;
+    if (rpc_mt) delete rpc_mt;
+
     sleep(1);
 
     exit(EXIT_SUCCESS);

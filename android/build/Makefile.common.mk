@@ -24,6 +24,7 @@ include $(LOCAL_PATH)/android/third_party/libtrans.mk
 include $(LOCAL_PATH)/android/third_party/libmfx.mk
 include $(LOCAL_PATH)/android/third_party/libffmpeg_qsv_331.mk
 include $(LOCAL_PATH)/android/third_party/libffmpeg_irr.mk
+include $(LOCAL_PATH)/android/third_party/thrift.mk
 
 ifeq (true,$(BUILD_BENCHMARKS))
 include $(LOCAL_PATH)/android/third_party/regex-win32/sources.mk

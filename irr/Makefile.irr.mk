@@ -19,12 +19,15 @@ LOCAL_STATIC_LIBRARIES += \
 
 LOCAL_CFLAGS += \
     $(QEMU2_SYSTEM_CFLAGS) \
-	-DCONFIG_IRR
+    $(THRIFT_CFLAGS) \
+    -DCONFIG_IRR \
+    -fexceptions \
 
 LOCAL_C_INCLUDES += \
     $(ANDROID_EMU_INCLUDES) \
-	$(EMUGL_INCLUDES) \
-	$(QEMU2_INCLUDES) \
+    $(EMUGL_INCLUDES) \
+    $(QEMU2_INCLUDES) \
+    $(THRIFT_INCLUDES) \
 #   $(QEMU2_DEPS_TOP_DIR)/include \
     $(call qemu2-if-linux,$(ROOT_PATH)/linux-headers) \
     $(ROOT_PATH)/android-qemu2-glue/config/target-$(QEMU2_TARGET) \
@@ -38,15 +41,26 @@ LOCAL_LDFLAGS += $(QEMU2_SYSTEM_LDFLAGS)
 
 LOCAL_LDLIBS += \
     $(ANDROID_EMU_LDLIBS) \
-	$(host_common_LDLIBS) \
+    $(host_common_LDLIBS) \
+    $(THRIFT_LDLIBS) \
 #    $(QEMU2_SYSTEM_LDLIBS) \
     $(QEMU2_SDL2_LDLIBS) \
 
 #LOCAL_SYMBOL_FILE :=
 
 LOCAL_SRC_FILES := \
-	Dump.cpp \
-	RemoteRenderer.cpp \
+    Dump.cpp \
+    RemoteRenderer.cpp \
+    rpc-thrift/generated/IrrControl.cpp \
+    rpc-thrift/generated/main_constants.cpp \
+    rpc-thrift/generated/main_types.cpp \
+    rpc-thrift/generated/stream_constants.cpp \
+    rpc-thrift/generated/StreamControl.cpp \
+    rpc-thrift/generated/stream_types.cpp \
+    rpc-thrift/overload/TIrrServer.cpp \
+    rpc-thrift/overload/TIrrSocket.cpp \
+    rpc-thrift/IrrControlHandler.cpp \
+    rpc-thrift/IrrRpcMaintainer.cpp \
 
 #LOCAL_INSTALL_DIR := \
 

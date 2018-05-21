@@ -181,9 +181,8 @@ static void onFramebufferPosted(void*, int w, int h, const void* pixels) {
 
     if (!bStreaming) {
         IrrStreamInfo info = { 0 };
-        info.in.w         = w;
-        info.in.h         = h;
-        info.in.framerate = 30;
+
+        register_stream_publishment(w, h, 30.f);
 
         // TODO: Fix me, this option is designed for video output resolution,
         // but used by rendering resolution configuration for now.
@@ -191,17 +190,18 @@ static void onFramebufferPosted(void*, int w, int h, const void* pixels) {
         // option and enable it in FFmpeg.
         if (android_cmdLineOptions->res) {
             fprintf(stderr, "res = %s\n", android_cmdLineOptions->res);
-            sscanf(android_cmdLineOptions->res, "%dx%d", &info.out.w, &info.out.h);
+            info.res = android_cmdLineOptions->res;
         }
+
         if (android_cmdLineOptions->fr)
-            info.out.framerate = strtol(android_cmdLineOptions->fr, nullptr, 10);
+            info.framerate = android_cmdLineOptions->fr;
         if (android_cmdLineOptions->b)
             info.bitrate = strtol(android_cmdLineOptions->b, nullptr, 10);
         info.url   = android_cmdLineOptions->url;
         info.codec = android_cmdLineOptions->codec;
         info.exp_vid_param = android_cmdLineOptions->exp_vid_param;
 
-        register_stream_publishment(&info);
+        irr_stream_start(&info);
         bStreaming = true;
     }
     fresh_screen(w, h, pixels);
