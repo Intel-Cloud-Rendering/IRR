@@ -1,0 +1,16 @@
+Change to 'generated/' subdirectory, and run following commands.
+
+help:
+$ ./IrrControl-remote --help
+
+stream cmd:
+$ ./IrrControl-remote -h 172.18.0.1:9090 restartStream "stream.ttypes.StreamInfo(url='rtmp://127.0.0.1/demo/test.flv')"
+
+dump cmd: (dumped file is under '<QEMU_ROOT>/<DUMP_DIR_ENV_SET>/<CUR_RPC_PORT>' folder)
+## default localhost:9090, '-h' option can be omitted
+$ ./IrrControl-remote startDump "DumpInfo(filename='test', serial_no=1)"      # dump frame into file ${qemu_root}/tmp/test_1.rgba, until user manully stop it
+$ ./IrrControl-remote startDump "DumpInfo(filename='test', serial_no=1, dur_s=5)"    # dump frame into file ${qemu_root}/tmp/test_1.rgba, until 5s timeout is reached; 'dur_s' setting is prior to 'frame_total' setting
+$ ./IrrControl-remote startDump "DumpInfo(filename='test', serial_no=2, frame_total=10)"    # dump frame into file ${qemu_root}/tmp/test_2.rgba, until 10 frames are dumped
+$ ./IrrControl-remote stopDump     # stop dump
+$ ./IrrControl-remote restartDump "DumpInfo(filename='test', serial_no=1)"      # stop old dump and start dump frame into file ${qemu_root}/tmp/test_1.rgba, until user manully stop it
+$ ./IrrControl-remote readDumpStatus    # query dump status

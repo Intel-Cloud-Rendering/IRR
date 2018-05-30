@@ -23,6 +23,14 @@ namespace IntelCloudRendering {
 
         void ping();
 
+        int32_t startDump(const DumpInfo& info);
+
+        int32_t stopDump();
+
+        int32_t restartDump(const DumpInfo& info);
+
+        bool readDumpStatus();
+
         int32_t startStream(const StreamInfo &info);
 
         void stopStream();

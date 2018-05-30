@@ -21,7 +21,6 @@
 #include "android/base/async/ThreadLooper.h"
 #include "android/base/sockets/SocketUtils.h"
 #include "android/base/sockets/ScopedSocket.h"
-#include "android/emuctl-client.h"
 #include "android/opengles.h"
 #include "android/OpenGLESHostServer.h"
 #include "RemoteRenderer.h"
@@ -160,9 +159,15 @@ static void on_post_callback(void* context, int width,
     struct IrrOnPostContext* pCtxt
         = reinterpret_cast<struct IrrOnPostContext*>(context);
 
-    auto dump = std::make_shared<irr::Dump>("RENDERER_FRAME_DUMP_DIR", "frames");
-    dump->tryFrame(width, height, ydir, format, type, pixels);
-
+    struct irr::DumpFrameInfo fr_info;
+    memset(&fr_info, 0, sizeof(fr_info));
+    fr_info.width = width;
+    fr_info.height = height;
+    fr_info.ydir = ydir;
+    fr_info.format = format;
+    fr_info.type = type;
+    fr_info.pixels = pixels;
+    irr::dump_1frame(&fr_info);
     return;
 }
 
@@ -244,6 +249,13 @@ extern "C" int main(int argc, char** argv)
         goto Exit;
     }
 
+    // Initializing dump socket setting and function
+    dump_frame_dir = getenv("RENDERER_FRAME_DUMP_DIR");
+    if (dump_frame_dir && opts->rpc_serv_port){
+        irr::init_dump(dump_frame_dir, opts->rpc_serv_port, GL_RGBA, android::base::ThreadLooper::get());
+        android_setPostCallback(on_post_callback, &sOnPostCntxt);
+    }
+
     //
     // Initilize encoder
     //
@@ -268,12 +280,6 @@ extern "C" int main(int argc, char** argv)
         info.exp_vid_param = opts->exp_vid_param;
 
         irr_stream_start(&info);
-    }
-    else{
-        dump_frame_dir = getenv("RENDERER_FRAME_DUMP_DIR");
-        if (dump_frame_dir){
-            android_setPostCallback(on_post_callback, &sOnPostCntxt);
-        }
     }
 
     //

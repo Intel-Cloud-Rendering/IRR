@@ -10,6 +10,13 @@ include "stream.thrift"
 
 namespace cpp IntelCloudRendering
 
+struct DumpInfo {
+    1: required string filename,    // Dump file name
+    2: required i32 serial_no,      // Dump file serial NO.
+    3: optional i32 frame_total,    // Dump frame count
+    4: optional i32 dur_s,    // Dump timeout set
+}
+
 /**
  * Use "extends filename.sevice" to add customized rpc command to
  * main services.
@@ -17,5 +24,13 @@ namespace cpp IntelCloudRendering
 service IrrControl extends stream.StreamControl {
     /* To check if server is online */
     void ping();
+    /* Start dump */
+    i32 startDump(1: DumpInfo info);
+    /* Stop dump */
+    i32 stopDump();
+    /* Restart dump */
+    i32 restartDump(1: DumpInfo info);
+    /* return dump status */
+    bool readDumpStatus();
 }
 

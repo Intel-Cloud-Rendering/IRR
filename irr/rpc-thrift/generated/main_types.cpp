@@ -13,4 +13,166 @@
 
 namespace IntelCloudRendering {
 
+
+DumpInfo::~DumpInfo() throw() {
+}
+
+
+void DumpInfo::__set_filename(const std::string& val) {
+  this->filename = val;
+}
+
+void DumpInfo::__set_serial_no(const int32_t val) {
+  this->serial_no = val;
+}
+
+void DumpInfo::__set_frame_total(const int32_t val) {
+  this->frame_total = val;
+__isset.frame_total = true;
+}
+
+void DumpInfo::__set_dur_s(const int32_t val) {
+  this->dur_s = val;
+__isset.dur_s = true;
+}
+std::ostream& operator<<(std::ostream& out, const DumpInfo& obj)
+{
+  obj.printTo(out);
+  return out;
+}
+
+
+uint32_t DumpInfo::read(::apache::thrift::protocol::TProtocol* iprot) {
+
+  ::apache::thrift::protocol::TInputRecursionTracker tracker(*iprot);
+  uint32_t xfer = 0;
+  std::string fname;
+  ::apache::thrift::protocol::TType ftype;
+  int16_t fid;
+
+  xfer += iprot->readStructBegin(fname);
+
+  using ::apache::thrift::protocol::TProtocolException;
+
+  bool isset_filename = false;
+  bool isset_serial_no = false;
+
+  while (true)
+  {
+    xfer += iprot->readFieldBegin(fname, ftype, fid);
+    if (ftype == ::apache::thrift::protocol::T_STOP) {
+      break;
+    }
+    switch (fid)
+    {
+      case 1:
+        if (ftype == ::apache::thrift::protocol::T_STRING) {
+          xfer += iprot->readString(this->filename);
+          isset_filename = true;
+        } else {
+          xfer += iprot->skip(ftype);
+        }
+        break;
+      case 2:
+        if (ftype == ::apache::thrift::protocol::T_I32) {
+          xfer += iprot->readI32(this->serial_no);
+          isset_serial_no = true;
+        } else {
+          xfer += iprot->skip(ftype);
+        }
+        break;
+      case 3:
+        if (ftype == ::apache::thrift::protocol::T_I32) {
+          xfer += iprot->readI32(this->frame_total);
+          this->__isset.frame_total = true;
+        } else {
+          xfer += iprot->skip(ftype);
+        }
+        break;
+      case 4:
+        if (ftype == ::apache::thrift::protocol::T_I32) {
+          xfer += iprot->readI32(this->dur_s);
+          this->__isset.dur_s = true;
+        } else {
+          xfer += iprot->skip(ftype);
+        }
+        break;
+      default:
+        xfer += iprot->skip(ftype);
+        break;
+    }
+    xfer += iprot->readFieldEnd();
+  }
+
+  xfer += iprot->readStructEnd();
+
+  if (!isset_filename)
+    throw TProtocolException(TProtocolException::INVALID_DATA);
+  if (!isset_serial_no)
+    throw TProtocolException(TProtocolException::INVALID_DATA);
+  return xfer;
+}
+
+uint32_t DumpInfo::write(::apache::thrift::protocol::TProtocol* oprot) const {
+  uint32_t xfer = 0;
+  ::apache::thrift::protocol::TOutputRecursionTracker tracker(*oprot);
+  xfer += oprot->writeStructBegin("DumpInfo");
+
+  xfer += oprot->writeFieldBegin("filename", ::apache::thrift::protocol::T_STRING, 1);
+  xfer += oprot->writeString(this->filename);
+  xfer += oprot->writeFieldEnd();
+
+  xfer += oprot->writeFieldBegin("serial_no", ::apache::thrift::protocol::T_I32, 2);
+  xfer += oprot->writeI32(this->serial_no);
+  xfer += oprot->writeFieldEnd();
+
+  if (this->__isset.frame_total) {
+    xfer += oprot->writeFieldBegin("frame_total", ::apache::thrift::protocol::T_I32, 3);
+    xfer += oprot->writeI32(this->frame_total);
+    xfer += oprot->writeFieldEnd();
+  }
+  if (this->__isset.dur_s) {
+    xfer += oprot->writeFieldBegin("dur_s", ::apache::thrift::protocol::T_I32, 4);
+    xfer += oprot->writeI32(this->dur_s);
+    xfer += oprot->writeFieldEnd();
+  }
+  xfer += oprot->writeFieldStop();
+  xfer += oprot->writeStructEnd();
+  return xfer;
+}
+
+void swap(DumpInfo &a, DumpInfo &b) {
+  using ::std::swap;
+  swap(a.filename, b.filename);
+  swap(a.serial_no, b.serial_no);
+  swap(a.frame_total, b.frame_total);
+  swap(a.dur_s, b.dur_s);
+  swap(a.__isset, b.__isset);
+}
+
+DumpInfo::DumpInfo(const DumpInfo& other0) {
+  filename = other0.filename;
+  serial_no = other0.serial_no;
+  frame_total = other0.frame_total;
+  dur_s = other0.dur_s;
+  __isset = other0.__isset;
+}
+DumpInfo& DumpInfo::operator=(const DumpInfo& other1) {
+  filename = other1.filename;
+  serial_no = other1.serial_no;
+  frame_total = other1.frame_total;
+  dur_s = other1.dur_s;
+  __isset = other1.__isset;
+  return *this;
+}
+void DumpInfo::printTo(std::ostream& out) const {
+  using ::apache::thrift::to_string;
+  out << "DumpInfo(";
+  out << "filename=" << to_string(filename);
+  out << ", " << "serial_no=" << to_string(serial_no);
+  out << ", " << "frame_total="; (__isset.frame_total ? (out << to_string(frame_total)) : (out << "<null>"));
+  out << ", " << "dur_s="; (__isset.dur_s ? (out << to_string(dur_s)) : (out << "<null>"));
+  out << ")";
+}
+
 } // namespace

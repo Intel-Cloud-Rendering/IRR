@@ -23,6 +23,10 @@ class IrrControlIf : virtual public  ::IntelCloudRendering::StreamControlIf {
  public:
   virtual ~IrrControlIf() {}
   virtual void ping() = 0;
+  virtual int32_t startDump(const DumpInfo& info) = 0;
+  virtual int32_t stopDump() = 0;
+  virtual int32_t restartDump(const DumpInfo& info) = 0;
+  virtual bool readDumpStatus() = 0;
 };
 
 class IrrControlIfFactory : virtual public  ::IntelCloudRendering::StreamControlIfFactory {
@@ -54,6 +58,22 @@ class IrrControlNull : virtual public IrrControlIf , virtual public  ::IntelClou
   virtual ~IrrControlNull() {}
   void ping() {
     return;
+  }
+  int32_t startDump(const DumpInfo& /* info */) {
+    int32_t _return = 0;
+    return _return;
+  }
+  int32_t stopDump() {
+    int32_t _return = 0;
+    return _return;
+  }
+  int32_t restartDump(const DumpInfo& /* info */) {
+    int32_t _return = 0;
+    return _return;
+  }
+  bool readDumpStatus() {
+    bool _return = false;
+    return _return;
   }
 };
 
@@ -131,6 +151,398 @@ class IrrControl_ping_presult {
 
 };
 
+typedef struct _IrrControl_startDump_args__isset {
+  _IrrControl_startDump_args__isset() : info(false) {}
+  bool info :1;
+} _IrrControl_startDump_args__isset;
+
+class IrrControl_startDump_args {
+ public:
+
+  IrrControl_startDump_args(const IrrControl_startDump_args&);
+  IrrControl_startDump_args& operator=(const IrrControl_startDump_args&);
+  IrrControl_startDump_args() {
+  }
+
+  virtual ~IrrControl_startDump_args() throw();
+  DumpInfo info;
+
+  _IrrControl_startDump_args__isset __isset;
+
+  void __set_info(const DumpInfo& val);
+
+  bool operator == (const IrrControl_startDump_args & rhs) const
+  {
+    if (!(info == rhs.info))
+      return false;
+    return true;
+  }
+  bool operator != (const IrrControl_startDump_args &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const IrrControl_startDump_args & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+
+class IrrControl_startDump_pargs {
+ public:
+
+
+  virtual ~IrrControl_startDump_pargs() throw();
+  const DumpInfo* info;
+
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+typedef struct _IrrControl_startDump_result__isset {
+  _IrrControl_startDump_result__isset() : success(false) {}
+  bool success :1;
+} _IrrControl_startDump_result__isset;
+
+class IrrControl_startDump_result {
+ public:
+
+  IrrControl_startDump_result(const IrrControl_startDump_result&);
+  IrrControl_startDump_result& operator=(const IrrControl_startDump_result&);
+  IrrControl_startDump_result() : success(0) {
+  }
+
+  virtual ~IrrControl_startDump_result() throw();
+  int32_t success;
+
+  _IrrControl_startDump_result__isset __isset;
+
+  void __set_success(const int32_t val);
+
+  bool operator == (const IrrControl_startDump_result & rhs) const
+  {
+    if (!(success == rhs.success))
+      return false;
+    return true;
+  }
+  bool operator != (const IrrControl_startDump_result &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const IrrControl_startDump_result & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+typedef struct _IrrControl_startDump_presult__isset {
+  _IrrControl_startDump_presult__isset() : success(false) {}
+  bool success :1;
+} _IrrControl_startDump_presult__isset;
+
+class IrrControl_startDump_presult {
+ public:
+
+
+  virtual ~IrrControl_startDump_presult() throw();
+  int32_t* success;
+
+  _IrrControl_startDump_presult__isset __isset;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+
+};
+
+
+class IrrControl_stopDump_args {
+ public:
+
+  IrrControl_stopDump_args(const IrrControl_stopDump_args&);
+  IrrControl_stopDump_args& operator=(const IrrControl_stopDump_args&);
+  IrrControl_stopDump_args() {
+  }
+
+  virtual ~IrrControl_stopDump_args() throw();
+
+  bool operator == (const IrrControl_stopDump_args & /* rhs */) const
+  {
+    return true;
+  }
+  bool operator != (const IrrControl_stopDump_args &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const IrrControl_stopDump_args & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+
+class IrrControl_stopDump_pargs {
+ public:
+
+
+  virtual ~IrrControl_stopDump_pargs() throw();
+
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+typedef struct _IrrControl_stopDump_result__isset {
+  _IrrControl_stopDump_result__isset() : success(false) {}
+  bool success :1;
+} _IrrControl_stopDump_result__isset;
+
+class IrrControl_stopDump_result {
+ public:
+
+  IrrControl_stopDump_result(const IrrControl_stopDump_result&);
+  IrrControl_stopDump_result& operator=(const IrrControl_stopDump_result&);
+  IrrControl_stopDump_result() : success(0) {
+  }
+
+  virtual ~IrrControl_stopDump_result() throw();
+  int32_t success;
+
+  _IrrControl_stopDump_result__isset __isset;
+
+  void __set_success(const int32_t val);
+
+  bool operator == (const IrrControl_stopDump_result & rhs) const
+  {
+    if (!(success == rhs.success))
+      return false;
+    return true;
+  }
+  bool operator != (const IrrControl_stopDump_result &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const IrrControl_stopDump_result & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+typedef struct _IrrControl_stopDump_presult__isset {
+  _IrrControl_stopDump_presult__isset() : success(false) {}
+  bool success :1;
+} _IrrControl_stopDump_presult__isset;
+
+class IrrControl_stopDump_presult {
+ public:
+
+
+  virtual ~IrrControl_stopDump_presult() throw();
+  int32_t* success;
+
+  _IrrControl_stopDump_presult__isset __isset;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+
+};
+
+typedef struct _IrrControl_restartDump_args__isset {
+  _IrrControl_restartDump_args__isset() : info(false) {}
+  bool info :1;
+} _IrrControl_restartDump_args__isset;
+
+class IrrControl_restartDump_args {
+ public:
+
+  IrrControl_restartDump_args(const IrrControl_restartDump_args&);
+  IrrControl_restartDump_args& operator=(const IrrControl_restartDump_args&);
+  IrrControl_restartDump_args() {
+  }
+
+  virtual ~IrrControl_restartDump_args() throw();
+  DumpInfo info;
+
+  _IrrControl_restartDump_args__isset __isset;
+
+  void __set_info(const DumpInfo& val);
+
+  bool operator == (const IrrControl_restartDump_args & rhs) const
+  {
+    if (!(info == rhs.info))
+      return false;
+    return true;
+  }
+  bool operator != (const IrrControl_restartDump_args &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const IrrControl_restartDump_args & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+
+class IrrControl_restartDump_pargs {
+ public:
+
+
+  virtual ~IrrControl_restartDump_pargs() throw();
+  const DumpInfo* info;
+
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+typedef struct _IrrControl_restartDump_result__isset {
+  _IrrControl_restartDump_result__isset() : success(false) {}
+  bool success :1;
+} _IrrControl_restartDump_result__isset;
+
+class IrrControl_restartDump_result {
+ public:
+
+  IrrControl_restartDump_result(const IrrControl_restartDump_result&);
+  IrrControl_restartDump_result& operator=(const IrrControl_restartDump_result&);
+  IrrControl_restartDump_result() : success(0) {
+  }
+
+  virtual ~IrrControl_restartDump_result() throw();
+  int32_t success;
+
+  _IrrControl_restartDump_result__isset __isset;
+
+  void __set_success(const int32_t val);
+
+  bool operator == (const IrrControl_restartDump_result & rhs) const
+  {
+    if (!(success == rhs.success))
+      return false;
+    return true;
+  }
+  bool operator != (const IrrControl_restartDump_result &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const IrrControl_restartDump_result & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+typedef struct _IrrControl_restartDump_presult__isset {
+  _IrrControl_restartDump_presult__isset() : success(false) {}
+  bool success :1;
+} _IrrControl_restartDump_presult__isset;
+
+class IrrControl_restartDump_presult {
+ public:
+
+
+  virtual ~IrrControl_restartDump_presult() throw();
+  int32_t* success;
+
+  _IrrControl_restartDump_presult__isset __isset;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+
+};
+
+
+class IrrControl_readDumpStatus_args {
+ public:
+
+  IrrControl_readDumpStatus_args(const IrrControl_readDumpStatus_args&);
+  IrrControl_readDumpStatus_args& operator=(const IrrControl_readDumpStatus_args&);
+  IrrControl_readDumpStatus_args() {
+  }
+
+  virtual ~IrrControl_readDumpStatus_args() throw();
+
+  bool operator == (const IrrControl_readDumpStatus_args & /* rhs */) const
+  {
+    return true;
+  }
+  bool operator != (const IrrControl_readDumpStatus_args &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const IrrControl_readDumpStatus_args & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+
+class IrrControl_readDumpStatus_pargs {
+ public:
+
+
+  virtual ~IrrControl_readDumpStatus_pargs() throw();
+
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+typedef struct _IrrControl_readDumpStatus_result__isset {
+  _IrrControl_readDumpStatus_result__isset() : success(false) {}
+  bool success :1;
+} _IrrControl_readDumpStatus_result__isset;
+
+class IrrControl_readDumpStatus_result {
+ public:
+
+  IrrControl_readDumpStatus_result(const IrrControl_readDumpStatus_result&);
+  IrrControl_readDumpStatus_result& operator=(const IrrControl_readDumpStatus_result&);
+  IrrControl_readDumpStatus_result() : success(0) {
+  }
+
+  virtual ~IrrControl_readDumpStatus_result() throw();
+  bool success;
+
+  _IrrControl_readDumpStatus_result__isset __isset;
+
+  void __set_success(const bool val);
+
+  bool operator == (const IrrControl_readDumpStatus_result & rhs) const
+  {
+    if (!(success == rhs.success))
+      return false;
+    return true;
+  }
+  bool operator != (const IrrControl_readDumpStatus_result &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const IrrControl_readDumpStatus_result & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+typedef struct _IrrControl_readDumpStatus_presult__isset {
+  _IrrControl_readDumpStatus_presult__isset() : success(false) {}
+  bool success :1;
+} _IrrControl_readDumpStatus_presult__isset;
+
+class IrrControl_readDumpStatus_presult {
+ public:
+
+
+  virtual ~IrrControl_readDumpStatus_presult() throw();
+  bool* success;
+
+  _IrrControl_readDumpStatus_presult__isset __isset;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+
+};
+
 class IrrControlClient : virtual public IrrControlIf, public  ::IntelCloudRendering::StreamControlClient {
  public:
   IrrControlClient(apache::thrift::stdcxx::shared_ptr< ::apache::thrift::protocol::TProtocol> prot) :
@@ -145,6 +557,18 @@ class IrrControlClient : virtual public IrrControlIf, public  ::IntelCloudRender
   void ping();
   void send_ping();
   void recv_ping();
+  int32_t startDump(const DumpInfo& info);
+  void send_startDump(const DumpInfo& info);
+  int32_t recv_startDump();
+  int32_t stopDump();
+  void send_stopDump();
+  int32_t recv_stopDump();
+  int32_t restartDump(const DumpInfo& info);
+  void send_restartDump(const DumpInfo& info);
+  int32_t recv_restartDump();
+  bool readDumpStatus();
+  void send_readDumpStatus();
+  bool recv_readDumpStatus();
 };
 
 class IrrControlProcessor : public  ::IntelCloudRendering::StreamControlProcessor {
@@ -156,11 +580,19 @@ class IrrControlProcessor : public  ::IntelCloudRendering::StreamControlProcesso
   typedef std::map<std::string, ProcessFunction> ProcessMap;
   ProcessMap processMap_;
   void process_ping(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
+  void process_startDump(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
+  void process_stopDump(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
+  void process_restartDump(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
+  void process_readDumpStatus(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
  public:
   IrrControlProcessor(::apache::thrift::stdcxx::shared_ptr<IrrControlIf> iface) :
      ::IntelCloudRendering::StreamControlProcessor(iface),
     iface_(iface) {
     processMap_["ping"] = &IrrControlProcessor::process_ping;
+    processMap_["startDump"] = &IrrControlProcessor::process_startDump;
+    processMap_["stopDump"] = &IrrControlProcessor::process_stopDump;
+    processMap_["restartDump"] = &IrrControlProcessor::process_restartDump;
+    processMap_["readDumpStatus"] = &IrrControlProcessor::process_readDumpStatus;
   }
 
   virtual ~IrrControlProcessor() {}
@@ -203,6 +635,42 @@ class IrrControlMultiface : virtual public IrrControlIf, public  ::IntelCloudRen
     ifaces_[i]->ping();
   }
 
+  int32_t startDump(const DumpInfo& info) {
+    size_t sz = ifaces_.size();
+    size_t i = 0;
+    for (; i < (sz - 1); ++i) {
+      ifaces_[i]->startDump(info);
+    }
+    return ifaces_[i]->startDump(info);
+  }
+
+  int32_t stopDump() {
+    size_t sz = ifaces_.size();
+    size_t i = 0;
+    for (; i < (sz - 1); ++i) {
+      ifaces_[i]->stopDump();
+    }
+    return ifaces_[i]->stopDump();
+  }
+
+  int32_t restartDump(const DumpInfo& info) {
+    size_t sz = ifaces_.size();
+    size_t i = 0;
+    for (; i < (sz - 1); ++i) {
+      ifaces_[i]->restartDump(info);
+    }
+    return ifaces_[i]->restartDump(info);
+  }
+
+  bool readDumpStatus() {
+    size_t sz = ifaces_.size();
+    size_t i = 0;
+    for (; i < (sz - 1); ++i) {
+      ifaces_[i]->readDumpStatus();
+    }
+    return ifaces_[i]->readDumpStatus();
+  }
+
 };
 
 // The 'concurrent' client is a thread safe client that correctly handles
@@ -222,6 +690,18 @@ class IrrControlConcurrentClient : virtual public IrrControlIf, public  ::IntelC
   void ping();
   int32_t send_ping();
   void recv_ping(const int32_t seqid);
+  int32_t startDump(const DumpInfo& info);
+  int32_t send_startDump(const DumpInfo& info);
+  int32_t recv_startDump(const int32_t seqid);
+  int32_t stopDump();
+  int32_t send_stopDump();
+  int32_t recv_stopDump(const int32_t seqid);
+  int32_t restartDump(const DumpInfo& info);
+  int32_t send_restartDump(const DumpInfo& info);
+  int32_t recv_restartDump(const int32_t seqid);
+  bool readDumpStatus();
+  int32_t send_readDumpStatus();
+  bool recv_readDumpStatus(const int32_t seqid);
 };
 
 #ifdef _MSC_VER

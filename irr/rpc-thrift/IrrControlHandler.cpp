@@ -11,6 +11,7 @@
 
 #include "IrrControlHandler.h"
 #include "android/streaming/utils.h"
+#include "Dump.h"
 
 using namespace ::IntelCloudRendering;
 
@@ -23,7 +24,33 @@ IrrControlHandler::~IrrControlHandler() {
 
 void IrrControlHandler::ping() {
     // Your implementation goes here
-    printf("ping\n");
+    D("ping\n");
+}
+
+
+int32_t IrrControlHandler::startDump(const DumpInfo& info) {
+  D("startDump\n");
+
+  return irr::start_dump_cmd(info);
+}
+
+int32_t IrrControlHandler::stopDump() {
+  D("stopDump\n");
+
+  return irr::stop_dump_cmd();
+}
+
+int32_t IrrControlHandler::restartDump(const DumpInfo& info) {
+  D("restartDump\n");
+
+  irr::stop_dump_cmd();
+  return irr::start_dump_cmd(info);
+}
+
+bool IrrControlHandler::readDumpStatus() {
+  D("readDumpStatus\n");
+
+  return irr::is_dump();
 }
 
 int32_t IrrControlHandler::startStream(const StreamInfo &info) {
