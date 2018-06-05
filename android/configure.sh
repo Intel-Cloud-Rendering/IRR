@@ -630,8 +630,6 @@ probe_prebuilts_dir "ffmpeg" FFMPEG_PREBUILTS_DIR common/ffmpeg
 ###
 probe_prebuilts_dir "x264" X264_PREBUILTS_DIR common/x264
 
-probe_prebuilts_dir "libtrans" LIBTRANS_PREBUILTS_DIR common/libtrans
-
 probe_prebuilts_dir "libmfx" LIBMFX_PREBUILTS_DIR common/mfx
 
 probe_prebuilts_dir "libffmpeg_qsv_331" FFMPEG_QSV_331_PREBUILTS_DIR common/ffmpeg_qsv_331

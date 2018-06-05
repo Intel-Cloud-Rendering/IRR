@@ -20,7 +20,6 @@ include $(LOCAL_PATH)/android/third_party/libANGLEtranslation.mk
 include $(LOCAL_PATH)/android/third_party/Protobuf.mk
 include $(LOCAL_PATH)/android/third_party/libffmpeg.mk
 include $(LOCAL_PATH)/android/third_party/libx264.mk
-include $(LOCAL_PATH)/android/third_party/libtrans.mk
 include $(LOCAL_PATH)/android/third_party/libmfx.mk
 include $(LOCAL_PATH)/android/third_party/libffmpeg_qsv_331.mk
 include $(LOCAL_PATH)/android/third_party/libffmpeg_irr.mk

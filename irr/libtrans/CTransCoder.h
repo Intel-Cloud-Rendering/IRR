@@ -73,7 +73,7 @@ public:
      * @param key      the property to be set
      * @param value
      * @return 0 on success.
-     * 
+     *
      * @Note: For common demuxers, these properties may be ignored since all necessary
      * information can be found by probing the input stream. But for demuxers such as
      * 'rawvideo', 'width'/'height'/'pixel_format' must be set, or the program will crash.

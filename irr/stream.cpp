@@ -1,12 +1,12 @@
 
-#include "utils.h"
+#include "stream.h"
 #include <map>
 #include <memory>
 #include "android/base/synchronization/Lock.h"
-#include "CTransCoder.h"
+#include "libtrans/CTransCoder.h"
 ANDROID_BEGIN_HEADER
-#include "libavutil/time.h"
-#include "libavutil/imgutils.h"
+#include <libavutil/time.h>
+#include <libavutil/imgutils.h>
 ANDROID_END_HEADER
 
 using namespace std;
@@ -298,3 +298,4 @@ void irr_stream_stop() {
     if (pStreamer.get())
         pStreamer->stop();
 }
+

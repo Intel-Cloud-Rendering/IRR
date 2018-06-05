@@ -220,8 +220,6 @@ LOCAL_C_INCLUDES := \
     $(LIBEXT4_UTILS_INCLUDES) \
     $(LIBPNG_INCLUDES) \
     $(ZLIB_INCLUDES) \
-    $(LIBTRANS_INCLUDES) \
-    $(FFMPEG_IRR_INCLUDES) \
     /usr/include \
 
 
@@ -405,7 +403,6 @@ LOCAL_SRC_FILES := \
     android/wear-agent/android_wear_agent.cpp \
     android/wear-agent/WearAgent.cpp \
     android/wear-agent/PairUpWearPhone.cpp \
-    android/streaming/utils.cpp \
 
 # Platform-specific camera capture
 ifeq ($(BUILD_TARGET_OS),linux)
@@ -449,10 +446,6 @@ ANDROID_EMU_STATIC_LIBRARIES := \
     emulator-libjpeg \
     emulator-libpng \
     emulator-libwebp \
-    emulator-libtrans \
-    $(FFMPEG_IRR_STATIC_LIBRARIES) \
-    $(LIBX264_STATIC_LIBRARIES) \
-    emulator-libmfx \
     emulator-zlib \
     $(METRICS_PROTO_STATIC_LIBRARIES) \
     $(LIBMMAN_WIN32_STATIC_LIBRARIES) \
@@ -462,7 +455,6 @@ ANDROID_EMU_LDLIBS := \
     $(ANDROID_EMU_BASE_LDLIBS) \
     $(LIBCURL_LDLIBS) \
     $(BREAKPAD_CLIENT_LDLIBS) \
-    $(FFMPEG_IRR_LDLIBS) \
 
 ifeq ($(BUILD_TARGET_OS),windows)
 # For capCreateCaptureWindow used in camera-capture-windows.cpp

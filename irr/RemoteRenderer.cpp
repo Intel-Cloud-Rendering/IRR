@@ -24,9 +24,9 @@
 #include "android/opengles.h"
 #include "android/OpenGLESHostServer.h"
 #include "RemoteRenderer.h"
-#include "android/streaming/utils.h"
 #include "Dump.h"
 #include "rpc-thrift/IrrRpcMaintainer.h"
+#include "stream.h"
 
 struct SignalWatchDeleter {
     void operator()(android::base::Looper::FdWatch *watch) const;

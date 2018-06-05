@@ -28,7 +28,6 @@
 #include "android/multitouch-screen.h"
 #include "android/jpeg-compress.h"
 #include "android/gpu_frame.h"
-#include "android/streaming/utils.h"
 #include "cmdline-option.h"
 
 #include <cmath>
@@ -177,34 +176,7 @@ static void onFramebufferPosted(void*, int w, int h, const void* pixels) {
     static const int bytes_per_pixel = 3;
     static const int jpeg_quality = 50;
     static const int direction = 1;
-    static bool bStreaming = false;
 
-    if (!bStreaming) {
-        IrrStreamInfo info = { 0 };
-
-        register_stream_publishment(w, h, 30.f);
-
-        // TODO: Fix me, this option is designed for video output resolution,
-        // but used by rendering resolution configuration for now.
-        // For dynamic video output resolution setting, need to figure out other
-        // option and enable it in FFmpeg.
-        if (android_cmdLineOptions->res) {
-            fprintf(stderr, "res = %s\n", android_cmdLineOptions->res);
-            info.res = android_cmdLineOptions->res;
-        }
-
-        if (android_cmdLineOptions->fr)
-            info.framerate = android_cmdLineOptions->fr;
-        if (android_cmdLineOptions->b)
-            info.bitrate = strtol(android_cmdLineOptions->b, nullptr, 10);
-        info.url   = android_cmdLineOptions->url;
-        info.codec = android_cmdLineOptions->codec;
-        info.exp_vid_param = android_cmdLineOptions->exp_vid_param;
-
-        irr_stream_start(&info);
-        bStreaming = true;
-    }
-    fresh_screen(w, h, pixels);
     if (sGlobals->socket) {
         // JPEG-compress the contents of the window.
         const uint8_t* fb = static_cast<const uint8_t*>(pixels);
@@ -335,12 +307,6 @@ void android_emuctl_client_init(void) {
         jpeg_compressor_create(
             sizeof(FramebufferPacketHeader),
             4096);
-    if (android_cmdLineOptions->streaming) {
-        gpu_frame_set_post_callback(
-            reinterpret_cast<Looper*>(sGlobals->looper),
-            nullptr,
-            onFramebufferPosted);
-    }
 }
 
 void android_emuctl_client_connect(int port) {
