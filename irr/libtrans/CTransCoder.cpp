@@ -45,6 +45,7 @@ CTransCoder::CTransCoder(string sSrcUrl, string sDstUrl, string sDstFormat) {
     m_pMux       = new CFFMux(sDstUrl.c_str(), sDstFormat.c_str());
     m_pInProp    = nullptr;
     m_pOutProp   = nullptr;
+    m_forceKeyFrame = 0;
 }
 
 CTransCoder::CTransCoder(std::string sSrcUrl, CMux *pMux) {
@@ -56,6 +57,7 @@ CTransCoder::CTransCoder(std::string sSrcUrl, CMux *pMux) {
     m_pMux       = pMux;
     m_pInProp    = nullptr;
     m_pOutProp   = nullptr;
+    m_forceKeyFrame = 0;
 }
 
 CTransCoder::CTransCoder(CDemux *pDemux, CMux *pMux) {
@@ -67,6 +69,7 @@ CTransCoder::CTransCoder(CDemux *pDemux, CMux *pMux) {
     m_pMux       = pMux;
     m_pInProp    = nullptr;
     m_pOutProp   = nullptr;
+    m_forceKeyFrame = 0;
 }
 
 CTransCoder::CTransCoder(CDemux *pDemux, string sDstUrl, string sDstFormat) {
@@ -78,6 +81,7 @@ CTransCoder::CTransCoder(CDemux *pDemux, string sDstUrl, string sDstFormat) {
     m_pMux       = new CFFMux(sDstUrl.c_str(), sDstFormat.c_str());
     m_pInProp    = nullptr;
     m_pOutProp   = nullptr;
+    m_forceKeyFrame = 0;
 }
 
 CTransCoder::~CTransCoder() {
@@ -368,6 +372,11 @@ int CTransCoder::doOutput(bool flush) {
             if (!pFrame && flush) {
                 pEnc->write(nullptr);
             } else {
+                if(m_forceKeyFrame && pFrame) {
+                    m_Log->Info("Force key frame\n");
+                    pFrame->pict_type = AV_PICTURE_TYPE_I;
+                    m_forceKeyFrame = 0;
+                }
                 ret = pEnc->write(pFrame);
                 if (ret < 0) {
                     if (ret != AVERROR_EOF)
@@ -431,4 +440,9 @@ const char* CTransCoder::getOutOptVal(const char *short_name, const char *long_n
         return dEntry->value;
 
     return default_value;
+}
+
+int CTransCoder::forceKeyFrame(int force) {
+    m_forceKeyFrame = force;
+    return 0;
 }

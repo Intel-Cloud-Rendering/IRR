@@ -54,5 +54,10 @@ int fresh_screen(int w, int h, const void *pixels);
  */
 void *irr_get_buffer(int size);
 
+/*
+ * @Desc force key frame
+ */
+int irr_stream_force_keyframe(int force_key_frame);
+
 ANDROID_END_HEADER
 #endif /* STREAM_UTILS_H */

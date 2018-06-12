@@ -36,6 +36,7 @@ namespace IntelCloudRendering {
         void stopStream();
 
         int32_t restartStream(const StreamInfo &info);
+        int32_t forceKeyFrame(int32_t force_key_frame);
     };
 }
 

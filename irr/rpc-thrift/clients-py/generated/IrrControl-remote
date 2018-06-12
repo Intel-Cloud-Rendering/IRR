@@ -29,6 +29,7 @@ if len(sys.argv) <= 1 or sys.argv[1] == '--help':
     print('  i32 stopDump()')
     print('  i32 restartDump(DumpInfo info)')
     print('  bool readDumpStatus()')
+    print('  i32 forceKeyFrame(i32 force_key_frame)')
     print('  i32 startStream(StreamInfo info)')
     print('  void stopStream()')
     print('  i32 restartStream(StreamInfo info)')
@@ -140,6 +141,12 @@ elif cmd == 'readDumpStatus':
         print('readDumpStatus requires 0 args')
         sys.exit(1)
     pp.pprint(client.readDumpStatus())
+
+elif cmd == 'forceKeyFrame':
+    if len(args) != 1:
+        print('forceKeyFrame requires 1 args')
+        sys.exit(1)
+    pp.pprint(client.forceKeyFrame(eval(args[0]),))
 
 elif cmd == 'startStream':
     if len(args) != 1:

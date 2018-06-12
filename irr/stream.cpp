@@ -230,6 +230,18 @@ public:
         return pBuf->data;
     }
 
+    int force_key_frame(int force_key_frame) {
+        android::base::AutoLock mutex(mLock);
+        if(m_pTrans==nullptr) {
+            printf("transcoder is not started\n");
+            return -1;
+        }
+        if(force_key_frame) {
+            m_pTrans->forceKeyFrame(1);
+        }
+        return 0;
+    }
+
 private:
     IrrVideoDemux *m_pDemux;
     CTransCoder   *m_pTrans;
@@ -299,3 +311,9 @@ void irr_stream_stop() {
         pStreamer->stop();
 }
 
+int irr_stream_force_keyframe(int force_key_frame) {
+    if (!pStreamer.get())
+        return -EINVAL;
+
+    return pStreamer->force_key_frame(force_key_frame);
+}

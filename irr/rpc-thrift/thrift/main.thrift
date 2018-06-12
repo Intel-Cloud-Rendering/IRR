@@ -32,5 +32,8 @@ service IrrControl extends stream.StreamControl {
     i32 restartDump(1: DumpInfo info);
     /* return dump status */
     bool readDumpStatus();
+
+    /* force key frame encoding */
+    i32 forceKeyFrame(1:i32 force_key_frame);
 }
 

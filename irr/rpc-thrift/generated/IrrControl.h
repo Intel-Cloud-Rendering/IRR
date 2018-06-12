@@ -27,6 +27,7 @@ class IrrControlIf : virtual public  ::IntelCloudRendering::StreamControlIf {
   virtual int32_t stopDump() = 0;
   virtual int32_t restartDump(const DumpInfo& info) = 0;
   virtual bool readDumpStatus() = 0;
+  virtual int32_t forceKeyFrame(const int32_t force_key_frame) = 0;
 };
 
 class IrrControlIfFactory : virtual public  ::IntelCloudRendering::StreamControlIfFactory {
@@ -73,6 +74,10 @@ class IrrControlNull : virtual public IrrControlIf , virtual public  ::IntelClou
   }
   bool readDumpStatus() {
     bool _return = false;
+    return _return;
+  }
+  int32_t forceKeyFrame(const int32_t /* force_key_frame */) {
+    int32_t _return = 0;
     return _return;
   }
 };
@@ -543,6 +548,110 @@ class IrrControl_readDumpStatus_presult {
 
 };
 
+typedef struct _IrrControl_forceKeyFrame_args__isset {
+  _IrrControl_forceKeyFrame_args__isset() : force_key_frame(false) {}
+  bool force_key_frame :1;
+} _IrrControl_forceKeyFrame_args__isset;
+
+class IrrControl_forceKeyFrame_args {
+ public:
+
+  IrrControl_forceKeyFrame_args(const IrrControl_forceKeyFrame_args&);
+  IrrControl_forceKeyFrame_args& operator=(const IrrControl_forceKeyFrame_args&);
+  IrrControl_forceKeyFrame_args() : force_key_frame(0) {
+  }
+
+  virtual ~IrrControl_forceKeyFrame_args() throw();
+  int32_t force_key_frame;
+
+  _IrrControl_forceKeyFrame_args__isset __isset;
+
+  void __set_force_key_frame(const int32_t val);
+
+  bool operator == (const IrrControl_forceKeyFrame_args & rhs) const
+  {
+    if (!(force_key_frame == rhs.force_key_frame))
+      return false;
+    return true;
+  }
+  bool operator != (const IrrControl_forceKeyFrame_args &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const IrrControl_forceKeyFrame_args & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+
+class IrrControl_forceKeyFrame_pargs {
+ public:
+
+
+  virtual ~IrrControl_forceKeyFrame_pargs() throw();
+  const int32_t* force_key_frame;
+
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+typedef struct _IrrControl_forceKeyFrame_result__isset {
+  _IrrControl_forceKeyFrame_result__isset() : success(false) {}
+  bool success :1;
+} _IrrControl_forceKeyFrame_result__isset;
+
+class IrrControl_forceKeyFrame_result {
+ public:
+
+  IrrControl_forceKeyFrame_result(const IrrControl_forceKeyFrame_result&);
+  IrrControl_forceKeyFrame_result& operator=(const IrrControl_forceKeyFrame_result&);
+  IrrControl_forceKeyFrame_result() : success(0) {
+  }
+
+  virtual ~IrrControl_forceKeyFrame_result() throw();
+  int32_t success;
+
+  _IrrControl_forceKeyFrame_result__isset __isset;
+
+  void __set_success(const int32_t val);
+
+  bool operator == (const IrrControl_forceKeyFrame_result & rhs) const
+  {
+    if (!(success == rhs.success))
+      return false;
+    return true;
+  }
+  bool operator != (const IrrControl_forceKeyFrame_result &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const IrrControl_forceKeyFrame_result & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+typedef struct _IrrControl_forceKeyFrame_presult__isset {
+  _IrrControl_forceKeyFrame_presult__isset() : success(false) {}
+  bool success :1;
+} _IrrControl_forceKeyFrame_presult__isset;
+
+class IrrControl_forceKeyFrame_presult {
+ public:
+
+
+  virtual ~IrrControl_forceKeyFrame_presult() throw();
+  int32_t* success;
+
+  _IrrControl_forceKeyFrame_presult__isset __isset;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+
+};
+
 class IrrControlClient : virtual public IrrControlIf, public  ::IntelCloudRendering::StreamControlClient {
  public:
   IrrControlClient(apache::thrift::stdcxx::shared_ptr< ::apache::thrift::protocol::TProtocol> prot) :
@@ -569,6 +678,9 @@ class IrrControlClient : virtual public IrrControlIf, public  ::IntelCloudRender
   bool readDumpStatus();
   void send_readDumpStatus();
   bool recv_readDumpStatus();
+  int32_t forceKeyFrame(const int32_t force_key_frame);
+  void send_forceKeyFrame(const int32_t force_key_frame);
+  int32_t recv_forceKeyFrame();
 };
 
 class IrrControlProcessor : public  ::IntelCloudRendering::StreamControlProcessor {
@@ -584,6 +696,7 @@ class IrrControlProcessor : public  ::IntelCloudRendering::StreamControlProcesso
   void process_stopDump(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
   void process_restartDump(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
   void process_readDumpStatus(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
+  void process_forceKeyFrame(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
  public:
   IrrControlProcessor(::apache::thrift::stdcxx::shared_ptr<IrrControlIf> iface) :
      ::IntelCloudRendering::StreamControlProcessor(iface),
@@ -593,6 +706,7 @@ class IrrControlProcessor : public  ::IntelCloudRendering::StreamControlProcesso
     processMap_["stopDump"] = &IrrControlProcessor::process_stopDump;
     processMap_["restartDump"] = &IrrControlProcessor::process_restartDump;
     processMap_["readDumpStatus"] = &IrrControlProcessor::process_readDumpStatus;
+    processMap_["forceKeyFrame"] = &IrrControlProcessor::process_forceKeyFrame;
   }
 
   virtual ~IrrControlProcessor() {}
@@ -671,6 +785,15 @@ class IrrControlMultiface : virtual public IrrControlIf, public  ::IntelCloudRen
     return ifaces_[i]->readDumpStatus();
   }
 
+  int32_t forceKeyFrame(const int32_t force_key_frame) {
+    size_t sz = ifaces_.size();
+    size_t i = 0;
+    for (; i < (sz - 1); ++i) {
+      ifaces_[i]->forceKeyFrame(force_key_frame);
+    }
+    return ifaces_[i]->forceKeyFrame(force_key_frame);
+  }
+
 };
 
 // The 'concurrent' client is a thread safe client that correctly handles
@@ -702,6 +825,9 @@ class IrrControlConcurrentClient : virtual public IrrControlIf, public  ::IntelC
   bool readDumpStatus();
   int32_t send_readDumpStatus();
   bool recv_readDumpStatus(const int32_t seqid);
+  int32_t forceKeyFrame(const int32_t force_key_frame);
+  int32_t send_forceKeyFrame(const int32_t force_key_frame);
+  int32_t recv_forceKeyFrame(const int32_t seqid);
 };
 
 #ifdef _MSC_VER

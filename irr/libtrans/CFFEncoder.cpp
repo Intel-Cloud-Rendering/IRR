@@ -100,6 +100,13 @@ int CFFEncoder::write(AVFrame *pFrame) {
     if (pFrame)
         Debug("Encoder <- Filter: dts %s, time %s\n", TsToStr(pFrame->pts).c_str(),
               TsToTimeStr(pFrame->pts, m_pEnc->time_base.num, m_pEnc->time_base.den).c_str());
+
+    if (pFrame && pFrame->pict_type == AV_PICTURE_TYPE_I) {
+        Info("force key frame at pts=%s, ts=%s, framenum=%d\n",
+            TsToStr(pFrame->pts).c_str(),
+            TsToTimeStr(pFrame->pts, m_pEnc->time_base.num,
+                m_pEnc->time_base.den).c_str(), m_nFrames);
+    }
     ret = avcodec_send_frame(m_pEnc, pFrame);
     if (ret < 0) {
         if (ret != AVERROR_EOF)

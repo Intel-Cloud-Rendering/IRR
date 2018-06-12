@@ -14,3 +14,6 @@ $ ./IrrControl-remote startDump "DumpInfo(filename='test', serial_no=2, frame_to
 $ ./IrrControl-remote stopDump     # stop dump
 $ ./IrrControl-remote restartDump "DumpInfo(filename='test', serial_no=1)"      # stop old dump and start dump frame into file ${qemu_root}/tmp/test_1.rgba, until user manully stop it
 $ ./IrrControl-remote readDumpStatus    # query dump status
+
+force key frame cmd:
+$ ./IrrControl-remote forceKeyFrame "1"

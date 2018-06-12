@@ -86,6 +86,9 @@ public:
     void run();
     bool interrupt_callback();
 
+    /* force key frame encoding */
+    int forceKeyFrame(int force);
+
 private:
     /* Disable copy constructor and = */
     CTransCoder(const CTransCoder& orig);
@@ -114,6 +117,7 @@ private:
     CTransLog                *m_Log;
     pthread_mutex_t           m_IntMutex;
     AVDictionary             *m_pInProp, *m_pOutProp;
+    int m_forceKeyFrame; // force key frame encoding
 };
 
 #endif /* CTRANSCODER_H */

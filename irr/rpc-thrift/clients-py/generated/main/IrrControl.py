@@ -47,6 +47,13 @@ class Iface(stream.StreamControl.Iface):
     def readDumpStatus(self):
         pass
 
+    def forceKeyFrame(self, force_key_frame):
+        """
+        Parameters:
+         - force_key_frame
+        """
+        pass
+
 
 class Client(stream.StreamControl.Client, Iface):
     """
@@ -194,6 +201,37 @@ class Client(stream.StreamControl.Client, Iface):
             return result.success
         raise TApplicationException(TApplicationException.MISSING_RESULT, "readDumpStatus failed: unknown result")
 
+    def forceKeyFrame(self, force_key_frame):
+        """
+        Parameters:
+         - force_key_frame
+        """
+        self.send_forceKeyFrame(force_key_frame)
+        return self.recv_forceKeyFrame()
+
+    def send_forceKeyFrame(self, force_key_frame):
+        self._oprot.writeMessageBegin('forceKeyFrame', TMessageType.CALL, self._seqid)
+        args = forceKeyFrame_args()
+        args.force_key_frame = force_key_frame
+        args.write(self._oprot)
+        self._oprot.writeMessageEnd()
+        self._oprot.trans.flush()
+
+    def recv_forceKeyFrame(self):
+        iprot = self._iprot
+        (fname, mtype, rseqid) = iprot.readMessageBegin()
+        if mtype == TMessageType.EXCEPTION:
+            x = TApplicationException()
+            x.read(iprot)
+            iprot.readMessageEnd()
+            raise x
+        result = forceKeyFrame_result()
+        result.read(iprot)
+        iprot.readMessageEnd()
+        if result.success is not None:
+            return result.success
+        raise TApplicationException(TApplicationException.MISSING_RESULT, "forceKeyFrame failed: unknown result")
+
 
 class Processor(stream.StreamControl.Processor, Iface, TProcessor):
     def __init__(self, handler):
@@ -203,6 +241,7 @@ class Processor(stream.StreamControl.Processor, Iface, TProcessor):
         self._processMap["stopDump"] = Processor.process_stopDump
         self._processMap["restartDump"] = Processor.process_restartDump
         self._processMap["readDumpStatus"] = Processor.process_readDumpStatus
+        self._processMap["forceKeyFrame"] = Processor.process_forceKeyFrame
 
     def process(self, iprot, oprot):
         (name, type, seqid) = iprot.readMessageBegin()
@@ -330,6 +369,29 @@ class Processor(stream.StreamControl.Processor, Iface, TProcessor):
             msg_type = TMessageType.EXCEPTION
             result = TApplicationException(TApplicationException.INTERNAL_ERROR, 'Internal error')
         oprot.writeMessageBegin("readDumpStatus", msg_type, seqid)
+        result.write(oprot)
+        oprot.writeMessageEnd()
+        oprot.trans.flush()
+
+    def process_forceKeyFrame(self, seqid, iprot, oprot):
+        args = forceKeyFrame_args()
+        args.read(iprot)
+        iprot.readMessageEnd()
+        result = forceKeyFrame_result()
+        try:
+            result.success = self._handler.forceKeyFrame(args.force_key_frame)
+            msg_type = TMessageType.REPLY
+        except TTransport.TTransportException:
+            raise
+        except TApplicationException as ex:
+            logging.exception('TApplication exception in handler')
+            msg_type = TMessageType.EXCEPTION
+            result = ex
+        except Exception:
+            logging.exception('Unexpected exception in handler')
+            msg_type = TMessageType.EXCEPTION
+            result = TApplicationException(TApplicationException.INTERNAL_ERROR, 'Internal error')
+        oprot.writeMessageBegin("forceKeyFrame", msg_type, seqid)
         result.write(oprot)
         oprot.writeMessageEnd()
         oprot.trans.flush()
@@ -870,6 +932,127 @@ class readDumpStatus_result(object):
 all_structs.append(readDumpStatus_result)
 readDumpStatus_result.thrift_spec = (
     (0, TType.BOOL, 'success', None, None, ),  # 0
+)
+
+
+class forceKeyFrame_args(object):
+    """
+    Attributes:
+     - force_key_frame
+    """
+
+
+    def __init__(self, force_key_frame=None,):
+        self.force_key_frame = force_key_frame
+
+    def read(self, iprot):
+        if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
+            iprot._fast_decode(self, iprot, [self.__class__, self.thrift_spec])
+            return
+        iprot.readStructBegin()
+        while True:
+            (fname, ftype, fid) = iprot.readFieldBegin()
+            if ftype == TType.STOP:
+                break
+            if fid == 1:
+                if ftype == TType.I32:
+                    self.force_key_frame = iprot.readI32()
+                else:
+                    iprot.skip(ftype)
+            else:
+                iprot.skip(ftype)
+            iprot.readFieldEnd()
+        iprot.readStructEnd()
+
+    def write(self, oprot):
+        if oprot._fast_encode is not None and self.thrift_spec is not None:
+            oprot.trans.write(oprot._fast_encode(self, [self.__class__, self.thrift_spec]))
+            return
+        oprot.writeStructBegin('forceKeyFrame_args')
+        if self.force_key_frame is not None:
+            oprot.writeFieldBegin('force_key_frame', TType.I32, 1)
+            oprot.writeI32(self.force_key_frame)
+            oprot.writeFieldEnd()
+        oprot.writeFieldStop()
+        oprot.writeStructEnd()
+
+    def validate(self):
+        return
+
+    def __repr__(self):
+        L = ['%s=%r' % (key, value)
+             for key, value in self.__dict__.items()]
+        return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
+
+    def __eq__(self, other):
+        return isinstance(other, self.__class__) and self.__dict__ == other.__dict__
+
+    def __ne__(self, other):
+        return not (self == other)
+all_structs.append(forceKeyFrame_args)
+forceKeyFrame_args.thrift_spec = (
+    None,  # 0
+    (1, TType.I32, 'force_key_frame', None, None, ),  # 1
+)
+
+
+class forceKeyFrame_result(object):
+    """
+    Attributes:
+     - success
+    """
+
+
+    def __init__(self, success=None,):
+        self.success = success
+
+    def read(self, iprot):
+        if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
+            iprot._fast_decode(self, iprot, [self.__class__, self.thrift_spec])
+            return
+        iprot.readStructBegin()
+        while True:
+            (fname, ftype, fid) = iprot.readFieldBegin()
+            if ftype == TType.STOP:
+                break
+            if fid == 0:
+                if ftype == TType.I32:
+                    self.success = iprot.readI32()
+                else:
+                    iprot.skip(ftype)
+            else:
+                iprot.skip(ftype)
+            iprot.readFieldEnd()
+        iprot.readStructEnd()
+
+    def write(self, oprot):
+        if oprot._fast_encode is not None and self.thrift_spec is not None:
+            oprot.trans.write(oprot._fast_encode(self, [self.__class__, self.thrift_spec]))
+            return
+        oprot.writeStructBegin('forceKeyFrame_result')
+        if self.success is not None:
+            oprot.writeFieldBegin('success', TType.I32, 0)
+            oprot.writeI32(self.success)
+            oprot.writeFieldEnd()
+        oprot.writeFieldStop()
+        oprot.writeStructEnd()
+
+    def validate(self):
+        return
+
+    def __repr__(self):
+        L = ['%s=%r' % (key, value)
+             for key, value in self.__dict__.items()]
+        return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
+
+    def __eq__(self, other):
+        return isinstance(other, self.__class__) and self.__dict__ == other.__dict__
+
+    def __ne__(self, other):
+        return not (self == other)
+all_structs.append(forceKeyFrame_result)
+forceKeyFrame_result.thrift_spec = (
+    (0, TType.I32, 'success', None, None, ),  # 0
 )
 fix_spec(all_structs)
 del all_structs

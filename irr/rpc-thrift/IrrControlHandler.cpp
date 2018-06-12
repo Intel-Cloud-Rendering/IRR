@@ -81,3 +81,8 @@ int32_t IrrControlHandler::restartStream(const StreamInfo &info) {
 
     return startStream(info);
 }
+
+int32_t IrrControlHandler::forceKeyFrame(int32_t force_key_frame) {
+    printf("force key framw now\n");
+    return irr_stream_force_keyframe(force_key_frame);
+}
