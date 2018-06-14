@@ -58,6 +58,7 @@ LOCAL_LDLIBS += \
 
 STREAM_SRC_FILES := \
     stream.cpp \
+    IrrStreamer.cpp \
     libtrans/CFFDecoder.cpp \
     libtrans/CFFDemux.cpp \
     libtrans/CFFEncoder.cpp \
@@ -67,6 +68,8 @@ STREAM_SRC_FILES := \
     libtrans/CTransCoder.cpp \
     libtrans/CTransLog.cpp \
     libtrans/CVAAPIDevice.cpp \
+    libtrans/CCallbackMux.cpp \
+    libtrans/CIrrVideoDemux.cpp \
 
 LOCAL_SRC_FILES := \
     Dump.cpp \

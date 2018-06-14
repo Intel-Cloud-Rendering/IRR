@@ -54,7 +54,7 @@ bool IrrControlHandler::readDumpStatus() {
 }
 
 int32_t IrrControlHandler::startStream(const StreamInfo &info) {
-    IrrStreamInfo stream_info = {0};
+    IrrStreamer::IrrStreamInfo stream_info = {0};
 
     if (info.__isset.framerate)
         stream_info.framerate    = info.framerate.c_str();

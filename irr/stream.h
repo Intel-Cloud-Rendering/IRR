@@ -1,22 +1,18 @@
+// Copyright 2018 The Android Open Source Project
+//
+// This software is licensed under the terms of the GNU General Public
+// License version 2, as published by the Free Software Foundation, and
+// may be copied, distributed, and modified under those terms.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
 
 #ifndef STREAM_UTILS_H
 #define STREAM_UTILS_H
-#include "android/utils/compiler.h"
 
-ANDROID_BEGIN_HEADER
-
-struct IrrStreamInfo {
-    /* Output-only parameters */
-    int bitrate; ///< Encoder bitrate, default 1M
-    int gop_size; ///< Group Of Picture size, default 50
-    const char *codec; ///< Encoder codec, e.x. h264_qsv; may be null
-    const char *format; ///< Mux format, e.x. flv; null as auto
-    const char *url; ///< Output url.
-    int low_power; ///< Enable low-power mode, default not.
-    const char *res; ///< Encoding resolution.
-    const char *framerate; ///< Encoding framerate
-    const char *exp_vid_param; ///< Extra encoding/muxer parameters passed to libtrans/FFmpeg
-};
+#include "IrrStreamer.h"
 
 /**
  * @param w           screen width
@@ -30,7 +26,7 @@ void register_stream_publishment(int w, int h, float framerate);
  * @param stream_info
  * @return 0 on success
  */
-int irr_stream_start(struct IrrStreamInfo *stream_info);
+int irr_stream_start(IrrStreamer::IrrStreamInfo *stream_info);
 
 void irr_stream_stop();
 
@@ -59,5 +55,4 @@ void *irr_get_buffer(int size);
  */
 int irr_stream_force_keyframe(int force_key_frame);
 
-ANDROID_END_HEADER
 #endif /* STREAM_UTILS_H */

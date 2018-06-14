@@ -193,6 +193,21 @@ static void rpc_callback(void* opaque, int fd, unsigned events)
     rpc->serve();
 }
 
+static int dummy_wirteback(void *opaque, uint8_t *data, size_t size)
+{
+    FILE *fp = static_cast<FILE*> (opaque);
+    fwrite(data, size, 1, fp);
+    fprintf(stdout, "Write back data @ %p, length %" PRIu64 "\n", data, size);
+    return 0;
+}
+
+static void dummy_close(void *opaque)
+{
+    FILE *fp = static_cast<FILE*> (opaque);
+    fflush(fp);
+    fclose(fp);
+}
+
 extern "C" int main(int argc, char** argv)
 {
     int ret = 0;
@@ -203,6 +218,7 @@ extern "C" int main(int argc, char** argv)
     char *render_port = NULL;
     android::base::Looper::FdWatch *thrift_watch = NULL;
     IrrRpcMaintainer *rpc_mt = NULL;
+    const char *dummy_file = "/dev/null";
 
     D("Hello, this is an intel remote renderer!\n");
 
@@ -263,7 +279,7 @@ extern "C" int main(int argc, char** argv)
     register_stream_publishment(sConfig->hw_lcd_width, sConfig->hw_lcd_height, 30.f);
 
     if (opts->streaming){
-        IrrStreamInfo info = { 0 };
+        IrrStreamer::IrrStreamInfo info = { 0 };
         if (opts->fr)
             info.framerate = opts->fr;
 
@@ -272,6 +288,13 @@ extern "C" int main(int argc, char** argv)
 
         info.url   = opts->url;
         info.codec = opts->codec;
+        if (strncmp(opts->url, "cb:", strlen("cb:")) == 0) {
+            dummy_file = opts->url + strlen("cb:");
+            info.url   = nullptr;
+        }
+        info.cb_params.opaque  = fopen(dummy_file, "wb+");
+        info.cb_params.cbWrite = dummy_wirteback;
+        info.cb_params.cbClose = dummy_close;
 
         if (opts->lowpower) {
             fprintf(stderr, "Low power enabled.\n");
